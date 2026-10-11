@@ -66,7 +66,8 @@ KINDS: Mapping[str, str] = {
 }
 
 # Spec §5.7 information-flow matrix (rows: roles; values: readable artifact classes). The
-# governor and the shipper are deterministic orchestrator code with their own narrow rows.
+# governor and the shipper are deterministic orchestrator code with their own narrow rows; the
+# governor reads the incident opening for its VaR estimate (§4.6.2), never code or verdicts.
 _COORDINATOR = {"summary", "intent", "budget", "cards", "verdicts", "feedback", "prior"}
 _AUDITOR = {"traces", "summary", "source", "intent", "cards", "diffs", "verdicts"}
 READS: Mapping[str, frozenset[str]] = {
@@ -76,7 +77,7 @@ READS: Mapping[str, frozenset[str]] = {
     "coordinator": frozenset(_COORDINATOR),
     "surgeon": frozenset({"summary", "intent", "cards", "feedback"}),
     "auditor": frozenset(_AUDITOR),
-    "governor": frozenset({"budget", "summary"}),
+    "governor": frozenset({"budget", "summary", "hits"}),
     "shipper": frozenset({"summary", "intent", "budget", "cards", "diffs", "verdicts"}),
 }
 

@@ -51,6 +51,8 @@ def make_repo(destination: Path) -> Practice:
     shutil.copytree(FIXTURE, destination, ignore=shutil.ignore_patterns("__pycache__"))
     git(destination, "init", "-q", "-b", "main")
     git(destination, "config", "core.autocrlf", "false")
+    git(destination, "config", "user.name", "Surya Prasanth R")  # ruling D4: the sole identity
+    git(destination, "config", "user.email", "suryaprasanthcse@gmail.com")
     commit_all(destination, "practice: the healthy ledger")
     secret, recipient = new_identity()
     target = load_target(destination, HOST)

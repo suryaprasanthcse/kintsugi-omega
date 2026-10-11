@@ -281,8 +281,12 @@ def test_the_supervisor_continues_as_new_and_keeps_its_state() -> None:
 
             await wait_for(seven)
             await sup.signal(FleetSupervisor.hit, hit(2))  # seen before the continue_as_new
-            await asyncio.sleep(0.5)
             latest = client.get_workflow_handle("sup-can")  # follows the continue_as_new chain
+
+            async def eight() -> bool:  # a condition, not a fixed sleep: robust under load
+                return (await latest.query(FleetSupervisor.status))["events"] == 8
+
+            await wait_for(eight)
             status = await latest.query(FleetSupervisor.status)
             budget = await latest.query(FleetSupervisor.budget, "triage")
             first_run = client.get_workflow_handle("sup-can", run_id=sup.result_run_id)
