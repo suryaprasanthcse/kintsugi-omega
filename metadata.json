@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NYWFBCNMGSSAET1HBN9K7V",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/control/drill.py",
+    "kintsugi/control/sqlite_fsm.py",
+    "tests/control/test_sqlite_fsm.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 29198,
+    "cache_read_tokens": 7004018,
+    "output_tokens": 24841,
+    "api_call_count": 9
+  }
+}
