@@ -193,16 +193,21 @@ def format_trailers(pairs: list[tuple[str, str]]) -> str:
 
 
 def parse_trailers(message: str) -> dict[str, list[str]]:
-    """Trailers from the final paragraph of a commit message (git's trailer block)."""
+    """Trailers from the trailing trailer-only paragraphs of a commit message.
+
+    Consecutive trailing paragraphs that consist only of ``Key: value`` lines are merged, so the
+    orchestrator's ``Kintsugi-*`` block and an ``Entire-Checkpoint:`` line that a hook appends
+    in its own paragraph are read together. The subject line is never a trailer.
+    """
     paragraphs = [block for block in re.split(r"\n\s*\n", message.strip()) if block.strip()]
-    if len(paragraphs) < 2:
-        return {}
     parsed: dict[str, list[str]] = {}
-    for line in paragraphs[-1].splitlines():
-        match = _TRAILER_LINE.match(line.strip())
-        if match is None:
-            return {}  # not a trailer block
-        parsed.setdefault(match.group(1), []).append(match.group(2).strip())
+    for block in reversed(paragraphs[1:]):
+        matches = [_TRAILER_LINE.match(line.strip()) for line in block.splitlines()]
+        if not all(matches):
+            break  # prose: the trailer section ends here
+        for match in reversed(matches):
+            assert match is not None
+            parsed.setdefault(match.group(1), []).insert(0, match.group(2).strip())
     return parsed
 
 

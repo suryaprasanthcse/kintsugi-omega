@@ -111,6 +111,18 @@ def test_missing_attestation_trailers_are_listed() -> None:
     assert "Kintsugi-Nonce" in problems[0]
 
 
+def test_trailers_split_across_trailing_paragraphs_are_merged() -> None:
+    message = (
+        "fix: x\n\nWhy it changed.\n\n"
+        "Kintsugi-Incident: INC-1\nKintsugi-Role: surgeon/H1\n\n"
+        "Entire-Checkpoint: 01M4MXCTAM5YSYDX4HXMJ5V7H4\n"
+    )
+    parsed = attest.parse_trailers(message)
+    assert parsed["Kintsugi-Incident"] == ["INC-1"]
+    assert parsed["Entire-Checkpoint"] == ["01M4MXCTAM5YSYDX4HXMJ5V7H4"]
+    assert "Why it changed." not in str(parsed)
+
+
 def test_a_body_paragraph_is_not_a_trailer_block() -> None:
     assert attest.parse_trailers("subject\n\nthis is prose, not: a trailer block at all\n") == {}
     assert attest.parse_trailers("subject only") == {}

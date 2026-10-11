@@ -77,6 +77,7 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = [
     "contract: needs local Entire or Claude Code tooling (Stage 2+)",

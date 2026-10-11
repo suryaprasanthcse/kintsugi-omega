@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
@@ -10,6 +9,7 @@ import pytest
 
 from kintsugi.memory import entire
 from kintsugi.sandbox import proc
+from tests.helpers.checkpoints import git, write_checkpoint
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "entire"
 CKPT = "01M4MT4M6K467TEZ3R6J340DAB"
@@ -89,59 +89,8 @@ def test_checkpoint_ref_shards_on_the_last_two_characters() -> None:
 
 # ---- checkpoint refs with plain git (CI-safe) ------------------------------------------------
 
-
-def _git(repo: Path, *args: str, input_text: str | None = None) -> str:
-    result = proc.run(["git", "-C", str(repo), *args], timeout_s=60, input_text=input_text)
-    assert result.ok, result.stderr
-    return result.stdout.strip()
-
-
-def _blob(repo: Path, content: bytes) -> str:
-    path = repo / ".blob"
-    path.write_bytes(content)
-    sha = _git(repo, "hash-object", "-w", str(path))
-    path.unlink()
-    return sha
-
-
-def _write_checkpoint(
-    repo: Path, checkpoint_id: str, full: bytes, *, tamper: bool = False, finalize: bool = False
-) -> str:
-    """Build a ref with Entire's exact on-disk layout (verified on real checkpoints)."""
-    session_meta = {"checkpoint_id": checkpoint_id, "session_id": "sess-1", "turn_id": "t1"}
-    top = {
-        "checkpoint_id": checkpoint_id,
-        "strategy": "manual-commit",
-        "files_touched": ["attempt.txt"],
-        "sessions": [{"metadata": "/0/metadata.json", "transcript": "/0/full.jsonl",
-                      "compact_transcript": "/0/transcript.jsonl",
-                      "content_hash": "/0/content_hash.txt", "prompt": ""}],
-    }  # fmt: skip
-    recorded = hashlib.sha256(full).hexdigest()
-    stored_full = full + b'{"tampered": true}\n' if tamper else full
-    inner = "\n".join(
-        f"100644 blob {sha}\t{name}"
-        for name, sha in sorted(
-            {
-                "content_hash.txt": _blob(repo, f"sha256:{recorded}".encode()),
-                "full.jsonl": _blob(repo, stored_full),
-                "metadata.json": _blob(repo, json.dumps(session_meta).encode()),
-                "transcript.jsonl": _blob(repo, b'{"type":"user","content":"x"}\n'),
-            }.items()
-        )
-    )
-    subtree = _git(repo, "mktree", input_text=inner + "\n")
-    top_blob = _blob(repo, json.dumps(top).encode())
-    listing = f"040000 tree {subtree}\t0\n100644 blob {top_blob}\tmetadata.json\n"
-    root = _git(repo, "mktree", input_text=listing)
-    ref = entire.checkpoint_ref(checkpoint_id)
-    # Entire's "Finalize transcript" commit is a child of the checkpoint commit (fast-forward).
-    parent = ["-p", _git(repo, "rev-parse", ref)] if finalize else []
-    subject = "Finalize transcript for Checkpoint" if finalize else "Checkpoint"
-    commit = _git(repo, "-c", "user.name=t", "-c", "user.email=t@example.invalid",
-                  "commit-tree", root, *parent, "-m", f"{subject}: {checkpoint_id}")  # fmt: skip
-    _git(repo, "update-ref", ref, commit)
-    return commit
+_git = git
+_write_checkpoint = write_checkpoint
 
 
 @pytest.fixture
@@ -190,6 +139,19 @@ def test_sync_pushes_only_stale_refs_and_verifies_the_remote(tmp_path: Path, rep
     assert second.pushed == (entire.checkpoint_ref(other),)
     assert second.in_sync
     assert entire.remote_checkpoint_refs(repo) == entire.local_checkpoint_refs(repo)
+
+
+def test_sync_refuses_to_push_a_transcript_with_a_secret(tmp_path: Path, repo: Path) -> None:
+    from kintsugi.proof.redaction import SecretsFound
+
+    remote = tmp_path / "remote.git"
+    proc.run(["git", "init", "-q", "--bare", str(remote)], timeout_s=30, check=True)
+    _git(repo, "remote", "add", "origin", str(remote))
+    leaked = "sk-" + "ant-api03-" + "Z" * 40  # assembled at runtime: no secret literal in the repo
+    _write_checkpoint(repo, CKPT, f'{{"type":"user","content":"{leaked}"}}\n'.encode())
+    with pytest.raises(SecretsFound):
+        entire.sync_checkpoint_refs(repo)
+    assert entire.remote_checkpoint_refs(repo) == {}  # nothing left the machine
 
 
 def test_sync_never_forces_a_diverged_ref(tmp_path: Path, repo: Path) -> None:

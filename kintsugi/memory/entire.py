@@ -226,10 +226,13 @@ def sync_checkpoint_refs(repo: PathLike, remote: str = "origin") -> SyncReport:
     Entire's pre-push hook may push the same refs concurrently, which makes git report
     "cannot lock ref … is at X but expected Y" even though X is exactly what we wanted.
     """
+    from kintsugi.proof.redaction import assert_pushable  # transcripts are public once pushed
+
     local = local_checkpoint_refs(repo)
     before = remote_checkpoint_refs(repo, remote)
     stale = sorted(ref for ref, sha in local.items() if before.get(ref) != sha)
     if stale:
+        assert_pushable(repo, stale)
         proc.run(["git", "-C", os.fspath(repo), "push", remote, *[f"{r}:{r}" for r in stale]],
                  timeout_s=300)  # fmt: skip
     after = remote_checkpoint_refs(repo, remote)
