@@ -1,0 +1,31 @@
+Incident INC-R235459-0001, hypothesis H3. Session nonce: boza-piho-labi-lavo-gohu-soli-nofa-safa-lobu-guza-zijo
+
+Hypothesis: Make resumption state-derived: pending() must exclude already-booked lines regardless of session identity
+Root cause: Alternative theory of the defect's locus: the fragility is not only that one line moved, but that correctness of retry depends entirely on a mutable in-memory PostingSession object outliving the retried closure. `pending()` reports work from session-local bookkeeping rather than from the authoritative booked state of the batch, so any reconstruction of the session (retry, re-entry with session=None, a future refactor) silently re-yields booked lines and duplicates the books:/lines write.
+Approach: In `practice_ledger/reconcile.py`, make the resumption set derive from durable booked state instead of per-session memory: have `PostingSession.pending()` (and/or the record-booked path) consult the batch's already-booked lines so a freshly constructed session over the same batch yields the same remaining work as a surviving one. Keep `post_line` calls guarded so a line that is already booked is never written twice. Preserve the `book_pending_lines` name, its docstring, and the existing `retry_with_backoff` loop; the retried pass must still be a whole pass over pending lines, now idempotent by construction. Do not weaken or special-case the grader, do not edit tools.py, host.yaml, tests, or evals. Succeeds only if a RateLimited from `fx_rate` mid-batch yields exactly one books:/lines write per line even when the session is recreated inside the closure.
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+- A rate limit retries the whole pass over `batch`'s pending lines — resumption is driven by what is still pending, not by re-booking everything.: """"Book every pending line of ``batch`` in USD; a rate limit retries the whole pass.""""
+- The session state that records which lines are already booked must survive retries.: "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+- The retry logic's readability intent — a named, documented retried pass — must be kept.: "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+
+Files you may edit: practice_ledger/reconcile.py
+Diff budget: at most 45 changed lines.
+
+Cause report excerpt:
+Symptom: All 4 traces in the dominant cluster (TR-003, TR-013, TR-015, TR-021, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, reported at the CHAIN grader.verdict span. In every trace the span sequence is the same: a single fx_rate call followed by two consecutive books:/lines calls, with books:/lines as the failing tool. The second books:/lines write is the point at which the duplicate-entry condition appears; no retry, fault injection, or alternate path is visible before it. Detection omega:R-007:ledger-practice fires on all traces. Reproduction is 100% consistent across the cluster (4/4 traces, one host, one signature sha256:b9fe39c5383c) with no variation in ordering, tool, or verdict.
+Root cause (Coordinator): Alternative theory of the defect's locus: the fragility is not only that one line moved, but that correctness of retry depends entirely on a mutable in-memory PostingSession object outliving the retried closure. `pending()` reports work from session-local bookkeeping rather than from the authoritative booked state of the batch, so any reconstruction of the session (retry, re-entry with session=None, a future refactor) silently re-yields booked lines and duplicates the books:/lines write.
+
+Gate feedback from earlier rounds (aggregates only):
+(first round)
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
