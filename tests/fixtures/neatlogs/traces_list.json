@@ -1,0 +1,92 @@
+{
+ "operation": "traces.list",
+ "status": 200,
+ "body": {
+  "data": {
+   "page": {
+    "hasMore": true,
+    "limit": 3,
+    "nextCursor": "nlc1.prod-20260929.eyJkYXRlUmFuZ2UiOnsiZnJvbSI6IjIwMjYtMDktMTFUMTU6MDk6NTQuMjQwWiIsInRvIjoiMjAyNi0xMC0xMVQxNTowOTo1NC4yNDBaIn0sImV4cCI6MTc5MTczMjI5NCwiaWF0IjoxNzkxNzMxMzk0LCJraWQiOiJwcm9kLTIwMjYwOTI5Iiwib3BlcmF0aW9uSWQiOiJnZXRfYXBpX3YxX3B1YmxpY190cmFjZXMiLCJwcm9qZWN0RGlnZXN0IjoiVkZWcl9QeUZVMkszRjlSWlcwTk5TNThQVUFqWTRhYmF4cFpSUWpvMWN1USIsInNjb3BlSGFzaCI6IjllZ29rLVU3QS1OV3plaGlqYm1mVTZHMHZWMzF6V3NtRVBfNXp2SGZVT2MiLCJzb3J0IjoidHJhY2VzLXN0YXJ0ZWQtZGVzYy1pZC1kZXNjIiwidHVwbGUiOlsiMjAyNi0xMC0xMVQxNDo1NToxMi40MTUwMDBaIiwiMmJlYmE2YmU3NzkxN2QyZjU1YjVkNGFiODcwYWVjN2IiXSwidiI6MX0.OaRwf3wlcuqoZqr8u5guYIxj79c6N_UZMuD63tCVaug"
+   },
+   "traces": [
+    {
+     "completedAt": "2026-10-11T14:55:13.996Z",
+     "durationMs": 115,
+     "finalizationStatus": "finalized",
+     "framework": "",
+     "ingestedAt": "2026-10-11T14:55:13.998Z",
+     "llmCallsCount": 1,
+     "sessionId": "d23ffdad100e3a3bd55365ebc266447d",
+     "spansCount": 20,
+     "startedAt": "2026-10-11T14:55:12.806Z",
+     "status": "OK",
+     "tags": [
+      "host:ledger",
+      "split:train",
+      "seed:7",
+      "phase:baseline",
+      "run:10af6f84"
+     ],
+     "toolCallsCount": 16,
+     "totalCostUsd": 0,
+     "totalTokens": 738,
+     "traceId": "d23ffdad100e3a3bd55365ebc266447d",
+     "traceName": "task:ledger-train-002",
+     "workflowName": "host:ledger"
+    },
+    {
+     "completedAt": "2026-10-11T14:55:14.073Z",
+     "durationMs": 157,
+     "finalizationStatus": "finalized",
+     "framework": "",
+     "ingestedAt": "2026-10-11T14:55:14.075Z",
+     "llmCallsCount": 1,
+     "sessionId": "c2075e375ce0a01557e3ce6c3c1247b8",
+     "spansCount": 24,
+     "startedAt": "2026-10-11T14:55:12.649Z",
+     "status": "OK",
+     "tags": [
+      "host:ledger",
+      "split:train",
+      "seed:7",
+      "phase:baseline",
+      "run:10af6f84"
+     ],
+     "toolCallsCount": 20,
+     "totalCostUsd": 0,
+     "totalTokens": 797,
+     "traceId": "c2075e375ce0a01557e3ce6c3c1247b8",
+     "traceName": "task:ledger-train-001",
+     "workflowName": "host:ledger"
+    },
+    {
+     "completedAt": "2026-10-11T14:55:14.073Z",
+     "durationMs": 234,
+     "finalizationStatus": "finalized",
+     "framework": "",
+     "ingestedAt": "2026-10-11T14:55:14.074Z",
+     "llmCallsCount": 1,
+     "sessionId": "2beba6be77917d2f55b5d4ab870aec7b",
+     "spansCount": 15,
+     "startedAt": "2026-10-11T14:55:12.415Z",
+     "status": "ERROR",
+     "tags": [
+      "host:ledger",
+      "split:train",
+      "seed:7",
+      "phase:baseline",
+      "run:10af6f84"
+     ],
+     "toolCallsCount": 11,
+     "totalCostUsd": 0,
+     "totalTokens": 592,
+     "traceId": "2beba6be77917d2f55b5d4ab870aec7b",
+     "traceName": "task:ledger-train-000",
+     "workflowName": "host:ledger"
+    }
+   ]
+  },
+  "requestId": "req_fbc1b1613ba7ff64e4032e1e8684d3d8",
+  "success": true
+ }
+}

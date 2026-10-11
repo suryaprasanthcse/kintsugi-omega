@@ -1,0 +1,39 @@
+{
+ "operation": "alert_rules.create",
+ "status": 201,
+ "body": {
+  "data": {
+   "createdAt": "2026-10-11T14:57:16.233Z",
+   "detectionId": "7c58bc63-7f3b-4eac-a3a2-0293657f0937",
+   "detectionName": "kintsugi spike A6 marker",
+   "enabled": true,
+   "id": "7a0c7133-2269-405d-9226-858ff24c763e",
+   "name": "kintsugi spike A6 per-event",
+   "ruleType": "per_event",
+   "severity": "info",
+   "updatedAt": "2026-10-11T14:57:16.233Z",
+   "channelMask": {
+    "email": false,
+    "slack": false,
+    "webhookCount": 1
+   },
+   "conditions": null,
+   "conditionsTotal": 0,
+   "conditionsTruncated": false,
+   "conditionsLogicalOp": "AND",
+   "cooldownMinutes": 1,
+   "description": null,
+   "descriptionTruncated": false,
+   "metricAggregation": null,
+   "metricDetectionFilter": null,
+   "metricName": null,
+   "metricOperator": null,
+   "metricThresholdValue": null,
+   "silenceMinutes": null,
+   "thresholdCount": null,
+   "windowMinutes": null
+  },
+  "requestId": "req_6f9bbb05fc0e49dd1a8d6af7d29079b1",
+  "success": true
+ }
+}

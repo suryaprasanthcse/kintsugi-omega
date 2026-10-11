@@ -1,0 +1,20 @@
+{
+ "operation": "detections.create",
+ "status": 201,
+ "body": {
+  "data": {
+   "createdAt": "2026-10-11T14:56:51.065Z",
+   "displayName": "kintsugi spike A6 marker",
+   "groupId": "20700a0d-e8df-4a21-a2b7-255c5143ab69",
+   "groupName": "kintsugi-spikes",
+   "id": "7c58bc63-7f3b-4eac-a3a2-0293657f0937",
+   "isActive": true,
+   "slug": "custom_regex_mJkm6s1UbG",
+   "threshold": 0.5,
+   "type": "regex",
+   "updatedAt": "2026-10-11T14:56:51.065Z"
+  },
+  "requestId": "req_4e21e7bf988bbe34a3f674de4804dba4",
+  "success": true
+ }
+}

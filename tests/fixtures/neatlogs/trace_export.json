@@ -1,0 +1,104 @@
+{
+ "operation": "traces.export",
+ "status": 200,
+ "body": {
+  "data": {
+   "schemaVersion": 1,
+   "spans": [
+    {
+     "completionTokens": 0,
+     "costUsd": 0,
+     "durationMs": 1,
+     "endedAt": "2026-10-11T14:57:47.677Z",
+     "model": null,
+     "parentSpanId": "37c484568f53999f",
+     "promptTokens": 0,
+     "provider": null,
+     "spanId": "21e139d8e43a1f47",
+     "spanName": "spike.agent",
+     "spanType": "AGENT",
+     "startedAt": "2026-10-11T14:57:47.676Z",
+     "status": "OK",
+     "totalTokens": 0,
+     "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+    },
+    {
+     "completionTokens": 0,
+     "costUsd": 0,
+     "durationMs": 1,
+     "endedAt": "2026-10-11T14:57:47.677Z",
+     "model": null,
+     "parentSpanId": null,
+     "promptTokens": 0,
+     "provider": null,
+     "spanId": "37c484568f53999f",
+     "spanName": "incident:INC-S7dc19d",
+     "spanType": "WORKFLOW",
+     "startedAt": "2026-10-11T14:57:47.676Z",
+     "status": "OK",
+     "totalTokens": 0,
+     "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+    },
+    {
+     "completionTokens": 0,
+     "costUsd": 0,
+     "durationMs": 0,
+     "endedAt": "2026-10-11T14:57:47.677Z",
+     "model": null,
+     "parentSpanId": "21e139d8e43a1f47",
+     "promptTokens": 0,
+     "provider": null,
+     "spanId": "0a3401173805f9ff",
+     "spanName": "spike.evaluator",
+     "spanType": "EVALUATOR",
+     "startedAt": "2026-10-11T14:57:47.677Z",
+     "status": "OK",
+     "totalTokens": 0,
+     "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+    },
+    {
+     "completionTokens": 0,
+     "costUsd": 0,
+     "durationMs": 0,
+     "endedAt": "2026-10-11T14:57:47.677Z",
+     "model": null,
+     "parentSpanId": "21e139d8e43a1f47",
+     "promptTokens": 0,
+     "provider": null,
+     "spanId": "80b8bf2ed942c6a3",
+     "spanName": "spike.tool",
+     "spanType": "TOOL",
+     "startedAt": "2026-10-11T14:57:47.677Z",
+     "status": "OK",
+     "totalTokens": 0,
+     "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+    }
+   ],
+   "trace": {
+    "completedAt": "2026-10-11T14:57:49.814Z",
+    "durationMs": 1,
+    "finalizationStatus": "finalized",
+    "framework": "",
+    "ingestedAt": "2026-10-11T14:57:49.818Z",
+    "llmCallsCount": 0,
+    "sessionId": "inc-S7dc19d",
+    "spansCount": 4,
+    "startedAt": "2026-10-11T14:57:47.676Z",
+    "status": "OK",
+    "tags": [
+     "hyp:H1"
+    ],
+    "toolCallsCount": 1,
+    "totalCostUsd": 0,
+    "totalTokens": 0,
+    "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f",
+    "traceName": "incident:INC-S7dc19d",
+    "workflowName": "kintsugi:spike",
+    "metadataRevision": 0,
+    "metadataUpdatedAt": null
+   }
+  },
+  "requestId": "req_cf23c50e5c29b0aa0805e69d6d1255fb",
+  "success": true
+ }
+}

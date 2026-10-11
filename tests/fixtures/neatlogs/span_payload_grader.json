@@ -1,0 +1,26 @@
+{
+ "operation": "traces.span_payload",
+ "status": 200,
+ "body": {
+  "data": {
+   "fields": {
+    "input": {
+     "available": true,
+     "mimeType": "application/json",
+     "truncated": false,
+     "value": "{\"task_id\":\"ledger-train-002\",\"verdict\":\"PASS\"}"
+    },
+    "output": {
+     "available": true,
+     "mimeType": "application/json",
+     "truncated": false,
+     "value": "\"PASS\""
+    }
+   },
+   "spanId": "b4e37323d415c127",
+   "traceId": "d23ffdad100e3a3bd55365ebc266447d"
+  },
+  "requestId": "req_c4d4c596908bdacf5f120fe03cdb27f4",
+  "success": true
+ }
+}

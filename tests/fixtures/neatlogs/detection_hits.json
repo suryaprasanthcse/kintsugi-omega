@@ -1,0 +1,25 @@
+{
+ "operation": "detections.hits",
+ "status": 200,
+ "body": {
+  "data": {
+   "hits": [
+    {
+     "detectedAt": "2026-10-11T14:57:50.322Z",
+     "id": "f7a4fadf-30c1-4b6b-92ee-f2a04535a0ba",
+     "itemIndex": null,
+     "score": 1,
+     "spanId": "80b8bf2ed942c6a3",
+     "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+    }
+   ],
+   "page": {
+    "hasMore": false,
+    "limit": 100,
+    "nextCursor": null
+   }
+  },
+  "requestId": "req_12861a3fa66463f6ccea4edd8cabc6ab",
+  "success": true
+ }
+}

@@ -1,0 +1,54 @@
+{
+ "operation": "sessions.get",
+ "status": 200,
+ "body": {
+  "data": {
+   "page": {
+    "hasMore": false,
+    "limit": 50,
+    "nextCursor": null
+   },
+   "session": {
+    "durationMs": 1,
+    "framework": "",
+    "lastActivityAt": "2026-10-11T14:57:49.814Z",
+    "llmCallsCount": 0,
+    "sessionId": "inc-S7dc19d",
+    "spansCount": 4,
+    "startedAt": "2026-10-11T14:57:47.676Z",
+    "status": "OK",
+    "toolCallsCount": 1,
+    "totalCostUsd": 0,
+    "totalTokens": 0,
+    "traceCount": 1,
+    "traceName": "incident:INC-S7dc19d",
+    "workflowName": "kintsugi:spike"
+   },
+   "traces": [
+    {
+     "completedAt": "2026-10-11T14:57:49.814Z",
+     "durationMs": 1,
+     "finalizationStatus": "finalized",
+     "framework": "",
+     "ingestedAt": "2026-10-11T14:57:49.818Z",
+     "llmCallsCount": 0,
+     "sessionId": "inc-S7dc19d",
+     "spansCount": 4,
+     "startedAt": "2026-10-11T14:57:47.676Z",
+     "status": "OK",
+     "tags": [
+      "hyp:H1"
+     ],
+     "toolCallsCount": 1,
+     "totalCostUsd": 0,
+     "totalTokens": 0,
+     "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f",
+     "traceName": "incident:INC-S7dc19d",
+     "workflowName": "kintsugi:spike"
+    }
+   ]
+  },
+  "requestId": "req_f7369b3caa7994aa506c686448895333",
+  "success": true
+ }
+}

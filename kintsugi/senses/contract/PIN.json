@@ -1,0 +1,10 @@
+{
+  "source": "https://docs.neatlogs.com/openapi/public-api.json",
+  "retrieved_at": "2026-10-11T15:06:26Z",
+  "openapi": "3.1.0",
+  "info_version": "0.1.0",
+  "full_sha256": "b1bab0bcf36a1da848b7d0c2981eb0cd5df93c502786c0ae33b9b1257716af04",
+  "full_operations": 285,
+  "pinned_operations": 50,
+  "subset_sha256": "667569c9fcfe0538348dee5770fb808dbef1f4ae91996bb0330478aaac19216f"
+}

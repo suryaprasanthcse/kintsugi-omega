@@ -1,0 +1,19 @@
+{
+ "operation": "webhooks.create",
+ "status": 201,
+ "body": {
+  "data": {
+   "createdAt": "2026-10-11T14:56:51.916Z",
+   "destinationConfigured": true,
+   "enabled": true,
+   "eventTypes": [
+    "*"
+   ],
+   "id": "6f1bec3c-1ff0-43fd-8b08-d2633ded61d4",
+   "name": "kintsugi-spike-a6",
+   "updatedAt": "2026-10-11T14:56:51.916Z"
+  },
+  "requestId": "req_340d38abfd31cebc23feb31087706893",
+  "success": true
+ }
+}

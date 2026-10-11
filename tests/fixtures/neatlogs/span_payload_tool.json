@@ -1,0 +1,32 @@
+{
+ "operation": "traces.span_payload",
+ "status": 200,
+ "body": {
+  "data": {
+   "fields": {
+    "error": {
+     "available": false,
+     "mimeType": "application/problem+json",
+     "truncated": false,
+     "value": null
+    },
+    "input": {
+     "available": true,
+     "mimeType": "application/json",
+     "truncated": false,
+     "value": "{\"currency\":\"EUR\",\"date\":\"2026-07-06\"}"
+    },
+    "output": {
+     "available": true,
+     "mimeType": "application/json",
+     "truncated": false,
+     "value": "\"1.081745\""
+    }
+   },
+   "spanId": "b9048d71e031e3b9",
+   "traceId": "d23ffdad100e3a3bd55365ebc266447d"
+  },
+  "requestId": "req_800bed8fef973f403f1b843d5e53cdaf",
+  "success": true
+ }
+}

@@ -1,0 +1,35 @@
+{
+ "operation": "traces.get",
+ "status": 200,
+ "body": {
+  "data": {
+   "completedAt": "2026-10-11T14:55:13.996Z",
+   "durationMs": 115,
+   "finalizationStatus": "finalized",
+   "framework": "",
+   "ingestedAt": "2026-10-11T14:55:13.998Z",
+   "llmCallsCount": 1,
+   "sessionId": "d23ffdad100e3a3bd55365ebc266447d",
+   "spansCount": 20,
+   "startedAt": "2026-10-11T14:55:12.806Z",
+   "status": "OK",
+   "tags": [
+    "host:ledger",
+    "split:train",
+    "seed:7",
+    "phase:baseline",
+    "run:10af6f84"
+   ],
+   "toolCallsCount": 16,
+   "totalCostUsd": 0,
+   "totalTokens": 738,
+   "traceId": "d23ffdad100e3a3bd55365ebc266447d",
+   "traceName": "task:ledger-train-002",
+   "workflowName": "host:ledger",
+   "metadataRevision": 0,
+   "metadataUpdatedAt": null
+  },
+  "requestId": "req_91dd8583efa7bc6497306ac6bfb0b0b4",
+  "success": true
+ }
+}

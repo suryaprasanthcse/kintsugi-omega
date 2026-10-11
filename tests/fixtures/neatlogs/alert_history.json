@@ -1,0 +1,41 @@
+{
+ "operation": "alert_history.list",
+ "status": 200,
+ "body": {
+  "data": {
+   "alertHistory": [
+    {
+     "channelsDelivered": [
+      "in_app"
+     ],
+     "count": 1,
+     "detectionName": "kintsugi spike A6 marker",
+     "firedAt": "2026-10-11T14:57:50.692Z",
+     "id": "45ae0144-3ffd-47bb-8346-c1a64cb9590f",
+     "investigationTarget": {
+      "kind": "trace",
+      "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+     },
+     "isFollowup": false,
+     "ruleId": "7a0c7133-2269-405d-9226-858ff24c763e",
+     "ruleName": "kintsugi spike A6 per-event",
+     "sampleTraceIds": [
+      "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+     ],
+     "sampleTraceIdsTotal": 1,
+     "sampleTraceIdsTruncated": false,
+     "suppressedCount": 0,
+     "threshold": null,
+     "windowMinutes": null
+    }
+   ],
+   "page": {
+    "hasMore": false,
+    "limit": 20,
+    "nextCursor": null
+   }
+  },
+  "requestId": "req_a6129a4e43327e0edcfdbfa6f5d99766",
+  "success": true
+ }
+}

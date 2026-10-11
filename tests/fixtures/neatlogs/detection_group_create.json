@@ -1,0 +1,14 @@
+{
+ "operation": "detection_groups.create",
+ "status": 201,
+ "body": {
+  "data": {
+   "createdAt": "2026-10-11T14:56:50.398Z",
+   "id": "20700a0d-e8df-4a21-a2b7-255c5143ab69",
+   "name": "kintsugi-spikes",
+   "updatedAt": "2026-10-11T14:56:50.398Z"
+  },
+  "requestId": "req_537749582cac6617a1bf6218a229521a",
+  "success": true
+ }
+}

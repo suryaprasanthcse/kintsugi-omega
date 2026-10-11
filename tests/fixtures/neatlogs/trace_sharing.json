@@ -1,0 +1,14 @@
+{
+ "operation": "traces.sharing",
+ "status": 200,
+ "body": {
+  "data": {
+   "enabled": false,
+   "expiresAt": null,
+   "state": "disabled",
+   "traceId": "8e7e60e9b5bd6e0107af2ec0f8ced89f"
+  },
+  "requestId": "req_1624fe8cc732c0e4c42abeb45a125b4b",
+  "success": true
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "operation": "webhooks.deliveries",
+ "status": 200,
+ "body": {
+  "data": {
+   "deliveries": [
+    {
+     "attempt": 1,
+     "deliveredAt": "2026-10-11T14:57:51.403Z",
+     "eventType": "alert.per_event_match",
+     "httpStatus": {
+      "class": "5xx",
+      "code": 500
+     },
+     "id": "01803ef0-ec95-4467-8142-b5ed6822d2e4",
+     "latencyMs": 814,
+     "outcome": "failed"
+    }
+   ],
+   "page": {
+    "hasMore": false,
+    "limit": 100,
+    "nextCursor": null
+   }
+  },
+  "requestId": "req_3861378a8920e3224bb02448f5b34991",
+  "success": true
+ }
+}
