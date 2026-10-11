@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MXZGEZSTWVVFEY0WRWMP60",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "kintsugi/cli.py",
+    "kintsugi/proof/__init__.py",
+    "kintsugi/proof/attest.py",
+    "kintsugi/proof/bundle.py",
+    "kintsugi/proof/canonical.py",
+    "kintsugi/proof/ledger.py",
+    "kintsugi/proof/passphrase.py",
+    "kintsugi/proof/sealed.py",
+    "pyproject.toml",
+    "tests/proof/test_attest.py",
+    "tests/proof/test_bundle.py",
+    "tests/proof/test_canonical.py",
+    "tests/proof/test_ledger.py",
+    "tests/proof/test_passphrase.py",
+    "tests/proof/test_sealed.py",
+    "tests/test_cli.py",
+    "typings/pyrage/__init__.pyi",
+    "typings/pyrage/x25519.pyi"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 46596,
+    "cache_read_tokens": 4659067,
+    "output_tokens": 41023,
+    "api_call_count": 9
+  }
+}
