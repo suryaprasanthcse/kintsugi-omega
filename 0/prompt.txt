@@ -1,0 +1,35 @@
+<task-notification>
+<task-id>b11qpn8if</task-id>
+<tool-use-id>toolu_01DyYJT97Ro9L1B9SCbH4nNh</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\7e998687-8d07-465f-9bf5-c412ec900e65\tasks\b11qpn8if.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for the omega-ci run to complete" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<pasted_content id="2edb">
+Stage 1 and all 9 logged amendments (A-1 to A-9) in `docs/EXECUTION_PLAN.md` are verified and approved.
+
+Execute **Stage 2 — Entire, Graph, Git & Attestation Layer + Headless Spikes** (~6 commits):
+
+0. PRE-STEP — SYNC FINALIZED STAGE 1 CHECKPOINT REFS:
+   - Push the updated `refs/entire/checkpoints/*` refs that received their end-of-turn "Finalize transcript" commits at the end of Stage 1 (`ENTIRE_TEST_TTY=0 git push origin "refs/entire/checkpoints/*:refs/entire/checkpoints/*"`).
+
+1. BUILD STAGE 2 MODULES:
+   - `kintsugi/memory/{entire,graph}.py`: full CLI wrappers for every required `entire` and `entire graph` subcommand (`version`, `doctor`, `index`, `search`, `context`, `callees`, `callers`, `def`, `impact`, `snapshot`, `diff`, `checkpoint list/explain`, `why`, `session current/resume/stop`), with strict JSON adapters and golden fixtures.
+   - `kintsugi/sandbox/worktree.py`: disposable worktree lifecycle (`wt/<INC>/<Hk>`), branch management (`kintsugi/<INC>/<Hk>`), attempt ref pinning (`refs/kintsugi/attempts/<INC>/<Hk>/<n>`) before `git worktree remove --force`, and L2 reset/clean recovery.
+   - `kintsugi/crew/claude_session.py`: headless `claude -p --output-format stream-json --allowedTools ... --settings ...` runner via `proc.py`, passphrase-nonce injection, cost/token metering, and JSONL transcript capture.
+   - `kintsugi/proof/{commit,redaction}.py`: commit validator (enforcing `Entire-Checkpoint:` and `Kintsugi-*` trailers, rejecting `Co-authored-by:` / `Claude-Session:`), secret redaction rules for Anthropic/neatlogs keys, pre-push checkpoint tree secret scanner, and C4/C5/C6 verification logic.
+
+2. EXECUTE & LOCK CONTRACT SPIKES (ON SCRATCH REPOS):
+   - Spike A1/N2: verify Entire links a commit made after headless `claude -p` exits.
+   - Spike N1: verify passphrase nonces and honeytokens survive Entire's transcript redaction byte-exact, plus the positive control proving Check C6 catches a planted honeytoken.
+   - Spike N4 & N5: verify Entire hooks fire properly inside linked git worktrees and that 3 concurrent headless sessions across 3 worktrees of one repo each link to their own distinct session/checkpoint.
+   - Spike A14: verify `kill -9` mid-session recovery (`entire session stop`, worktree cleanup, and transcript hashing for abandoned attempts).
+   - Spike A9: pin the `entire graph snapshot` record schema with golden files.
+
+3. VERIFY & PUSH:
+   - Confirm C4 and C5 pass on real checkpoints and fail on mutated ones (removed nonce, altered prompt), `entire why` agrees with the trailer mapping, and the C6 positive control catches a planted honeytoken.
+   - Commit in ~6 clean commits with `ENTIRE_TEST_TTY=0`, no `Co-authored-by:`, push `main` and all `refs/entire/checkpoints/*` to `origin`, verify `omega-ci` passes on GitHub Actions, and report the Stage 2 verification table.
+</pasted_content id="2edb">

@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N4ZMR4YV8A5FKHZHD5TFZX",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "kintsugi/memory/entire.py",
+    "kintsugi/memory/graph.py",
+    "kintsugi/sandbox/proc.py",
+    "pyproject.toml",
+    "tests/conftest.py",
+    "tests/contract/scratch.py",
+    "tests/contract/test_graph_contract.py",
+    "tests/fixtures/graph/ledger_after/ledger/reconcile.py",
+    "tests/fixtures/graph/ledger_after/ledger/tools.py",
+    "tests/fixtures/graph/ledger_after/ledger/util/retry.py",
+    "tests/fixtures/graph/ledger_before/ledger/reconcile.py",
+    "tests/fixtures/graph/ledger_before/ledger/tools.py",
+    "tests/fixtures/graph/ledger_before/ledger/util/retry.py",
+    "tests/fixtures/graph/scout/scout/search.py",
+    "tests/fixtures/graph/scout/scout/util/retry.py",
+    "tests/memory/test_entire.py",
+    "tests/memory/test_graph.py",
+    "tests/sandbox/test_proc.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 74,
+    "cache_creation_tokens": 744725,
+    "cache_read_tokens": 25635413,
+    "output_tokens": 72539,
+    "api_call_count": 36
+  }
+}
