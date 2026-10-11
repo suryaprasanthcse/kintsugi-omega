@@ -46,7 +46,7 @@ extend-exclude = [".claude", ".entire"]
 [tool.ruff.lint]
 select = ["B", "C4", "E", "F", "I", "PIE", "PT", "RUF", "SIM", "TID", "UP", "W"]
 # Spec notation (Ω, σ, τ, φ, ×, ‖, en/em dashes) is intentional, not a confusable.
-allowed-confusables = ["×", "‖", "–", "—", "−", "Ω", "α", "β", "δ", "κ", "λ", "σ", "τ", "φ", "ψ", "ι", "ρ", "∗"]
+allowed-confusables = ["×", "‖", "–", "—", "−", "′", "″", "Ω", "α", "β", "δ", "κ", "λ", "σ", "τ", "φ", "ψ", "ι", "ρ", "∗"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["kintsugi"]
