@@ -10,7 +10,20 @@ KINTSUGI-Ω (Blueprint Omega) is our #neatHack 2026 entry. It is an autonomous r
 
 ## Status
 
-The repository is initialised; no code exists yet. Entire is enabled from the first commit so that every AI-made change carries its checkpoint.
+Stages 1–3 of the [execution plan](docs/EXECUTION_PLAN.md) are built:
+
+- **Proof, statistics and economics cores**: hash-chained ledger, sealed commit–reveal, Ed25519 session attestation, SPRT/McNemar/Wilson gates, the budget governor.
+- **Entire and entire-graph layer**: checkpoint adapters, the motif engine, disposable attempt worktrees, headless Claude Code sessions, and the orchestrator commit protocol with audit checks C2–C6 ([spike results](docs/SPIKES.md)).
+- **The fleet**: three agent hosts, [Ledger](hosts/ledger), [Scout](hosts/scout) and [Triage](hosts/triage), instrumented with neatlogs and running behind an LLM metering proxy (hard daily cap) and a seeded chaos proxy. Untrusted code runs under gVisor behind an egress allowlist. Holdouts are age-encrypted. Baselines and the Stage 3 checks are in [docs/VERIFICATION.md](docs/VERIFICATION.md).
+
+```bash
+uv sync --locked
+make check                                            # ruff, pyright, pytest
+uv run kintsugi fleet baseline --host ledger          # 3-seed baseline and health card
+KINTSUGI_CONTRACT=1 uv run pytest tests/contract -v   # live Entire, graph, gVisor and headless checks
+```
+
+Entire is enabled from the first commit, so every AI-made change carries its checkpoint.
 
 ## Architect & AI Tooling Disclosure
 
