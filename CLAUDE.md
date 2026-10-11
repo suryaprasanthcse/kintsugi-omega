@@ -14,3 +14,8 @@ Checked against the installed CLIs. Where these differ from `Blueprint_Omega_Mas
 - `entire session resume <branch>` — replaces top-level `entire resume`.
 - No `rewind` command exists (`entire rewind` / `entire checkpoint rewind` are absent).
 - Python constructor calls are `CONSTRUCTS`, not `CALLS`: motif edge `[F, S, CONSTRUCTS]`. Python has no `READS_FIELD` / `WRITES_FIELD` / `ACCESSES` / `IMPLEMENTS`; feature-detect with `entire graph capabilities --json`.
+
+## Commit Rules
+
+- NEVER include `Co-authored-by:` trailers in any git commit message (human or headless Surgeon). Authorship attribution is tracked exclusively via `Entire-Checkpoint:` and `Kintsugi-*` trailers.
+- Commit and push with `ENTIRE_TEST_TTY=0` (set in `.claude/settings.json`) so Entire's Windows `prepare-commit-msg` hook links the checkpoint instead of blocking on a hidden console prompt.

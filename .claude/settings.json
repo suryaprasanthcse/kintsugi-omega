@@ -1,4 +1,12 @@
 {
+  "env": {
+    "ENTIRE_TEST_TTY": "0"
+  },
+  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "sessionUrl": false
+  },
   "hooks": {
     "PostToolUse": [
       {
