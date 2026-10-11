@@ -1,4 +1,4 @@
-# Stage 2 spike results
+# Spike results (Stages 2–3)
 
 Spikes run against the installed Entire 0.11.4, entire-graph v0.4.0 and Claude Code 2.1.269 on
 Windows 11, 2026-10-11. Each result is locked by a test: CI runs the golden-fixture tests;
@@ -18,17 +18,20 @@ Windows 11, 2026-10-11. Each result is locked by a test: CI runs the golden-fixt
 | A14 | Abandoned attempt recovery | ✅ **Mechanics:** a session killed early is stopped in Entire (`session stop --force`), the worktree is reset and cleaned, no checkpoint ref appears, and the transcript (when one exists) is hashed. | `test_a14_abandoned_attempt_mechanics` |
 | Gateway | Windows process launching | ✅ Two real bugs found and fixed. npm `.cmd` shims are followed to the real `.exe` and batch files are refused (prompt text would reach `cmd.exe`). stdin is sent as exact bytes (text mode rewrote `\n` as `\r\n`). Prompts go in on stdin from a file (Windows caps command lines near 32k characters). | `tests/sandbox/test_proc.py`, `tests/crew/test_claude_session.py` |
 
-## Model tier: waiting on a logged-in headless CLI
+## Model tier (carried into Stage 3 by amendment A-22)
 
-The standalone `claude` CLI that Surgeons run is not logged in (`claude auth status`:
-`"loggedIn": false`). The desktop app authenticates its own sessions through the host, and
-those credentials are not borrowed for unattended processes. These four tests are written
-and skip with that reason until `claude auth login` is run (or `ANTHROPIC_API_KEY` is wired in
-Stage 3):
+Stage 2 closed with the standalone `claude` CLI logged out; the desktop app's host-scoped auth
+is never borrowed for unattended processes (A-20). At the start of Stage 3 the headless CLI
+(2.1.269) reported `"loggedIn": true` (`authMethod: claude.ai`), and the four model-tier tests
+ran against real headless sessions on `haiku`, 2026-10-11 16:20 IST:
+`KINTSUGI_CONTRACT=1 uv run pytest tests/contract/test_spikes.py -k "a1_n2 or n1_headless or
+each_link_their_own or a14_kill"` → **4 passed in 63.4 s**.
 
-| Test | Proves |
-|---|---|
-| `test_a1_n2_commit_after_exit_links_and_passes_c2_to_c5` | A commit made **after** `claude -p` exits links to that session's checkpoint; C2–C5 pass, including C5's byte-exact first prompt; `entire why` agrees; stripped nonce and altered prompt fail. |
-| `test_n1_headless_honeytoken_survives_and_c6_catches_it` | N1 and C6 on a headless session, not only on this build session. |
-| `test_n5_concurrent_sessions_each_link_their_own_checkpoint` | Each of three concurrent commits links to its own session; no nonce crosses over. |
-| `test_a14_kill_mid_tool_use_leaves_no_checkpoint` | A session killed during a tool call leaves no checkpoint and a hashed transcript. |
+| Spike | Test | Result |
+|---|---|---|
+| A1/N2 | `test_a1_n2_commit_after_exit_links_and_passes_c2_to_c5` | ✅ A commit made **after** `claude -p` exits links to that session's checkpoint; C2, C3, C4 (nonce verbatim) and C5 (byte-exact first prompt) pass; `entire why` agrees with the trailer; a stripped nonce and a one-byte prompt change both fail. |
+| N1 (headless) | `test_n1_headless_honeytoken_survives_and_c6_catches_it` | ✅ The passphrase nonce and honeytoken survive Entire's redaction in a headless session; C6 finds the planted honeytoken and a fresh token scores zero. |
+| N5 (linkage) | `test_n5_concurrent_sessions_each_link_their_own_checkpoint` | ✅ Three concurrent sessions in three worktrees each commit and link to their **own** checkpoint; no nonce crosses over. |
+| A14 (mid-tool) | `test_a14_kill_mid_tool_use_leaves_no_checkpoint` | ✅ A session killed at its first `tool_use` event leaves no checkpoint ref; the abandoned transcript is hashed. |
+
+Every Stage 2 spike is now resolved at both tiers.
