@@ -120,6 +120,60 @@ def test_kill9_then_attempt_two_adopts_the_commit_by_its_nonce(tmp_path: Path) -
     (tmp_path / "history-adopt.json").write_text(history.to_json(), encoding="utf-8")
 
 
+def test_s18_through_the_watchdog_kill_restart_adopt(tmp_path: Path) -> None:
+    """§6.6 end to end: chaos API kill → Watchdog restart → heartbeat timeout → adoption."""
+    from fastapi.testclient import TestClient
+
+    from kintsugi.control import watchdog as w
+    from kintsugi.control.activities import SURGEON
+
+    async def scenario() -> tuple[c.SurgeonOutcome, Any, w.Health, list[str]]:
+        repo = make_repo(tmp_path)
+        attempts = tmp_path / "attempts.sqlite"
+        log = AttemptLog(attempts)
+        async with await WorkflowEnvironment.start_local() as env:
+            target = env.client.service_client.config.target_host
+            pager = w.Pager(tmp_path / "pages.jsonl")
+            sup = w.Supervisor(pager)
+            argv = [sys.executable, "-m", "kintsugi.control.worker", "--target", target,
+                    "--pool", "crew", "--pool", "surgeon", "--crew", "kintsugi.control.drill:crew",
+                    "--workflows", "kintsugi.control.drill:WORKFLOWS",
+                    "--ledger", str(tmp_path / "steps.sqlite"),
+                    "--heartbeat-interval", "0.5"]  # fmt: skip
+            sup.add(w.Pool("surgeon", argv, {REPO_ENV: str(repo), LEDGER_ENV: str(attempts)},
+                           log=tmp_path / "pool.log"))  # fmt: skip
+            dog = w.Watchdog(sup, pager, chaos_log=tmp_path / "chaos.jsonl")
+            chaos = TestClient(w.chaos_app(dog, "k" * 43))
+            card = c.Card("INC-DRILL", "H1", 0, "drill:adopt", "main")
+            handle = await env.client.start_workflow(
+                SurgeonDrill.run, args=[card, DRILL_CONFIG], id="drill-s18", task_queue=CREW,
+                execution_timeout=DRILL_TIMEOUT,
+            )  # fmt: skip
+            deadline = time.monotonic() + 90
+            while not (log.nonces("INC-DRILL", "H1") and _branch_head(repo) != _main(repo)):
+                assert time.monotonic() < deadline
+                await asyncio.sleep(0.2)
+            killed = chaos.post("/chaos/kill", json={"pool": "surgeon", "sabotage_id": "S-18"},
+                                headers={"Authorization": "Bearer " + "k" * 43})  # fmt: skip
+            assert killed.status_code == 200
+            restarted = sup.tick()
+            try:
+                outcome = await asyncio.wait_for(handle.result(), timeout=180)
+                history = await handle.fetch_history()
+                health = await asyncio.to_thread(
+                    w.temporal_pollers_check(target, [CREW, SURGEON], max_age_s=60)
+                )
+            finally:
+                sup.stop()
+        return outcome, history, health, restarted
+
+    outcome, history, health, restarted = asyncio.run(scenario())
+    assert restarted == ["surgeon"]
+    assert retried_after_heartbeat_timeout(history)
+    assert outcome.adopted
+    assert health.ok, health.detail
+
+
 def test_kill9_then_attempt_two_cleans_up_and_commits_under_a_new_nonce(tmp_path: Path) -> None:
     outcome, history, worktree, log, _ = asyncio.run(drill("cleanup", tmp_path))
     assert retried_after_heartbeat_timeout(history)

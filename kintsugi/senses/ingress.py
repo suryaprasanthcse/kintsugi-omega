@@ -116,10 +116,13 @@ class IngressConfig:
     allow_sources: Sequence[str] = ()  # CIDRs; empty allows any source
     source_header: str | None = None  # e.g. cf-connecting-ip behind a tunnel
     max_body_bytes: int = MAX_BODY_BYTES
+    admin_token: str | None = None  # the Watchdog's chaos API toggles availability with it
 
     def __post_init__(self) -> None:
         if len(self.path_secret) < 43:  # 256 bits as base64url
             raise ValueError("the path secret must carry at least 256 bits (43 base64url chars)")
+        if self.admin_token is not None and len(self.admin_token) < 43:
+            raise ValueError("the admin token must carry at least 256 bits")
 
 
 @dataclass
@@ -178,6 +181,17 @@ def create_app(
     def healthz() -> dict[str, Any]:
         return {"ok": True, "available": state.available, "accepted": state.accepted,
                 "duplicates": state.duplicates, "queue": store.pending()}  # fmt: skip
+
+    @app.post("/admin/availability")
+    async def availability(request: Request) -> JSONResponse:
+        """The Watchdog's chaos API: switch the ingress off (503) and on again (§5.5, §6.6)."""
+        expected = f"Bearer {config.admin_token}" if config.admin_token else None
+        given = request.headers.get("authorization", "")
+        if expected is None or not hmac.compare_digest(given.encode(), expected.encode()):
+            return reject(401, "unauthorized")
+        body = await request.json()
+        state.available = bool(body.get("available"))
+        return JSONResponse({"available": state.available})
 
     @app.post("/hook/{secret}")
     async def hook(secret: str, request: Request) -> JSONResponse:

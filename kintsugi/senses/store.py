@@ -272,6 +272,19 @@ class SenseStore:
         return [QueueItem(row["seq"], row["kind"], json.loads(row["payload_json"]),
                           row["enqueued_at"]) for row in rows]  # fmt: skip
 
+    def release(self, seqs: Sequence[int]) -> None:
+        """Put taken items back (a hand-off that failed); consumers dedupe by hit key."""
+        if not seqs:
+            return
+        marks = ",".join("?" * len(seqs))
+        with self._tx() as db:
+            db.execute(f"UPDATE queue SET taken_at = NULL WHERE seq IN ({marks})", tuple(seqs))
+
+    def last_taken_at(self) -> float | None:
+        """When the control plane last took an item (the Watchdog's 'age of the last hit')."""
+        row = self._connection().execute("SELECT MAX(taken_at) FROM queue").fetchone()
+        return float(row[0]) if row and row[0] is not None else None
+
     def pending(self) -> int:
         row = self._connection().execute("SELECT COUNT(*) FROM queue WHERE taken_at IS NULL")
         return int(row.fetchone()[0])
