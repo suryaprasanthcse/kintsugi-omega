@@ -5,6 +5,8 @@
 *credentials*
 *.key
 *.age
+# Sealed holdouts are encrypted to .kintsugi/holdout.pub and committed (spec §6.1, audit C13).
+!hosts/*/*/evals/holdout/*.age
 
 # Python
 __pycache__/
