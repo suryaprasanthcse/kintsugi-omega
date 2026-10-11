@@ -20,7 +20,7 @@ from typing import Any
 
 from kintsugi.sandbox import chaos_proxy as chaos
 from kintsugi.sandbox import llm_proxy as lp
-from kintsugi.sandbox.cassette import Recorder
+from kintsugi.sandbox.cassette import Player, Recorder
 from kintsugi.sandbox.httpserve import Handler, HttpRequest, HttpResponse, Server
 from kintsugi.sandbox.runner import PROXY_PLACEHOLDER
 
@@ -70,6 +70,7 @@ class FabricConfig:
     bind: str = "127.0.0.1"
     chaos_recorder: Recorder | None = None
     llm_recorder: Recorder | None = None
+    player: Player | None = None  # replay a cassette: tool and model I/O, faults included
 
 
 class Fabric:
@@ -78,7 +79,9 @@ class Fabric:
         self.config = config
         self.tokens = {h: f"{PROXY_PLACEHOLDER}{h}-{secrets.token_hex(8)}" for h in self.hosts}
         upstream: lp.Upstream
-        if config.anthropic_key:
+        if config.player is not None:
+            upstream = lp.CassetteUpstream(config.player)
+        elif config.anthropic_key:
             upstream = lp.AnthropicUpstream(config.anthropic_key)
         else:
             upstream = lp.OfflineUpstream(
@@ -100,8 +103,10 @@ class Fabric:
                 reset: Callable[[], None] | None = getattr(inspect.getmodule(fn), "reset", None)
                 if reset is not None:  # stateful mocks start empty for every fabric
                     self._resets.append(reset)
-        self.chaos = chaos.ChaosProxy(services, config.profile.with_seed(config.seed),
-                                      recorder=config.chaos_recorder)  # fmt: skip
+        profile = config.profile.with_seed(config.seed)
+        self.chaos = chaos.ChaosProxy(
+            services, profile, recorder=config.chaos_recorder, player=config.player
+        )
         self.llm = lp.LlmProxy(upstream, self.spend, self.tokens, recorder=config.llm_recorder)
         self._servers = [Server(self.llm, host=config.bind), Server(self.chaos, host=config.bind)]
 

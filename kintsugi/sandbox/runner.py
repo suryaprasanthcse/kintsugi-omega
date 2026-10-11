@@ -139,7 +139,9 @@ class DockerHost:
         """A host path as the engine sees it (C:\\x → /mnt/c/x inside WSL)."""
         if self.wsl_distro is None:
             return str(path)
-        windows = PureWindowsPath(path.resolve())
+        windows = PureWindowsPath(str(path))
+        if not windows.drive:  # relative: resolve it (on Windows, where the engine is in WSL)
+            windows = PureWindowsPath(str(path.resolve()))
         drive = windows.drive.rstrip(":").lower()
         return "/mnt/" + drive + "/" + "/".join(windows.parts[1:])
 
