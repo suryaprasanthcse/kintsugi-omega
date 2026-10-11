@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NB3861R0FHEGTE5P35XZZR",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/EXECUTION_PLAN.md",
+    "kintsugi/sandbox/cassette.py",
+    "kintsugi/sandbox/chaos_proxy.py",
+    "kintsugi/sandbox/httpserve.py",
+    "kintsugi/sandbox/profiles/background.yaml",
+    "pyproject.toml",
+    "tests/__init__.py",
+    "tests/helpers/__init__.py",
+    "tests/sandbox/test_cassette.py",
+    "tests/sandbox/test_chaos_proxy.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 36,
+    "cache_creation_tokens": 52805,
+    "cache_read_tokens": 5099882,
+    "output_tokens": 30659,
+    "api_call_count": 18
+  }
+}
