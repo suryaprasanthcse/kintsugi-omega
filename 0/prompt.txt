@@ -1,0 +1,95 @@
+<pasted_content id="2edb">
+I have deleted and recreated the empty `kintsugi-omega` repository on GitHub (`https://github.com/suryaprasanthcse/kintsugi-omega.git`) to wipe GitHub's server-side contributor cache.
+
+Execute these steps now (do not start Stage 1 until we confirm the GitHub UI):
+
+1. DELETE LOCAL BACKUP REFS:
+   - Delete the filter-branch backup ref so old un-scrubbed commits can never be pushed:
+     `git update-ref -d refs/original/refs/heads/main`
+   - Expire reflogs and prune unreachable objects:
+     `git reflog expire --expire=now --all && git gc --prune=now`
+
+2. VERIFY AUTHORSHIP ON ALL REFS BEFORE PUSHING:
+   - Check `main` and all `refs/entire/checkpoints/*` commit objects (`git log --all --format="%h | %an <%ae> | %cn <%ce>"` and `git log --all --grep="Co-authored-by" -i`) to ensure `Claude` / `noreply@anthropic.com` does not appear anywhere as author, committer, or co-author.
+
+3. PUSH CLEAN `main` AND CHECKPOINT REFS TO FRESH ORIGIN:
+   - Push `main`:
+     `ENTIRE_TEST_TTY=0 git push -u origin main`
+   - Push the Entire checkpoint refs:
+     `ENTIRE_TEST_TTY=0 git push origin "refs/entire/checkpoints/*:refs/entire/checkpoints/*"`
+
+4. VERIFY REMOTE STATE:
+   - Run `git ls-remote origin` and `entire checkpoint list` to confirm `main` and both checkpoints (`01M4MSF9...` and `01M4MT4M...`) are live on the new remote.
+
+Stop and report once the push completes.
+</pasted_content id="2edb">
+
+---
+
+<pasted_content id="2edb">
+The GitHub repository and contributor list are verified (`suryaprasanthcse` is the sole contributor, and both checkpoints are synced on `origin`).
+
+HALT: Do NOT write any code, create any files, install packages, or make any commits in this turn.
+
+Before we write a single line of code, analyze `..\Blueprint_Omega_Master.md` against our verified environment findings. You must plan for the FULL, uncompromised Blueprint Omega specification—do NOT take shortcuts, do NOT dilute the architecture, and do NOT fall back to a reduced cut.
+
+Present your complete **Execution & Build Plan** covering:
+
+1. SPEC-TO-REALITY RECONCILIATION:
+   - Exactly how you will adapt the full architecture to our Pre-Stage 1 discoveries:
+     a) Entire 0.11.4 having no `rewind` command (how worktree discard/reset + checkpoint preservation and in-place session recovery will work in L1/L2/L3).
+     b) Using `entire why <file>:<line>`, `entire checkpoint explain`, and `refs/entire/checkpoints/<xx>/<id>` in `kintsugi audit` (Check C4) and the Archivist's Intent Record (§4.3.2).
+     c) Adapting the §4.4.3 motif engine to `entire-graph v0.4.0` Python capabilities (`CONSTRUCTS` edge for `[F, S, CONSTRUCTS]`, and `def` output + classifier for `has_mutable_accumulator`).
+     d) Enforcing `ENTIRE_TEST_TTY=0` across both our build commits and all headless Surgeon/Immunologist/Saboteur subprocesses on Windows.
+
+2. STAGE-BY-STAGE BUILD ARCHITECTURE (STAGES 1 TO N):
+   - Break the complete Blueprint Omega build down into sequential, verifiable stages ordered by technical dependency and architectural completeness.
+   - For each stage, specify:
+     - Exact modules and files to build (across `kintsugi/`, `hosts/`, `arena/`, `business/`, `.github/workflows/`)
+     - Expected commit breakdown
+     - The exact verification tests and invariants (I1–I7) that prove the stage works before moving to the next
+     - How each stage fulfills the L0–L5 failure cascade, self-repair, and the un-fakeable proof matrix
+
+3. REMAINING SPIKES & ARCHITECT INPUTS NEEDED:
+   - List every external credential, API key (`NEATLOGS_API_KEY`, `ANTHROPIC_API_KEY`, GitHub token, AWS/KMS or local Ed25519 signing, cfo.ai model), or architectural decision you need from the Architect, and state the exact stage at which each item is required vs. what can be built and verified deterministically first.
+
+Do not touch the filesystem—output your complete engineering build plan and wait for the Architect's review.
+</pasted_content id="2edb">
+
+---
+
+<pasted_content id="2edb">
+Your 14-Stage Execution & Build Plan and Spec-to-Reality reconciliations (including Spike N1 passphrase-formatted nonces/honeytokens, L1 `refs/kintsugi/attempts/*` pinning, and L3/L5 headless notary sessions) are approved in full.
+
+REFERENCE ARCHIVE:
+- The 12 visual snapshots of your approved Execution & Build Plan are archived at `C:\myspace\hacckathons\kintsugi-omega-blueprints` (`..\kintsugi-omega-blueprints`), alongside the master spec at `C:\myspace\hacckathons\Blueprint_Omega_Master.md` (`..\Blueprint_Omega_Master.md`).
+- First, save a clean Markdown copy of your approved 14-Stage Execution & Build Plan (with the D1–D8 rulings below) to `docs/EXECUTION_PLAN.md` inside the repo so any future or headless session has the exact reconciled plan in-tree.
+
+ARCHITECT RULINGS ON DECISIONS D1–D8:
+- **D1 (W length & T0):** Approved. Defer exact `W` duration and `T0` timestamp to the Stage 8 go/no-go gate once `C1–C14` mutation checks are green.
+- **D2 (Runtime platform):** Keep Stages 1–2 cross-platform via `kintsugi/sandbox/proc.py` so local Windows execution works seamlessly, and prepare WSL2 Ubuntu + Docker/gVisor integration for Stage 3+ and the autonomy run.
+- **D3 (Repo layout):** Build the hosts (`hosts/ledger`, `hosts/scout`, `hosts/triage`), antibodies (`antibodies/`), and sabotage log inside the `kintsugi-omega` monorepo first so `suryaprasanthcse/kintsugi-omega` is self-contained and runnable from a single clone, with configurable remote repo adapters when the GitHub token is provided.
+- **D4 (Commit identity):** Keep `Surya Prasanth R <suryaprasanthcse@gmail.com>` as the sole Git author/committer on all commits (never add a bot contributor or `Co-authored-by:` trailer). Machine origin is proven via Ed25519 signatures (`.kintsugi/attest.pub`), `Entire-Checkpoint:` trailers, and `Kintsugi-*` trailers.
+- **D5 (Ledger location):** Approved. Use an unprotected, append-only `ledger` branch for ledger anchors.
+- **D6 (Temporal deployment):** Implement both the deterministic `sqlite_fsm.py` WAL state machine and the Temporal workflow/activity definitions (using the single-binary Temporal CLI dev server or Docker Compose when started in Stage 5).
+- **D7 (Headless Claude billing):** Use the existing Claude Code login for Stage 2 headless spikes; wire `ANTHROPIC_API_KEY` with a hard daily dollar cap in `kintsugi/sandbox/llm_proxy.py` and `governor.py` for Stage 3/6.
+- **D8 (Parallel build lanes):** Approved where safe, provided every commit is made cleanly with `ENTIRE_TEST_TTY=0`, carries a verified `Entire-Checkpoint:` trailer, and credits lines accurately.
+
+NOW EXECUTE **STAGE 1 — Foundation and Deterministic Cores (No Credentials)** (~7 commits):
+1. Commit 1 (`docs/EXECUTION_PLAN.md` + `pyproject.toml` + `uv.lock` + `Makefile` + `.github/workflows/omega-ci.yml` + `kintsugi/cli.py`):
+   - On this very first commit, verify Spike N3 (confirm Entire updates `last_checkpoint_commit_hash` from the pre-rewrite `041ada4` SHA and attaches `Entire-Checkpoint:` cleanly).
+2. Commit 2 (`kintsugi/sandbox/proc.py`):
+   - Single subprocess gateway enforcing `ENTIRE_TEST_TTY=0`, `GIT_TERMINAL_PROMPT=0`, `GIT_EDITOR=true`, environment allowlist, timeouts, and process-group termination, plus the architecture test forbidding raw `subprocess` imports elsewhere.
+3. Commit 3 (`kintsugi/proof/{canonical,ledger,sealed,attest,bundle}.py`):
+   - Spike A15 (RFC 8785 JCS canonical JSON), hash-chained ledger with tamper detection at exact `seq`, commit-reveal sealing (`pyrage`), and Ed25519 signing/verification (`.kintsugi/attest.pub`).
+4. Commit 4 (`kintsugi/stats/{mcnemar,sprt,power,holm,wilson,bootstrap}.py`):
+   - Verify exact numbers against the spec: SPRT boundaries `+2.890 / -2.251`, step `+0.6931 / -0.0660`, accept at 35 clean runs, reject at `n=8` (`LLR 3.268`), accept at `n=46` (`LLR -2.275`); Connor `n=34`; McNemar `b=26, c=1 -> p=2.09e-7`.
+5. Commit 5 (`kintsugi/econ/{governor,wright}.py`):
+   - Verify exact numbers against §6.2 (`Pool $71.70`, `Cap/H $12.40`) and §6.8 (`B $4.83`, `T1 $2.34`, `GM 78.6%`), plus Wright's Law log-linear OLS fit with bootstrap CI.
+6. Commit 6 (`kintsugi/memory/{antibody,motif}.py`):
+   - E.1 antibody models and VF2 subgraph isomorphism matcher with `CALLS*` transitive closure support.
+7. Commit 7 (`kintsugi/control/states.py` + `schemas/E1-E6.json` + `.kintsugi/protected_paths.yaml`):
+   - §5.4 state transitions, property test proving every state path terminates, JSON schemas E.1–E.6, and protected path rules.
+
+Push all Stage 1 commits and `refs/entire/checkpoints/*` to `origin`, run `pytest`, `ruff`, and `pyright`, and report the Stage 1 verification table.
+</pasted_content id="2edb">

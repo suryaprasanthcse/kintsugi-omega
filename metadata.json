@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MXCTAM5YSYDX4HXMJ5V7H4",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".gitattributes",
+    ".github/workflows/omega-ci.yml",
+    ".gitignore",
+    "Makefile",
+    "docs/EXECUTION_PLAN.md",
+    "kintsugi/__init__.py",
+    "kintsugi/cli.py",
+    "pyproject.toml",
+    "tests/test_cli.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 56,
+    "cache_creation_tokens": 180193,
+    "cache_read_tokens": 10001159,
+    "output_tokens": 104122,
+    "api_call_count": 28
+  }
+}
