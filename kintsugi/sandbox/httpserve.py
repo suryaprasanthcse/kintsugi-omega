@@ -136,6 +136,10 @@ class Server:
         self._httpd.shutdown()
         self._httpd.server_close()
 
+    def wait(self) -> None:
+        """Block until the server stops (for servers run as a process's main job)."""
+        self._thread.join()
+
     def __enter__(self) -> Server:
         return self.start()
 

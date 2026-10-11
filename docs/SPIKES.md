@@ -35,3 +35,9 @@ each_link_their_own or a14_kill"` → **4 passed in 63.4 s**.
 | A14 (mid-tool) | `test_a14_kill_mid_tool_use_leaves_no_checkpoint` | ✅ A session killed at its first `tool_use` event leaves no checkpoint ref; the abandoned transcript is hashed. |
 
 Every Stage 2 spike is now resolved at both tiers.
+
+## Stage 3 spikes
+
+| Spike | Question | Result | Evidence |
+|---|---|---|---|
+| N8 | Does gVisor in WSL2 isolate a host and block non-allowlisted egress? | ✅ **Yes.** Docker Engine 29 (Ubuntu 26.04 archive) and gVisor `runsc` release-20261005.0 (gVisor's signed apt repository) installed in WSL2 Ubuntu, `runsc install` registered the runtime. Under `--runtime runsc` (`platform.release()` = `4.19.0-gvisor`), as uid 65534 with a read-only root, a probe on an `--internal` network reaches an upstream **only** through the egress gateway's allowlisted route (200); an unlisted route is 403 `egress_denied`; a direct connection to 1.1.1.1, external DNS and the upstream's bridge address all fail; `/work` (tmpfs) is writable. The wall-clock limit kills the container itself. **Finding:** Docker's embedded DNS (127.0.0.11, an iptables redirect in the container's namespace) does not answer under `runsc`, so the gateway is pinned with `--add-host`; Docker 29 leaves `.NetworkSettings.IPAddress` empty, so addresses are read per network. | `tests/contract/test_sandbox_contract.py` |
