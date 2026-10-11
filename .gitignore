@@ -10,6 +10,11 @@
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+dist/
+build/
 
 # Node
 node_modules/

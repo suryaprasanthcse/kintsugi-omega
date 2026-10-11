@@ -1,0 +1,4 @@
+# Hash-chained ledgers, sealed specs and golden fixtures are byte-exact: keep LF everywhere.
+* text=auto eol=lf
+*.png binary
+*.age binary
