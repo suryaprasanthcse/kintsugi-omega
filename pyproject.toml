@@ -1,0 +1,27 @@
+# Ledger practice: a disposable, disclosed rehearsal host for KINTSUGI-Omega (Stage 6).
+# It is never deployed and never part of the fleet: the rehearsal copies it into a scratch
+# repository, plants a practice regression there and repairs it end to end.
+[project]
+name = "ledger-practice"
+version = "0.1.0"
+description = "A practice invoice-booking agent for KINTSUGI-Omega's Stage 6 rehearsal."
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["practice_ledger", "hostkit"]
+
+[tool.pyright]
+include = ["practice_ledger"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
