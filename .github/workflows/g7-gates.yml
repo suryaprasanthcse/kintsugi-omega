@@ -1,0 +1,76 @@
+# G7 — independent CI (spec §5.11): re-runs the gates in GitHub Actions with a fresh seed, in
+# public logs. Reusable: Stage 6's ship step calls it for every candidate merge.
+#
+# Skeleton (Stage 3): G1 (build and static), G3 (the host's tests) and the G4 holdout run with a
+# fresh seed. G2 (cassette replay of the incident) and G4's paired McNemar / cost / p95 bounds
+# are added in Stage 6, when incidents carry cassettes and before/after runs.
+#
+# The holdout identity is the Actions secret HOLDOUT_AGE_IDENTITY (T0 custody, amendment A-26).
+# Logs print aggregates only: pass counts and Wilson intervals, never task content.
+name: g7-gates
+
+on:
+  workflow_call:
+    inputs:
+      host:
+        description: host id (ledger, scout, triage)
+        required: true
+        type: string
+      seed:
+        description: fresh seed for this run (defaults to the run id)
+        required: false
+        type: string
+        default: ""
+    secrets:
+      HOLDOUT_AGE_IDENTITY:
+        required: true
+  workflow_dispatch:
+    inputs:
+      host:
+        description: host id (ledger, scout, triage)
+        required: true
+        type: choice
+        options: [ledger, scout, triage]
+      seed:
+        description: fresh seed (defaults to the run id)
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  ENTIRE_TEST_TTY: "0"
+  GIT_TERMINAL_PROMPT: "0"
+
+jobs:
+  g7:
+    name: G7 · ${{ inputs.host }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: G1 build and static
+        run: |
+          uv sync --locked
+          uv run ruff check hosts/${{ inputs.host }}
+          uv run pyright hosts/${{ inputs.host }}
+      - name: G3 host tests
+        run: uv run pytest -q hosts/${{ inputs.host }}
+      - name: Holdout manifest (C13)
+        run: uv run kintsugi holdout verify
+      - name: G4 holdout run with a fresh seed (aggregates only)
+        env:
+          HOLDOUT_AGE_IDENTITY: ${{ secrets.HOLDOUT_AGE_IDENTITY }}
+          SEED: ${{ inputs.seed || github.run_id }}
+        run: |
+          if [ -z "$HOLDOUT_AGE_IDENTITY" ]; then
+            echo "::error::HOLDOUT_AGE_IDENTITY is not set: G4 cannot run" && exit 1
+          fi
+          umask 077
+          printf '%s\n' "$HOLDOUT_AGE_IDENTITY" > "$RUNNER_TEMP/holdout.agekey"
+          uv run kintsugi fleet baseline --host "${{ inputs.host }}" --seeds "$SEED" \
+            --holdout-identity "$RUNNER_TEMP/holdout.agekey" --out-dir "$RUNNER_TEMP/g7"
+          rm -f "$RUNNER_TEMP/holdout.agekey"

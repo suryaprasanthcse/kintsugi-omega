@@ -25,3 +25,27 @@ jobs:
         run: uv sync --locked
       - name: make check (ruff, pyright, pytest)
         run: make check
+
+  # Each host's own CI, as if it lived in its own repository (ruling D3): the upstream lane
+  # (spec §6.2 step 3) is gated by this job only, never by Omega's gates.
+  host:
+    name: host · ${{ matrix.host }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [ledger, scout, triage]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install the locked environment
+        run: uv sync --locked
+      - name: Lint and type-check the host
+        run: |
+          uv run ruff check hosts/${{ matrix.host }} hosts/hostkit
+          uv run ruff format --check hosts/${{ matrix.host }} hosts/hostkit
+          uv run pyright hosts/${{ matrix.host }} hosts/hostkit
+      - name: Host tests
+        run: uv run pytest -q hosts/${{ matrix.host }} hosts/hostkit

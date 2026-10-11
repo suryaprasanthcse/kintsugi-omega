@@ -22,7 +22,7 @@ def test_version_prints_pinned_toolchain(capsys: pytest.CaptureFixture[str]) -> 
 
 @pytest.mark.parametrize(
     "argv",
-    [["audit", "--all", "--offline", "./published-bundles"], ["demo"], ["fleet", "up"]],
+    [["audit", "--all", "--offline", "./published-bundles"], ["demo"]],
 )
 def test_unbuilt_commands_skip_honestly(
     argv: list[str], capsys: pytest.CaptureFixture[str]
@@ -60,3 +60,26 @@ def test_keys_generate_never_overwrites(tmp_path: Path) -> None:
     before = private.read_bytes()
     assert main(argv) == EXIT_FAIL
     assert private.read_bytes() == before
+
+
+def test_fleet_down_asks_a_running_fleet_to_stop(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert main(["fleet", "down"]) == EXIT_OK
+    assert (tmp_path / ".state" / "runtime" / "STOP").is_file()
+
+
+def test_the_committed_holdout_manifest_verifies(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(REPO)
+    assert main(["holdout", "verify"]) == EXIT_OK
+
+
+def test_holdout_keygen_refuses_an_identity_inside_a_repo(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.chdir(REPO)
+    inside = REPO / "holdout.agekey.must-not-exist"
+    assert main(["holdout", "keygen", "--identity", str(inside)]) == EXIT_FAIL
+    assert not inside.exists()
+    assert "refusing" in capsys.readouterr().out

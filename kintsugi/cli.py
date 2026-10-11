@@ -7,6 +7,7 @@ For `audit`, code 2 is the spec's own meaning: "checks skipped" (§7.5).
 from __future__ import annotations
 
 import argparse
+import contextlib
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -48,8 +49,14 @@ def _build_parser() -> argparse.ArgumentParser:
 
     fleet = sub.add_parser("fleet", help="the host fleet: baselines, start, stop")
     fleet_sub = fleet.add_subparsers(dest="fleet_command", required=True)
-    fleet_sub.add_parser("up", help="start the hosts' runtime and traffic generators")
-    fleet_sub.add_parser("down", help="stop the hosts' runtime")
+    up = fleet_sub.add_parser("up", help="run the hosts: auto-deploy from main + live traffic")
+    up.add_argument("--host", action="append", help="host id (default: every host)")
+    up.add_argument("--seed", type=int, default=1)
+    up.add_argument("--ref", default="origin/main", help="what the deploy worktree follows")
+    up.add_argument("--no-deploy", action="store_true", help="run the installed code instead")
+    up.add_argument("--scale", type=float, default=1.0, help="traffic speed-up (drills only)")
+    up.add_argument("--duration", type=float, help="seconds to run (default: until fleet down)")
+    fleet_sub.add_parser("down", help="ask a running `fleet up` to finish and exit")
     base = fleet_sub.add_parser("baseline", help="3-seed baseline and health card (spec §6.1)")
     base.add_argument("--host", action="append", help="host id (default: every host)")
     base.add_argument("--seeds", type=int, nargs="+", default=[1, 2, 3])
@@ -165,6 +172,38 @@ def _fleet_baseline(args: argparse.Namespace) -> int:
     return EXIT_FAIL if failed else EXIT_OK
 
 
+def _fleet_up(args: argparse.Namespace) -> int:
+    from kintsugi.fleet.fabric import load_dotenv
+    from kintsugi.fleet.hosts import load_hosts
+    from kintsugi.fleet.runtime import STATE, Deployer, Runtime
+
+    repo = _repo()
+    secrets = load_dotenv(repo / ".env")
+    hosts = load_hosts(repo)
+    chosen = {h: hosts[h] for h in (args.host or sorted(hosts))}
+    deployer = None if args.no_deploy else Deployer(repo, repo / STATE / "deploy", args.ref)
+    neatlogs = {k: secrets[k] for k in ("NEATLOGS_API_KEY",) if k in secrets}
+    key = secrets.get("ANTHROPIC_API_KEY")
+    runtime = Runtime(repo, chosen, seed=args.seed, deployer=deployer, scale=args.scale,
+                      anthropic_key=key, extra_env=neatlogs)  # fmt: skip
+    print(f"fleet up: {sorted(chosen)} seed={args.seed} deploy={args.ref if deployer else 'off'}"
+          " — stop with `kintsugi fleet down`")  # fmt: skip
+    with contextlib.suppress(KeyboardInterrupt):
+        runtime.run(duration_s=args.duration)
+    print(f"fleet down: live tasks run {runtime.counts}")
+    return EXIT_OK
+
+
+def _fleet_down() -> int:
+    from kintsugi.fleet.runtime import STOP_FILE
+
+    stop = _repo() / STOP_FILE
+    stop.parent.mkdir(parents=True, exist_ok=True)
+    stop.write_text("stop\n", encoding="utf-8")
+    print(f"fleet down: requested ({STOP_FILE})")
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "version":
@@ -178,6 +217,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _holdout(args)
     if args.command == "fleet" and args.fleet_command == "baseline":
         return _fleet_baseline(args)
+    if args.command == "fleet":
+        return _fleet_up(args) if args.fleet_command == "up" else _fleet_down()
 
     stage = _PENDING[args.command]
     print(f"kintsugi {args.command}: not built yet — arrives in {stage}. No checks were run.")
