@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4PJS0RNC6H9X8BFXM2XWCM5",
+  "session_id": "208f5583-4171-4e83-baaa-cd8f3b8a9986",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T22:54:14.7752994Z",
+  "branch": "kintsugi/INC-REH-0001/H3",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "practice_ledger/reconcile.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-sonnet-5-5",
+  "turn_id": "84f90c048d1a",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 10,
+    "cache_creation_tokens": 34925,
+    "cache_read_tokens": 133490,
+    "output_tokens": 1022,
+    "api_call_count": 5
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T22:54:14.7591804Z",
+    "agent_lines": 6,
+    "agent_removed": 8,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 6,
+    "total_lines_changed": 14,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
