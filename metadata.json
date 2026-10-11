@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4PJ5A6F8TPR7KF5VHATX4WF",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/g7-gates.yml",
+    "kintsugi/cli.py",
+    "kintsugi/control/ship.py",
+    "kintsugi/crew/auditor.py",
+    "kintsugi/crew/pathologist.py",
+    "kintsugi/gates/g7.py",
+    "tests/control/test_ship.py",
+    "tests/crew/test_incident_loop.py",
+    "tests/fixtures/rehearsal/ledger_practice/.github/workflows/g7.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 66,
+    "cache_creation_tokens": 50621,
+    "cache_read_tokens": 23445737,
+    "output_tokens": 41762,
+    "api_call_count": 33
+  }
+}

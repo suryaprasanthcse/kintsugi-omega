@@ -1,0 +1,73 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4PJ5A6F8TPR7KF5VHATX4WF",
+  "session_id": "e2d3a642-17cf-4466-89d1-d8a747654add",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T22:43:31.7071054Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/g7-gates.yml",
+    "kintsugi/cli.py",
+    "kintsugi/control/ship.py",
+    "kintsugi/crew/auditor.py",
+    "kintsugi/crew/pathologist.py",
+    "kintsugi/gates/g7.py",
+    "tests/control/test_ship.py",
+    "tests/crew/test_incident_loop.py",
+    "tests/fixtures/rehearsal/ledger_practice/.github/workflows/g7.yml"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "807151ca3d11",
+  "checkpoint_transcript_start": 1676,
+  "transcript_lines_at_start": 1676,
+  "compact_transcript_start": 203,
+  "token_usage": {
+    "input_tokens": 66,
+    "cache_creation_tokens": 50621,
+    "cache_read_tokens": 23445737,
+    "output_tokens": 41762,
+    "api_call_count": 33
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T22:43:31.5218107Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 21,
+    "total_committed": 0,
+    "total_lines_changed": 21,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 964,
+      "user_lines_removed": 21,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".github/workflows/g7-gates.yml": 75,
+        "kintsugi/cli.py": 33,
+        "kintsugi/control/ship.py": 492,
+        "kintsugi/crew/auditor.py": 4,
+        "kintsugi/crew/pathologist.py": 1,
+        "kintsugi/gates/g7.py": 108,
+        "tests/control/test_ship.py": 231,
+        "tests/crew/test_incident_loop.py": 1,
+        "tests/fixtures/rehearsal/ledger_practice/.github/workflows/g7.yml": 19
+      },
+      "user_removed_per_file": {
+        ".github/workflows/g7-gates.yml": 9,
+        "kintsugi/crew/auditor.py": 11,
+        "tests/crew/test_incident_loop.py": 1
+      }
+    }
+  ]
+}
