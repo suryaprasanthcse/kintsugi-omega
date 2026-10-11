@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N6NY5RRR1AN0HX900T2DV4",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/memory/entire.py",
+    "kintsugi/proof/attest.py",
+    "kintsugi/proof/commit.py",
+    "kintsugi/proof/redaction.py",
+    "pyproject.toml",
+    "tests/helpers/checkpoints.py",
+    "tests/memory/test_entire.py",
+    "tests/proof/test_attest.py",
+    "tests/proof/test_commit.py",
+    "tests/proof/test_redaction.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 40,
+    "cache_creation_tokens": 58854,
+    "cache_read_tokens": 16853593,
+    "output_tokens": 46176,
+    "api_call_count": 20
+  }
+}
