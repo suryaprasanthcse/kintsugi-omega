@@ -145,7 +145,8 @@ _TABLE: tuple[ActivitySpec, ...] = (
     ActivitySpec("fixes_prior", 5 * M, None, 2, (), CREW,
                  lambda sig: (sig.incident_id, sig.pass_no, "prior")),
     ActivitySpec("hypothesize", 10 * M, 60 * S, 3, (), CREW,
-                 lambda sig, cause, plan, rnd, history: (sig.incident_id, sig.pass_no, rnd)),
+                 lambda sig, cause, plan, rnd, history, prior: (sig.incident_id, sig.pass_no,
+                                                                 rnd)),
     ActivitySpec("rewind", 5 * M, None, 3, (), SURGEON,
                  lambda outs: tuple((o.incident_id, o.hypothesis, o.attempt) for o in outs)),
     ActivitySpec("rebase_and_rerun", 20 * M, 60 * S, 2, (), SURGEON,
@@ -369,8 +370,11 @@ class OmegaActivities:
         plan: c.BudgetPlan,
         rnd: int,
         history: list[c.GateVerdict],
+        prior: str | None,
     ) -> list[c.Card]:
-        return await self._run("hypothesize", list[c.Card], sig, cause, plan, rnd, history)
+        """Coordinator: K cards. ``prior`` is a Fixes investigation or an antibody's recipe."""
+        return await self._run("hypothesize", list[c.Card], sig, cause, plan, rnd, history,
+                               prior)  # fmt: skip
 
     @activity.defn(name="surgeon")
     async def surgeon(self, card: c.Card) -> c.SurgeonOutcome:

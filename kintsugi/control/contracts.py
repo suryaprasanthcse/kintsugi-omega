@@ -17,6 +17,23 @@ RESOLVED, ESCALATED, PARKED = (str(s) for s in (IncidentState.RESOLVED, Incident
 
 
 @dataclass(frozen=True)
+class ControlConfig:
+    """Bounds and pacing of the control plane, passed into workflows (never read from env)."""
+
+    supervisor_id: str = "fleet-supervisor"
+    max_rounds: int = 3  # repair rounds per pass (states.Bounds)
+    max_canary_reentries: int = 2  # amendment A-5
+    max_open_per_host: int = 2  # concurrency limit per host (§5.3.1)
+    continue_as_new_every: int = 1000  # FleetSupervisor events per run (§5.3.1)
+    canary_p0: float = 0.05  # the host's baseline failure rate (H0)
+    canary_ratio: float = 2.0  # H1 = ratio × p0 (§5.12)
+    canary_interval_s: float = 300.0  # durable timer between canary batches
+    canary_max_batches: int = 48
+    anchor_interval_s: float = 3600.0  # AuditAnchor cadence (hourly)
+    heartbeat_s: float | None = None  # drills only: overrides every heartbeat timeout
+
+
+@dataclass(frozen=True)
 class Hit:
     """A detection hit as the senses deliver it (``kintsugi.senses.store.HitEvent``)."""
 
