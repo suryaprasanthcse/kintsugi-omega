@@ -70,8 +70,9 @@ class PostingSession:
 def reconcile(batch: Batch, session: PostingSession | None = None) -> PostingSession:
     """Book every pending line of ``batch`` in USD; a rate limit retries the whole pass."""
 
+    current = session if session is not None else PostingSession(batch)
+
     def book_pending_lines() -> PostingSession:
-        current = session or PostingSession(batch)
         for line in current.pending():
             usd_rate = fx_rate(line.currency, line.date)
             current.book(line, usd_rate)
