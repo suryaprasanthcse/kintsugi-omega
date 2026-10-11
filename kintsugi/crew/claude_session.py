@@ -62,6 +62,13 @@ class SessionRequest:
     extra_env: Mapping[str, str] = field(default_factory=dict)
     append_system_prompt: str | None = None
     resume: bool = False  # continue ``session_id`` (spike N7) instead of starting it
+    # Crew roles other than the Surgeon (spec §5.7) answer one structured question: no tools,
+    # their own system prompt, a JSON schema, no settings or session files of their own.
+    tools: tuple[str, ...] | None = None  # ``--tools``: None keeps the defaults, () disables all
+    system_prompt: str | None = None
+    json_schema: Mapping[str, Any] | None = None
+    setting_sources: str = "project,local"  # no user plugins, skills or hooks in a Surgeon
+    persist: bool = True  # False: ``--no-session-persistence`` (nothing under ~/.claude)
 
 
 def build_argv(request: SessionRequest) -> list[str]:
@@ -71,15 +78,26 @@ def build_argv(request: SessionRequest) -> list[str]:
         "--output-format", "stream-json", "--verbose",
         "--model", request.model,
         "--resume" if request.resume else "--session-id", request.session_id,
-        "--allowedTools", ",".join(request.allowed_tools),
+    ]  # fmt: skip
+    if request.allowed_tools:
+        argv += ["--allowedTools", ",".join(request.allowed_tools)]
+    if request.tools is not None:
+        argv += ["--tools", ",".join(request.tools)]
+    argv += [
         "--strict-mcp-config",
-        "--setting-sources", "project,local",  # no user plugins, skills or hooks in a Surgeon
+        "--setting-sources", request.setting_sources,
         "--settings", json.dumps(dict(request.settings), separators=(",", ":")),
     ]  # fmt: skip
     if request.max_budget_usd is not None:
         argv += ["--max-budget-usd", f"{request.max_budget_usd:.2f}"]
+    if request.system_prompt is not None:
+        argv += ["--system-prompt", request.system_prompt]
     if request.append_system_prompt:
         argv += ["--append-system-prompt", request.append_system_prompt]
+    if request.json_schema is not None:
+        argv += ["--json-schema", json.dumps(dict(request.json_schema), separators=(",", ":"))]
+    if not request.persist:
+        argv += ["--no-session-persistence"]
     return argv
 
 
@@ -186,8 +204,13 @@ def run(
     *,
     on_event: Callable[[Mapping[str, Any]], bool] | None = None,
     claude_home: Path | None = None,
+    on_start: Callable[[int], None] | None = None,
 ) -> SessionResult:
-    """Run one session to completion. ``on_event`` returning True stops it (tree kill)."""
+    """Run one session to completion. ``on_event`` returning True stops it (tree kill).
+
+    ``on_start(pid)`` runs as soon as the child exists: the Surgeon step records the pid in the
+    worktree lock, so a restarted worker can kill an orphaned session before it adopts or resets
+    the worktree (spec §6.6)."""
     stream = StreamSummary()
     timed_out = threading.Event()
     stopped = False
@@ -201,6 +224,8 @@ def run(
             stderr_to=Path(scratch) / "stderr.log",
             stdin_path=prompt_file,
         )
+        if on_start is not None:
+            on_start(child.pid)
         timer = threading.Timer(request.timeout_s, lambda: (timed_out.set(), child.kill_tree()))
         timer.start()
         try:
