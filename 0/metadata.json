@@ -1,0 +1,84 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MY5K7V7DAGA98BPF93CFYD",
+  "session_id": "7e998687-8d07-465f-9bf5-c412ec900e65",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T07:34:54.5294422Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "kintsugi/stats/__init__.py",
+    "kintsugi/stats/bootstrap.py",
+    "kintsugi/stats/holm.py",
+    "kintsugi/stats/mcnemar.py",
+    "kintsugi/stats/power.py",
+    "kintsugi/stats/sprt.py",
+    "kintsugi/stats/wilson.py",
+    "pyproject.toml",
+    "tests/stats/test_bootstrap.py",
+    "tests/stats/test_mcnemar_power_holm_wilson.py",
+    "tests/stats/test_sprt.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "38ec9574a907",
+  "checkpoint_transcript_start": 1073,
+  "transcript_lines_at_start": 1073,
+  "compact_transcript_start": 127,
+  "token_usage": {
+    "input_tokens": 12,
+    "cache_creation_tokens": 23926,
+    "cache_read_tokens": 3312376,
+    "output_tokens": 18704,
+    "api_call_count": 6
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01GnYCHP2K5FWwdYJkJfazp5",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "085e01c28c7a",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 462,
+        "end": 463,
+        "entry_ids": [
+          "cb9b9509-facd-4b89-b6e7-576969eaddc5"
+        ],
+        "tool_use_id": "toolu_01GnYCHP2K5FWwdYJkJfazp5"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01GnYCHP2K5FWwdYJkJfazp5"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T07:34:54.4225779Z",
+    "agent_lines": 564,
+    "agent_removed": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 564,
+    "total_lines_changed": 565,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
