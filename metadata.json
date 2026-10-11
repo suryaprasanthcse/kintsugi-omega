@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N700MS3ADXA1AFYKQ86S6T",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/EXECUTION_PLAN.md",
+    "docs/SPIKES.md",
+    "kintsugi/proof/commit.py",
+    "tests/contract/test_spikes.py",
+    "tests/proof/test_commit.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 23586,
+    "cache_read_tokens": 7938614,
+    "output_tokens": 20856,
+    "api_call_count": 9
+  }
+}
