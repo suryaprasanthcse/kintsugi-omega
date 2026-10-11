@@ -1,7 +1,9 @@
 """Invariant I7 (completeness) and the primitive of audit check C9 (spec §4.1.7, §7.5).
 
 Every detection hit inside the window W must map to the ledger: either it **opened** an incident
-or it was **attached** to one (a dedupe), as recorded in ``seen_hits``. A hit that neatlogs
+or it was **attached** to one (a dedupe), or it was **held** below its receptor's paging
+threshold against a watch record (a dedupe too; amendment A-47), as recorded in ``seen_hits``.
+A hit that neatlogs
 reports but Omega never claimed is *missing*; a claimed hit with no decision is *pending*. Either
 fails I7. The check is a pure function over the hits neatlogs reports and the store's rows, so
 the audit can run it online (hits from the API) or offline (hits from a published bundle).
@@ -38,6 +40,7 @@ class CompletenessReport:
     incidents: set[str] = field(default_factory=set)
     opened: int = 0
     attached: int = 0
+    held: int = 0  # below the paging threshold, recorded against a watch record (A-47)
     pending: list[str] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)
 
@@ -48,6 +51,8 @@ class CompletenessReport:
     def summary(self) -> str:
         verdict = "PASS" if self.ok else "FAIL"
         mapped = f"{self.total} hits -> {len(self.incidents)} incidents + {self.attached} dedupes"
+        if self.held:
+            mapped += f" + {self.held} held below threshold"
         return f"{mapped} ({len(self.pending)} pending, {len(self.missing)} missing) {verdict}"
 
 
@@ -69,6 +74,8 @@ def completeness(
             report.missing.append(hit.key)
         elif row.incident is None or row.disposition is None:
             report.pending.append(hit.key)
+        elif row.disposition == "held":  # below the paging threshold: a dedupe record (A-47)
+            report.held += 1
         else:
             report.incidents.add(row.incident)
             if row.disposition == "opened":

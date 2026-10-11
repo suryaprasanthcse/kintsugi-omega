@@ -13,7 +13,9 @@ Tables (§5.4 schema; ``seen_hits`` is the same table the reduced-mode FSM will 
 
 - ``seen_events``   webhook event ids, deduplicated for 24 hours (replay protection, §5.6);
 - ``seen_hits``     claimed hits, their source and, once the Sentinel decides, the incident and
-                    disposition (``opened`` or ``attached``) that I7 checks;
+                    disposition that I7 checks: ``opened`` or ``attached`` (an incident), or
+                    ``held`` (below its receptor's paging threshold, recorded against the
+                    receptor's watch record ``WATCH-<receptor>-<host>``; amendment A-47);
 - ``watermarks``    per detection, the newest ``detectedAt`` the poller has swept;
 - ``queue``         alerts and hits for the control plane, in order.
 """
@@ -32,7 +34,7 @@ from typing import Any, Literal, Protocol
 
 EVENT_WINDOW_S = 24 * 3600
 Source = Literal["webhook", "poller", "metric"]
-Disposition = Literal["opened", "attached"]
+Disposition = Literal["opened", "attached", "held"]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS seen_events (
@@ -43,7 +45,7 @@ CREATE TABLE IF NOT EXISTS seen_hits (
   hit_key TEXT PRIMARY KEY, hit_id TEXT, detection_id TEXT NOT NULL, trace_id TEXT NOT NULL,
   span_id TEXT NOT NULL, source TEXT NOT NULL CHECK (source IN ('webhook','poller','metric')),
   receptor TEXT, host TEXT, detected_at TEXT, seen_at REAL NOT NULL, incident TEXT,
-  disposition TEXT CHECK (disposition IS NULL OR disposition IN ('opened','attached'))
+  disposition TEXT CHECK (disposition IS NULL OR disposition IN ('opened','attached','held'))
 );
 CREATE INDEX IF NOT EXISTS seen_hits_detected ON seen_hits (detected_at);
 CREATE TABLE IF NOT EXISTS watermarks (
@@ -114,6 +116,25 @@ class SenseStore:
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._connection().executescript(SCHEMA)  # idempotent DDL; commits on its own
+        self._migrate_dispositions()
+
+    def _migrate_dispositions(self) -> None:
+        """Stage 4 stores only allowed ``opened``/``attached``: rebuild with ``held`` (A-47)."""
+        query = "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'seen_hits'"
+        row = self._connection().execute(query).fetchone()
+        if row is None or "'held'" in row["sql"]:
+            return
+        new_table = SCHEMA.split("CREATE TABLE IF NOT EXISTS seen_hits", 1)[1].split(";", 1)[0]
+        self._connection().executescript(
+            "BEGIN IMMEDIATE;"
+            "DROP INDEX IF EXISTS seen_hits_detected;"
+            "ALTER TABLE seen_hits RENAME TO seen_hits_stage4;"
+            f"CREATE TABLE seen_hits {new_table};"
+            "INSERT INTO seen_hits SELECT * FROM seen_hits_stage4;"
+            "DROP TABLE seen_hits_stage4;"
+            "CREATE INDEX IF NOT EXISTS seen_hits_detected ON seen_hits (detected_at);"
+            "COMMIT;"
+        )
 
     def _connection(self) -> sqlite3.Connection:
         db = getattr(self._local, "db", None)
@@ -214,8 +235,17 @@ class SenseStore:
         rows = self._connection().execute("SELECT * FROM seen_hits ORDER BY seen_at")
         return {row["hit_key"]: _seen(row) for row in rows}
 
+    def hits_for(self, receptor: str, host: str) -> list[SeenHit]:
+        """Every claimed hit of one receptor on one host, oldest first (the paging window)."""
+        rows = self._connection().execute(
+            "SELECT * FROM seen_hits WHERE receptor = ? AND host = ? ORDER BY detected_at, seen_at",
+            (receptor, host),
+        )
+        return [_seen(row) for row in rows]
+
     def assign(self, key: str, incident: str, disposition: Disposition) -> None:
-        """The Sentinel's decision for a hit: it opened ``incident`` or was attached to it."""
+        """The Sentinel's decision for a hit: it opened ``incident``, was attached to it, or is
+        held below its receptor's paging threshold against a watch record."""
         with self._tx() as db:
             changed = db.execute(
                 "UPDATE seen_hits SET incident = ?, disposition = ? WHERE hit_key = ?",
