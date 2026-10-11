@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4P2EGY1DH4Q9K8A4WEB126D",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/crew/casefile.py",
+    "kintsugi/crew/claude_session.py",
+    "kintsugi/crew/consult.py",
+    "kintsugi/crew/llm.py",
+    "kintsugi/crew/manifest.py",
+    "kintsugi/crew/prompts/SHA256SUMS",
+    "kintsugi/crew/prompts/archivist.md",
+    "kintsugi/crew/prompts/auditor_g5.md",
+    "kintsugi/crew/prompts/coordinator.md",
+    "kintsugi/crew/prompts/pathologist.md",
+    "kintsugi/crew/prompts/sentinel.md",
+    "kintsugi/crew/prompts/surgeon.md",
+    "kintsugi/crew/templates.py",
+    "tests/crew/test_crew_foundation.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 128,
+    "cache_creation_tokens": 343787,
+    "cache_read_tokens": 17050375,
+    "output_tokens": 97713,
+    "api_call_count": 64
+  }
+}
