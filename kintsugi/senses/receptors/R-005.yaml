@@ -1,0 +1,22 @@
+id: R-005
+version: 1
+title: Semantic failures (stand-in)
+catches: The host's answer is a refusal instead of doing the task.
+provider: neatlogs
+detection:
+  type: classifier
+  run_on: {frequency: span_name, span_names: ["{workflow_span}"]}
+  threshold: 0.8
+  config:
+    classifier_slug: refusals
+alert:  # per_event hints; the Sentinel applies the threshold (A-38)
+  rule_type: per_event
+  threshold_count: 3
+  window_minutes: 10
+  severity: warning
+notes: >-
+  The spec's R-005 ("off-task or does not match the retrieved evidence") needs a custom
+  classifier; custom classifiers are behind the disabled tier-c-compute gate. The built-in
+  classifiers are jailbreaking, nsfw, hate and refusals; refusals fired in the Stage 4 spike
+  (scores 0.86-0.87), so it stands in. Off-task and evidence checks belong to the independent
+  grader (evaluator runs, spec §4.2) in Stage 6.

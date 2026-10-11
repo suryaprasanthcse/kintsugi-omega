@@ -1,0 +1,19 @@
+id: R-002
+version: 1
+title: Runaway loops
+catches: A task makes more tool calls than any healthy task of the host.
+provider: omega
+metric:
+  field: tool_calls
+  operator: ">"
+  threshold: "{max_tool_calls}"
+alert:
+  rule_type: threshold
+  threshold_count: 3
+  window_minutes: 10
+  severity: warning
+notes: >-
+  Evaluated by the poller over trace summaries (GET /traces?workflowName=host:<id>), which carry
+  toolCallsCount. neatlogs conditional detections accepted the documented field names
+  (tool_call_count, latency_ms, cost_usd, with or without a workflow filter) but never fired in
+  the Stage 4 spike, and the field vocabulary is undocumented.

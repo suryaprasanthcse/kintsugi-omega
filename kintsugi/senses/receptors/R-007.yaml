@@ -1,0 +1,22 @@
+id: R-007
+version: 1
+title: Correctness failures
+catches: The host's grader failed the task (grader.verdict output FAIL:<reason>).
+provider: neatlogs
+detection:
+  type: regex
+  run_on: {frequency: span_name, span_names: [grader.verdict]}
+  config:
+    # The verdict span's input is {"task_id":"<host>-...","verdict":...}: scoping by task prefix
+    # gives one detection, and one alert rule, per host.
+    input_pattern: '"task_id":"{task_prefix}'
+    # Span outputs are JSON-encoded, so the stored value is "FAIL:..." with its quote.
+    output_pattern: '^"?FAIL:'
+    operator: AND
+    case_sensitive: true
+alert:  # per_event hints; the Sentinel applies the threshold (A-38)
+  rule_type: per_event
+  threshold_count: 3
+  window_minutes: 10
+  severity: critical
+  cooldown_minutes: 10

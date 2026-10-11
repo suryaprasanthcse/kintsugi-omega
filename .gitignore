@@ -8,8 +8,11 @@
 # Sealed holdouts are encrypted to .kintsugi/holdout.pub and committed (spec §6.1, audit C13).
 !hosts/*/*/evals/holdout/*.age
 
-# Runtime state: the deploy worktree, live-traffic rows, the spend ledger
+# Runtime state: the deploy worktree, live-traffic rows, the spend ledger, the senses store and
+# the ingress secrets
 .state/
+# Raw webhook payloads: kept as evidence, published only inside proof bundles (Stage 8)
+evidence/ingress/
 
 # Python
 __pycache__/

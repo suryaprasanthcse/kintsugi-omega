@@ -1,0 +1,15 @@
+id: R-003
+version: 1
+title: Cost blow-ups
+catches: A task's trace costs more than c_max for its host.
+provider: omega
+metric:
+  field: cost_usd
+  operator: ">"
+  threshold: "{c_max_usd}"
+alert:
+  rule_type: threshold
+  threshold_count: 3
+  window_minutes: 10
+  severity: warning
+notes: Evaluated by the poller over trace summaries (totalCostUsd); see R-002.

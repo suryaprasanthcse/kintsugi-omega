@@ -1,0 +1,15 @@
+id: R-004
+version: 1
+title: Latency regressions
+catches: A task's trace takes longer than l_max for its host.
+provider: omega
+metric:
+  field: duration_ms
+  operator: ">"
+  threshold: "{l_max_ms}"
+alert:
+  rule_type: threshold
+  threshold_count: 3
+  window_minutes: 10
+  severity: warning
+notes: Evaluated by the poller over trace summaries (durationMs); see R-002.

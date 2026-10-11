@@ -1,0 +1,25 @@
+id: R-001
+version: 1
+title: Tool and HTTP failures
+catches: A tool span's output reports an error, an exception or an HTTP 4xx/5xx status.
+provider: neatlogs
+detection:
+  type: regex
+  run_on: {frequency: span_name, span_names: "{tool_spans}"}
+  config:
+    output_pattern: '(?i)(traceback|exception|HTTP\s?(4\d\d|5\d\d)|"status":\s*"error")'
+    case_sensitive: false
+# neatlogs posts every hit (per_event, verified to deliver within a second); the Sentinel pages on
+# threshold_count hits within window_minutes per host. neatlogs threshold rules never fired in the
+# Stage 4 rehearsal (A-38).
+alert:
+  rule_type: per_event
+  threshold_count: "{r001_threshold}"
+  window_minutes: 10
+  severity: warning
+  cooldown_minutes: 10
+notes: >-
+  A tool that raises is recorded as an ERROR span with an empty output and the message in its
+  error field ("RateLimited fx_rate EUR …: HTTP 429"); the live detection matched those spans,
+  so the regex reaches the error text too (Stage 4: 193 Ledger hits on the Stage 3 baselines'
+  background 429s). The alert threshold therefore sits above the background chaos rate.

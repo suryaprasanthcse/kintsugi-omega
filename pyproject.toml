@@ -9,6 +9,7 @@ license = { text = "Proprietary — #neatHack 2026 submission" }
 dependencies = [
     "anthropic>=1.13",
     "cryptography>=44.0",
+    "fastapi>=0.115",
     "httpx>=0.28",
     "jsonschema>=4.23",
     "neatlogs[anthropic,mcp]>=1.4.26",
@@ -19,6 +20,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "rfc8785>=0.1.4",
     "scipy>=1.14",
+    "uvicorn>=0.30",
 ]
 
 [project.scripts]

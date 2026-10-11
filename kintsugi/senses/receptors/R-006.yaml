@@ -1,0 +1,22 @@
+id: R-006
+version: 2
+title: Privacy leaks
+catches: Personal data (email, phone, card numbers) in the host's answer.
+provider: neatlogs
+detection:
+  type: pii
+  run_on: {frequency: span_name, span_names: ["{workflow_span}"]}
+  config:
+    entities: "{pii_entities}"
+alert:  # per_event hints; the Sentinel applies the threshold (A-38)
+  rule_type: per_event
+  threshold_count: 3
+  window_minutes: 10
+  severity: critical
+notes: >-
+  PII detections run per span. v1 used EMAIL_ADDRESS, PHONE_NUMBER and CREDIT_CARD on every host
+  and hit 137 healthy Ledger answers; one detection per entity showed PHONE_NUMBER alone matches
+  Ledger's journal lines (invoice refs and cent amounts), the other entities none. Ledger's
+  entities are therefore EMAIL_ADDRESS and CREDIT_CARD (v2). The available entities are
+  EMAIL_ADDRESS, PHONE_NUMBER, CREDIT_CARD, IP_ADDRESS and URL; bank account numbers are not
+  among them. All fixtures are synthetic.

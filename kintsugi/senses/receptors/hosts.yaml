@@ -1,0 +1,41 @@
+# Per-host receptor parameters (spec §4.1.4). Receptor specs substitute these as {name}.
+#
+# Calibration, Stage 4 (docs/SPIKES.md): 1,159 Stage 3 baseline agent traces read back through
+# the Public API (offline model, background chaos). Tool calls per task: Ledger median 10, max 27;
+# Scout median 11, max 27; Triage median 3, max 5. The spec's fixed `tool_call_count > 10` would
+# page on healthy Ledger and Scout traffic, so R-002 uses max(10, 2 × the healthy maximum).
+# c_max (R-003) is 10 × the budgeted LLM cost per task, llm_budget_usd_month / (tasks/h × 730 h).
+# l_max (R-004) is the host's p95 SLO where it has one, otherwise 30 s.
+# r001_threshold: background chaos makes tool 429s normal (Ledger: 102 in 1,149 fx calls), so
+# R-001's alert needs more hits per 10 minutes than the background produces.
+version: 1
+hosts:
+  ledger:
+    task_prefix: "ledger-"
+    workflow_span: reconcile_invoice
+    tool_spans: [parse_invoice, lookup_vendor, fx_rate, post_journal_entry, reconcile_report]
+    max_tool_calls: 54
+    c_max_usd: 0.0103
+    l_max_ms: 25000
+    r001_threshold: 9
+    # PHONE_NUMBER matched healthy journal lines (refs, cent amounts); see R-006 v2.
+    pii_entities: [EMAIL_ADDRESS, CREDIT_CARD]
+  scout:
+    task_prefix: "scout-"
+    workflow_span: answer_question
+    tool_spans: [web_search, fetch_document, verify_citations, compose_answer]
+    max_tool_calls: 54
+    c_max_usd: 0.0205
+    l_max_ms: 30000
+    r001_threshold: 9
+    pii_entities: [EMAIL_ADDRESS, PHONE_NUMBER, CREDIT_CARD]
+  triage:
+    task_prefix: "triage-"
+    workflow_span: triage_issue
+    tool_spans: [search_issues, get_issue, classify_type, classify_component, detect_duplicate,
+                 apply_label, comment]
+    max_tool_calls: 10
+    c_max_usd: 0.0658
+    l_max_ms: 30000
+    r001_threshold: 3
+    pii_entities: [EMAIL_ADDRESS, PHONE_NUMBER, CREDIT_CARD]
