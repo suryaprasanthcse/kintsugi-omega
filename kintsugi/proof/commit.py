@@ -115,13 +115,22 @@ def orchestrator_commit(
     body: str = "",
     approved_large_diff: bool = False,
     require_checkpoint: bool = True,
+    session_paths: Iterable[str] | None = None,
     timeout_s: float = 120.0,
 ) -> CommitOutcome:
+    """``session_paths``: files the session's Write/Edit tool calls touched (see
+    :func:`tool_edited_paths`). Any other staged change is refused before committing, because
+    Entire's checkpoint would not record it and audit check C4 would fail later."""
     worktree = Path(worktree)
     _git(worktree, "add", "-A")
     paths = _staged_paths(worktree)
     if not paths:
         raise CommitRefused("the session changed nothing")
+    if session_paths is not None:
+        unexplained = sorted(set(paths) - set(session_paths))
+        if unexplained:
+            _git(worktree, "reset", "-q")
+            raise CommitRefused(f"changes the session's tool calls do not explain: {unexplained}")
     violations = policy.violations(paths, list(scopes))
     if violations:
         _git(worktree, "reset", "-q")
@@ -164,6 +173,29 @@ def _ref_exists(repo: Path, checkpoint_id: str) -> bool:
     ref = entire.checkpoint_ref(checkpoint_id)
     result = proc.run(["git", "-C", str(repo), "show-ref", "--verify", "-q", ref], timeout_s=30)
     return result.returncode == 0
+
+
+_EDIT_TOOLS = frozenset({"Write", "Edit", "MultiEdit", "NotebookEdit"})
+
+
+def tool_edited_paths(tool_uses: Iterable[dict[str, object]], worktree: Path) -> set[str]:
+    """Repository-relative POSIX paths a session's file-editing tool calls named."""
+    root = Path(worktree).resolve()
+    paths: set[str] = set()
+    for use in tool_uses:
+        if use.get("name") not in _EDIT_TOOLS:
+            continue
+        tool_input = use.get("input")
+        raw = tool_input.get("file_path") if isinstance(tool_input, dict) else None
+        if not isinstance(raw, str):
+            continue
+        candidate = Path(raw)
+        absolute = candidate if candidate.is_absolute() else root / candidate
+        try:
+            paths.add(absolute.resolve().relative_to(root).as_posix())
+        except ValueError:
+            continue  # outside the worktree: never part of this commit
+    return paths
 
 
 # ---- C2–C5 ----------------------------------------------------------------------------------

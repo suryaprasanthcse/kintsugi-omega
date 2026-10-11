@@ -181,6 +181,30 @@ def test_diff_budget(repo: Path, signer: Signer) -> None:
     assert outcome.changed_lines > POLICY.diff_budget_lines
 
 
+def test_changes_outside_the_sessions_tool_calls_are_refused(repo: Path, signer: Signer) -> None:
+    # Found on a real checkpoint: a file written by a shell command is not in files_touched.
+    _install_hook(repo)
+    nonce, prompt = _session(repo)
+    (repo / "formatter_output.py").write_text("x = 1\n", encoding="utf-8")
+    with pytest.raises(c.CommitRefused, match="do not explain"):
+        c.orchestrator_commit(
+            repo, attestation=_attestation(nonce, prompt), signer=signer, subject="fix: x",
+            policy=POLICY, session_paths={"reconcile.py"},
+        )  # fmt: skip
+    assert git(repo, "diff", "--cached", "--name-only") == ""
+
+
+def test_tool_edited_paths_are_worktree_relative(tmp_path: Path) -> None:
+    uses = [
+        {"name": "Write", "input": {"file_path": str(tmp_path / "ledger" / "reconcile.py")}},
+        {"name": "Edit", "input": {"file_path": "README.md"}},
+        {"name": "Read", "input": {"file_path": str(tmp_path / "secret.txt")}},
+        {"name": "Write", "input": {"file_path": str(tmp_path.parent / "outside.py")}},
+        {"name": "Bash", "input": {"command": "pytest -q"}},
+    ]
+    assert c.tool_edited_paths(uses, tmp_path) == {"ledger/reconcile.py", "README.md"}
+
+
 def test_an_empty_session_is_refused(repo: Path, signer: Signer) -> None:
     attestation = _attestation(new_nonce(), "p")
     with pytest.raises(c.CommitRefused, match="changed nothing"):

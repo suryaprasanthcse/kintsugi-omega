@@ -238,6 +238,9 @@ Python relations: `CALLS`, `ASYNC_CALLS`, `CONSTRUCTS`, `CONTAINS`, `DATA_FLOWS`
 | N5 concurrent sessions in parallel worktrees | 2 | Open |
 | N6 secret scan of public transcripts | 2 | Open |
 | N7 `entire session resume` + `claude --resume` | 5 | Open |
+
+Stage 2 results are recorded in `docs/SPIKES.md` (A9, N1, N4, N5 and A14 mechanics resolved; the
+model tier of A1/N2, N1, N5 and A14 waits on A-20).
 | N8 gVisor in WSL2 | 3 | Open |
 | N9 rulesets and merge identity | 6/13 | Open |
 
@@ -262,3 +265,15 @@ Entries are appended in order as execution discovers them. Each states what chan
 | A-7 | 1 | E.2, E.5 and E.6 schemas require real 64-hex hashes, `sha256:` digests and passphrase nonces; the spec's symbolic examples (`h_811`, `9a41…`, `9f2c4e…`) are illustrative and fail them by design. E.4 prose placeholders are normalised to identifiers in `schemas/E4_repair_receipt.template.md`. | Schemas are the audit contract and must reject placeholders. |
 | A-8 | 1 | Motif kind `function` accepts snapshot kinds `function`, `method`, `lambda`, `closure` until spike A9 pins the real snapshot kinds. | The kind vocabulary of compact-ndjson snapshots is not yet observed. |
 | A-9 | 1 | Helper modules beyond the Stage 1 file list: `kintsugi/proof/passphrase.py`, `kintsugi/proof/schemas.py`, `kintsugi/gates/protected_paths.py`, `typings/pyrage` stubs, `tests/fixtures/spec/` (verbatim Appendix E examples). | Implementation support for A-3, A-7, the protected-path policy, and pyright on the compiled `pyrage` module. |
+| A-10 | 2 | entire-graph v0.4.0 has no `context`, `callers` or `callees` subcommands. `kintsugi/memory/graph.py` provides them as `search --format agent`, `neighbors --direction in` and `neighbors --direction out`. | Verified: the plugin answers "unknown command". |
+| A-11 | 2 | `entire doctor` is an interactive fixer and is never invoked by Omega. Health checks use `entire graph doctor --json` and `entire status`. | Verified from its help text: it "offers to fix" session state. |
+| A-12 | 2 | Gateway hardening: npm `.cmd` shims are resolved to their `.exe` and batch files are refused; stdin is written as exact bytes; long prompts go in on stdin from a file. | Real Windows bugs: a shim would pass prompt text to `cmd.exe` (`&`, `|`, `>`), text-mode stdin rewrote `\n` as `\r\n` (corrupting `git commit -F -` and `git mktree`), and command lines are capped near 32k characters. |
+| A-13 | 2 | entire-graph snapshot schema 1.1 is pinned with golden files. The graph also credits a closure's calls and constructions to its enclosing function, so the motif binds the retried scope `F` through `CONTAINS`, never through the enclosing function. | Spike A9; the reconciled v1.0/v1.1 motifs are validated on real snapshots. |
+| A-14 | 2 | A checkpoint ref's `i/content_hash.txt` is `sha256(i/full.jsonl)`; offline audits read checkpoints with plain git and verify that hash. | Verified on real checkpoints. |
+| A-15 | 2 | `.entire/settings.json` carries `redaction.custom_redactions` (a name → RE2 map; Entire rejects list forms): Anthropic, neatlogs, bearer, GitHub, AWS, age and private-key rules, plus the permanent `kintsugi_redaction_probe` positive control. The same rules drive a pre-push scan of checkpoint trees. | Spike N1: rules load live (`inline_patterns: 8`), the probe is redacted, passphrase tokens survive, a base64 decoy is blanked by Entire's built-in scanners. |
+| A-16 | 2 | `orchestrator_commit` refuses staged changes that the session's Write/Edit tool calls do not explain (`session_paths`). | A real checkpoint did not record a file written by a shell command; C4's `files_touched` clause caught it. Refusing before commit keeps C4 green by construction. |
+| A-17 | 2 | `Kintsugi-Prompt` is `sha256` of the exact UTF-8 bytes of the session's first prompt, which is delivered on stdin; the attestation's `prompt_template_sha` field carries the same digest. | Makes C5 a byte-exact check. |
+| A-18 | 2 | Headless sessions run with `--setting-sources project,local`, `--strict-mcp-config`, an orchestrator-chosen `--session-id` and `--max-budget-usd`. | A headless session otherwise loads the user's plugins and skills; a pre-chosen session ID lets L2 adopt an attempt by ID. |
+| A-19 | 2 | Checkpoint-ref sync is judged by the remote's final state, never force-pushes, and scans for secrets before pushing. | Entire's pre-push hook races explicit ref pushes ("cannot lock ref … expected"); a diverged ref may be evidence. |
+| A-20 | 2 | The model tier of spikes A1/N2, N1, N5 and A14 waits on a logged-in headless CLI (`claude auth login`) or the Stage 3 `ANTHROPIC_API_KEY`. The tests exist and skip with that reason. | The desktop app's auth is host-scoped; it is not borrowed for unattended processes. |
+| A-21 | 2 | Commit trailers are parsed across consecutive trailing trailer-only paragraphs. | A hook may append `Entire-Checkpoint:` in its own paragraph after the `Kintsugi-*` block. |
