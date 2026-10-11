@@ -25,16 +25,20 @@ dependencies = [
 kintsugi = "kintsugi.cli:main"
 
 [tool.uv.workspace]
-members = ["hosts/hostkit", "hosts/ledger"]
+members = ["hosts/hostkit", "hosts/ledger", "hosts/scout", "hosts/triage"]
 
 [tool.uv.sources]
 kintsugi-hostkit = { workspace = true }
 kintsugi-host-ledger = { workspace = true }
+kintsugi-host-scout = { workspace = true }
+kintsugi-host-triage = { workspace = true }
 
 [dependency-groups]
 dev = [
     "kintsugi-hostkit",
     "kintsugi-host-ledger",
+    "kintsugi-host-scout",
+    "kintsugi-host-triage",
     "hypothesis>=6.120",
     "pyright[nodejs]>=1.1.390",
     "pytest>=8.3",

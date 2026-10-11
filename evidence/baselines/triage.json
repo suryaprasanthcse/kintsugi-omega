@@ -1,0 +1,93 @@
+{
+ "host": "triage",
+ "model": "claude-haiku-5-5",
+ "model_mode": "offline",
+ "chaos_profile": "background",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "splits": [
+  "holdout",
+  "train"
+ ],
+ "per_seed": {
+  "1": {
+   "n": 100,
+   "passed": 94,
+   "pass_rate": 0.94,
+   "wilson95": [
+    0.8752,
+    0.9722
+   ]
+  },
+  "2": {
+   "n": 100,
+   "passed": 94,
+   "pass_rate": 0.94,
+   "wilson95": [
+    0.8752,
+    0.9722
+   ]
+  },
+  "3": {
+   "n": 100,
+   "passed": 94,
+   "pass_rate": 0.94,
+   "wilson95": [
+    0.8752,
+    0.9722
+   ]
+  }
+ },
+ "per_split": {
+  "holdout": {
+   "n": 90,
+   "passed": 84,
+   "pass_rate": 0.9333,
+   "wilson95": [
+    0.8621,
+    0.9691
+   ]
+  },
+  "train": {
+   "n": 210,
+   "passed": 198,
+   "pass_rate": 0.9429,
+   "wilson95": [
+    0.9028,
+    0.967
+   ]
+  }
+ },
+ "pooled": {
+  "n": 300,
+  "passed": 282,
+  "pass_rate": 0.94,
+  "wilson95": [
+   0.9072,
+   0.9617
+  ]
+ },
+ "p95_latency_s": 0.328,
+ "slo": {
+  "pass_rate": 0.88,
+  "p95_s": null
+ },
+ "meets_slo": true,
+ "verdicts": {
+  "PASS": 282,
+  "FAIL:WRONG_COMPONENT": 12,
+  "FAIL:WRONG_TYPE": 6
+ },
+ "cost": {
+  "metered_usd": 0.02661,
+  "billable_usd": 0.0,
+  "per_task_usd": 8.87e-05
+ },
+ "chaos": {
+  "github:calls": 1290
+ },
+ "recorded_at": "2026-10-11T12:08:56+00:00"
+}

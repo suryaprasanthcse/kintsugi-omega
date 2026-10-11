@@ -5,6 +5,8 @@ requires-python = "==3.12.*"
 [manifest]
 members = [
     "kintsugi-host-ledger",
+    "kintsugi-host-scout",
+    "kintsugi-host-triage",
     "kintsugi-hostkit",
     "kintsugi-omega",
 ]
@@ -576,6 +578,32 @@ dependencies = [
 requires-dist = [{ name = "kintsugi-hostkit", editable = "hosts/hostkit" }]
 
 [[package]]
+name = "kintsugi-host-scout"
+version = "0.1.0"
+source = { editable = "hosts/scout" }
+dependencies = [
+    { name = "kintsugi-hostkit" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "kintsugi-hostkit", editable = "hosts/hostkit" }]
+
+[[package]]
+name = "kintsugi-host-triage"
+version = "0.1.0"
+source = { editable = "hosts/triage" }
+dependencies = [
+    { name = "kintsugi-hostkit" },
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kintsugi-hostkit", editable = "hosts/hostkit" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+]
+
+[[package]]
 name = "kintsugi-hostkit"
 version = "0.1.0"
 source = { editable = "hosts/hostkit" }
@@ -615,6 +643,8 @@ dependencies = [
 dev = [
     { name = "hypothesis" },
     { name = "kintsugi-host-ledger" },
+    { name = "kintsugi-host-scout" },
+    { name = "kintsugi-host-triage" },
     { name = "kintsugi-hostkit" },
     { name = "pyright", extra = ["nodejs"] },
     { name = "pytest" },
@@ -643,6 +673,8 @@ requires-dist = [
 dev = [
     { name = "hypothesis", specifier = ">=6.120" },
     { name = "kintsugi-host-ledger", editable = "hosts/ledger" },
+    { name = "kintsugi-host-scout", editable = "hosts/scout" },
+    { name = "kintsugi-host-triage", editable = "hosts/triage" },
     { name = "kintsugi-hostkit", editable = "hosts/hostkit" },
     { name = "pyright", extras = ["nodejs"], specifier = ">=1.1.390" },
     { name = "pytest", specifier = ">=8.3" },

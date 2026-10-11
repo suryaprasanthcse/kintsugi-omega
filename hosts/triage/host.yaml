@@ -1,0 +1,27 @@
+# Triage — GitHub issue triage on a frozen snapshot (spec §5.9.3).
+id: triage
+package: triage
+description: Labels, de-duplicates and routes incoming issues of the Harborlight project.
+model: claude-haiku-5-5
+slo:
+  pass_rate: 0.88
+economics:
+  tier: Pilot  # $99/month, on Haiku: the L5 economics demonstration (spec §6.8)
+  price_usd_month: 99
+  value_per_failed_task_usd: 1.50
+  tasks_per_hour: 1.25
+  llm_budget_usd_month: 6.00
+eval:
+  splits: {train: 70, holdout: 30}
+  grader: type, component and team labels exact; duplicate link exact; repeated comments fail
+tools:
+  search_issues: {side_effect: false}
+  get_issue: {side_effect: false}
+  classify_type: {side_effect: false, model: true}
+  classify_component: {side_effect: false, model: true}
+  detect_duplicate: {side_effect: false, model: true}
+  apply_label: {side_effect: true, external: github}
+  comment: {side_effect: true, external: github}
+services:
+  github: triage.services.mock_github:handle
+offline_model: triage.evals.offline_model:respond

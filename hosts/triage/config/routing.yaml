@@ -1,0 +1,13 @@
+# Triage routing: which model runs each step, and which team owns each component.
+# Not a protected path: the L5 treatment (spec §6.8) changes a step's model here.
+steps:
+  classify_type: claude-haiku-5-5
+  classify_component: claude-haiku-5-5
+  detect_duplicate: claude-haiku-5-5
+teams:
+  api: team-platform
+  cli: team-devx
+  auth: team-identity
+  storage: team-data
+  ui: team-frontend
+  docs: team-docs

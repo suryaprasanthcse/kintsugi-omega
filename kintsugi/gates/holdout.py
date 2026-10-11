@@ -55,7 +55,7 @@ def keygen(identity_path: Path, repo: Path) -> str:
     identity_path.parent.mkdir(parents=True, exist_ok=True)
     identity_path.write_text(secret + "\n", encoding="ascii")
     os.chmod(identity_path, 0o600)
-    (repo / RECIPIENT).write_text(recipient + "\n", encoding="ascii")
+    (repo / RECIPIENT).write_text(recipient + "\n", encoding="ascii", newline="\n")
     return recipient
 
 
@@ -105,7 +105,7 @@ def _record(repo: Path, report: SealReport) -> None:
     ]
     header = "# KINTSUGI-Ω holdout manifest (spec §6.1): sha256 of each sealed holdout file."
     body = [line for line in kept if not line.startswith("# KINTSUGI")]
-    manifest.write_text("\n".join([header, *sorted(body)]) + "\n", encoding="utf-8")
+    manifest.write_text("\n".join([header, *sorted(body)]) + "\n", encoding="utf-8", newline="\n")
 
 
 def _manifest_lines(manifest: Path) -> list[str]:

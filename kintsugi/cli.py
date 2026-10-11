@@ -155,7 +155,7 @@ def _fleet_baseline(args: argparse.Namespace) -> int:
         card = baseline(spec, args.seeds, holdout_jsonl=holdout_jsonl, config=config,
                         workers=args.workers, extra_env=neatlogs)  # fmt: skip
         out = args.out_dir / f"{spec.id}.json"
-        out.write_text(json.dumps(card, indent=1) + "\n", encoding="utf-8")
+        out.write_text(json.dumps(card, indent=1) + "\n", encoding="utf-8", newline="\n")
         pooled = card["pooled"]
         print(f"{spec.id}: {pooled['passed']}/{pooled['n']} PASS "
               f"({pooled['pass_rate']:.3f}, Wilson95 {pooled['wilson95']}) "

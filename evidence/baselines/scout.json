@@ -1,0 +1,92 @@
+{
+ "host": "scout",
+ "model": "claude-haiku-5-5",
+ "model_mode": "offline",
+ "chaos_profile": "background",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "splits": [
+  "holdout",
+  "train"
+ ],
+ "per_seed": {
+  "1": {
+   "n": 60,
+   "passed": 60,
+   "pass_rate": 1.0,
+   "wilson95": [
+    0.9398,
+    1.0
+   ]
+  },
+  "2": {
+   "n": 60,
+   "passed": 60,
+   "pass_rate": 1.0,
+   "wilson95": [
+    0.9398,
+    1.0
+   ]
+  },
+  "3": {
+   "n": 60,
+   "passed": 60,
+   "pass_rate": 1.0,
+   "wilson95": [
+    0.9398,
+    1.0
+   ]
+  }
+ },
+ "per_split": {
+  "holdout": {
+   "n": 60,
+   "passed": 60,
+   "pass_rate": 1.0,
+   "wilson95": [
+    0.9398,
+    1.0
+   ]
+  },
+  "train": {
+   "n": 120,
+   "passed": 120,
+   "pass_rate": 1.0,
+   "wilson95": [
+    0.969,
+    1.0
+   ]
+  }
+ },
+ "pooled": {
+  "n": 180,
+  "passed": 180,
+  "pass_rate": 1.0,
+  "wilson95": [
+   0.9791,
+   1.0
+  ]
+ },
+ "p95_latency_s": 0.547,
+ "slo": {
+  "pass_rate": 0.85,
+  "p95_s": null
+ },
+ "meets_slo": true,
+ "verdicts": {
+  "PASS": 180
+ },
+ "cost": {
+  "metered_usd": 0.012007,
+  "billable_usd": 0.0,
+  "per_task_usd": 6.67e-05
+ },
+ "chaos": {
+  "docs:calls": 1986,
+  "docs:status#1": 77
+ },
+ "recorded_at": "2026-10-11T12:08:19+00:00"
+}

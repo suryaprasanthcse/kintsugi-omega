@@ -9,6 +9,7 @@ stand-in (amendment A-23). Spend is metered per host in the shared SQLite ledger
 
 from __future__ import annotations
 
+import inspect
 import secrets
 from collections import Counter
 from collections.abc import Callable, Mapping
@@ -42,14 +43,18 @@ def load_dotenv(path: Path) -> dict[str, str]:
     return values
 
 
-ServiceFn = Callable[[str, str, Mapping[str, str], bytes], tuple[int, Any]]
+ServiceFn = Callable[..., tuple[int, Any]]
 
 
 def service_handler(fn: ServiceFn) -> Handler:
-    """Adapt a host's mock service ``(method, path, query, body) -> (status, json)``."""
+    """Adapt a host's mock service ``(method, path, query, body[, namespace]) -> (status,
+    json)``. A service that takes ``namespace`` gets the calling task's id, so stateful mocks
+    (Triage's GitHub) keep each task's side effects apart."""
+    namespaced = "namespace" in inspect.signature(fn).parameters
 
     def handle(request: HttpRequest) -> HttpResponse:
-        status, body = fn(request.method, request.path, request.query, request.body)
+        args = (request.method, request.path, request.query, request.body)
+        status, body = fn(*args, namespace=request.task) if namespaced else fn(*args)
         return HttpResponse.of_json(status, body)
 
     return handle
@@ -85,11 +90,16 @@ class Fabric:
         self.spend = lp.SpendLedger(config.spend_path, daily_cap_usd=config.daily_cap_usd,
                                     limits=limits)  # fmt: skip
         services: dict[str, chaos.Upstream] = {}
+        self._resets: list[Callable[[], None]] = []
         for spec in self.hosts.values():
             for name, dotted in spec.services.items():
                 if name in services:
                     raise ValueError(f"service {name!r} is declared by two hosts")
-                services[name] = service_handler(resolve(dotted))
+                fn = resolve(dotted)
+                services[name] = service_handler(fn)
+                reset: Callable[[], None] | None = getattr(inspect.getmodule(fn), "reset", None)
+                if reset is not None:  # stateful mocks start empty for every fabric
+                    self._resets.append(reset)
         self.chaos = chaos.ChaosProxy(services, config.profile.with_seed(config.seed),
                                       recorder=config.chaos_recorder)  # fmt: skip
         self.llm = lp.LlmProxy(upstream, self.spend, self.tokens, recorder=config.llm_recorder)
@@ -120,6 +130,8 @@ class Fabric:
         return counts
 
     def __enter__(self) -> Fabric:
+        for reset in self._resets:
+            reset()
         for server in self._servers:
             server.start()
         return self
