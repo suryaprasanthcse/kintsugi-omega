@@ -3,6 +3,58 @@
 Each stage's verification targets (from `docs/EXECUTION_PLAN.md` §4) with the result and the
 evidence that reproduces it. Numbers are copied from committed artifacts or from the named test.
 
+## Stage 4 — Senses: neatlogs, receptors, ingress, poller, Fixes
+
+Recorded 2026-10-11 (IST) against the live neatlogs Public API (project tier `free`) with a
+service-account token, neatlogs SDK 1.4.26, FastAPI 0.143.0 / uvicorn 0.54.0 and a cloudflared
+2026.10.0 quick tunnel to the local ingress. Spike details: `docs/SPIKES.md` (Stage 4);
+deviations: amendments A-28 to A-39.
+
+### Targets
+
+| Target | Result | Evidence |
+|---|---|---|
+| Contract tests against the pinned OpenAPI | ✅ 50 operations pinned from the published document (SHA-256 recorded); all 17 recorded live responses validate, mutated ones fail; live: the published document has **no drift** from the pin and live responses validate (4/4 contract tests) | `tests/senses/test_neatlogs_api.py`; `KINTSUGI_CONTRACT=1 … tests/contract/test_neatlogs_contract.py` |
+| The Stage 3 `grader.verdict` spans are readable through the API (first contract test) | ✅ readable (`"PASS"`, JSON-encoded); **found** each verdict was its own one-span trace and fixed it, so a task's verdict and tool spans share `task:<id>` (A-28), verified live | `test_grader_verdicts_are_readable_through_the_api` |
+| Duplicate events are dropped with 200 | ✅ a repeated event id answers 200 `duplicate`, enqueues and persists nothing; the dedupe holds 24 h | `tests/senses/test_ingress.py`, `test_event_dedupe_holds_for_24_hours_then_expires` |
+| Ingress answers within 2 s | ✅ 200 signed deliveries: median 4.5 ms, p99 21.2 ms, max 68.5 ms (in-process); reachable through the tunnel (`/healthz`) | `test_ingress_answers_within_two_seconds` |
+| Webhook verification | ✅ HMAC-SHA256 signature in the format neatlogs actually sends (spike A6) over the real delivery body, 256-bit secret path (404 otherwise), optional source allowlist, size cap, malformed bodies refused | `test_signature_secret_path_source_and_shape_are_enforced` |
+| The poller recovers hits during a simulated outage | ✅ ingress at 503 while three hits arrive → the poller claims all three; after recovery the redelivered events claim nothing; restart from the persisted watermark recovers hits missed while down; an expired cursor restarts the sweep without double claims; concurrent claimers never double-process (150 hits × 4 threads) | `tests/senses/test_poller.py` |
+| Replayed deliveries are suppressed | ✅ by event id (200 `duplicate`) and by hit key (a new event for an already-claimed hit claims nothing) | `test_a_replayed_delivery_is_suppressed_by_event_id_and_by_hit_key` |
+| I7 completeness function on fixtures | ✅ passes when every hit in W opened or attached to an incident; fails on a missing or undecided hit; ignores hits outside W | `tests/senses/test_receptors.py` |
+| I7 on live data | ✅ after one sweep: **281 hits, 0 missing**; all pending without a Sentinel (correctly FAIL); with stand-in dispositions in the local store: `281 hits -> 3 incidents + 278 dedupes (0 pending, 0 missing) PASS` | `kintsugi senses completeness --since 2026-10-11T15:30:00Z` |
+| R-007 fires on Ledger `FAIL:` verdicts in a rehearsal (no sabotage committed) | ✅ three rehearsals (seeds 11, 12, 13) under the disclosed FX-outage profile: 18/18 tasks `FAIL:FX_UNAVAILABLE`; **every failing trace that reached neatlogs got an R-007 hit within seconds (15/15)**; the poller claimed them. One trace per run never appeared (A-39). R-001 Ledger also hit the FX 503 errors (10 new hits in the sweep after the third run) | `kintsugi senses rehearse`; `kintsugi/sandbox/profiles/rehearsal-fx-outage.yaml` |
+| Receptors R-001…R-007 per host | ✅ provisioned live: 12 neatlogs detections (R-001, R-005, R-006, R-007 × 3 hosts) with per-event rules to the ingress webhook, and 9 Omega metric receptors (R-002/3/4 × 3); re-provisioning is idempotent and retires superseded versions and rules | `kintsugi senses provision`; `test_provisioning_is_idempotent_and_retires_stale_versions` |
+| No false positives on the healthy fleet | ✅ R-002/R-003/R-004: 0 hits over 1,387 Ledger, 345 Scout and 576 Triage traces; R-006 v1 hit 137 healthy Ledger answers (`PHONE_NUMBER`), so v2 drops that entity for Ledger | `kintsugi senses poll --once`; spike per entity |
+| Tag writes with optimistic concurrency | ✅ read-modify-write with `expectedRevision`, re-read on 409, no-op merges write nothing; live revision 0 → 1 | `tests/senses/test_records_and_tags.py` |
+| Spikes A3, A5, A6, A7, A11, A13 (+ A12 probe) | ✅ recorded; A5 sharing cannot be enabled by API; A7 custom attributes are not readable; A13 rules can be created | `docs/SPIKES.md` |
+
+### Invariants and proof
+
+- **I7** (completeness): one shared `seen_hits` table claims each hit once across the webhook and
+  the poller; the completeness function is the C9 primitive. The poller is the source of truth.
+- **C8** primitive: `NeatlogsApi.trace(id)` reads a trace's existence and timestamps.
+- **L0 detection** (R-007 on Ledger failures) and **L2** (poller recovery, replay suppression,
+  the ingress's 503 outage switch) are exercised above.
+
+### Known limits carried forward
+
+- **Alerting (A-38):** after the first per-event delivery no alert rule in the project fired
+  again; webhooks are therefore unproven beyond that delivery. The Architect is asked to check
+  the neatlogs alerting UI or support. Omega pages from its own store (the Sentinel applies the
+  per-host thresholds), so detection does not depend on it.
+- **Ingestion loss (A-39):** about 3–4% of task traces never become visible; I7 can only cover
+  what neatlogs reports. Investigation carries into Stage 5 and Stage 13.
+- **OAuth-only operations (A-29):** delivery replay, webhook test, detection preview, generate
+  and backfills need `NEATLOGS_OAUTH_TOKEN` (not configured); preview and backfills are also
+  gated off in production.
+- The webhook points at a cloudflared **quick tunnel** that ends with this session; rerun
+  `kintsugi senses provision --public-url <origin>` against a stable origin before T0.
+- R-005 is a `refusals` stand-in; conditional detections never fired, so R-002/3/4 run in Omega.
+- The Fixes MCP is an interface with an unconfigured implementation (spike A4 is Stage 6).
+- Stage 4 commit 3 (`01M4NRV5K0828Z1TWGGGYGREM4`) has `files_touched: null` in its checkpoint
+  (A-37); its trailer, ref and transcript are intact.
+
 ## Stage 3 — Fleet: Ledger, Scout, Triage + sandbox and proxies
 
 Recorded 2026-10-11 (IST) on Windows 11 + WSL2 Ubuntu 26.04, Docker Engine 29, gVisor
