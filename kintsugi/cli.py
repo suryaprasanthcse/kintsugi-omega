@@ -89,6 +89,29 @@ def _build_parser() -> argparse.ArgumentParser:
     rehearse.add_argument("--tasks", type=int, default=6)
     rehearse.add_argument("--seed", type=int, default=11)
 
+    control = sub.add_parser("control", help="the control plane: supervisor, Watchdog (§5.3–5.5)")
+    control_sub = control.add_subparsers(dest="control_command", required=True)
+    commands = {
+        "supervisor": "start the FleetSupervisor workflow (idempotent)",
+        "forward": "forward queued senses hits to the FleetSupervisor",
+        "watchdog": "supervise the worker pools; serve the chaos API",
+        "history": "export a workflow's server-side event history (T8)",
+    }
+    for name, text in commands.items():
+        cmd = control_sub.add_parser(name, help=text)
+        cmd.add_argument("--target", default="localhost:7233", help="Temporal frontend")
+    control_sub.choices["forward"].add_argument("--once", action="store_true")
+    watch = control_sub.choices["watchdog"]
+    watch.add_argument("--crew", required=True, help="module:factory of the Crew port")
+    watch.add_argument("--chaos-port", type=int, default=8790)
+    watch.add_argument("--ingress-admin", help="the ingress's /admin/availability URL")
+    hist = control_sub.choices["history"]
+    hist.add_argument("--workflow-id", required=True)
+    hist.add_argument("--run-id")
+    hist.add_argument("--out", type=Path, required=True)
+    dead = control_sub.add_parser("deadman", help="page if the Watchdog's heartbeat is stale")
+    dead.add_argument("--max-age", type=float, default=120.0)
+
     keys = sub.add_parser("keys", help="attestation key custody (spec §4.5.1)")
     keys_sub = keys.add_subparsers(dest="keys_command", required=True)
     generate = keys_sub.add_parser(
@@ -291,6 +314,47 @@ def _senses(args: argparse.Namespace) -> int:
         return EXIT_OK if report.ok else EXIT_FAIL
 
 
+def _control(args: argparse.Namespace) -> int:
+    import asyncio
+
+    from kintsugi.control import contracts
+    from kintsugi.control import service as svc
+    from kintsugi.control import watchdog as w
+
+    repo = _repo()
+    if args.control_command == "deadman":
+        pager = w.Pager(repo / svc.WATCHDOG_DIR / "pages.jsonl")
+        alive = w.deadman(repo / svc.WATCHDOG_DIR / "heartbeat", args.max_age, pager)
+        print("watchdog alive" if alive else "watchdog DEAD: paged")
+        return EXIT_OK if alive else EXIT_FAIL
+    if args.control_command == "history":
+        n = asyncio.run(svc.export_history(args.target, args.workflow_id, args.out, args.run_id))
+        print(f"{args.workflow_id}: {n} events -> {args.out}")
+        return EXIT_OK
+    if args.control_command == "supervisor":
+        print(asyncio.run(svc.start_supervisor(args.target, contracts.ControlConfig())))
+        return EXIT_OK
+    if args.control_command == "forward":
+        from kintsugi.senses.service import STORE_PATH
+
+        moved = asyncio.run(svc.forward(args.target, repo / STORE_PATH,
+                                        contracts.ControlConfig().supervisor_id,
+                                        once=args.once))  # fmt: skip
+        print(f"forwarded {moved} queued items")
+        return EXIT_OK
+    from kintsugi.senses.service import ingress_secrets
+
+    admin = None
+    if args.ingress_admin:
+        admin = ingress_secrets(repo).admin_token
+    dog = svc.build_watchdog(repo, args.target, args.crew, ingress_admin=args.ingress_admin,
+                             admin_token=admin)  # fmt: skip
+    print(f"watchdog: pools {svc.summary(dog)}; chaos API on 127.0.0.1:{args.chaos_port}"
+          f" (token in {svc.WATCHDOG_DIR / 'chaos.token'})")  # fmt: skip
+    svc.run_watchdog(dog, svc.chaos_token(repo), port=args.chaos_port)
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "version":
@@ -304,6 +368,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _holdout(args)
     if args.command == "senses":
         return _senses(args)
+    if args.command == "control":
+        return _control(args)
     if args.command == "fleet" and args.fleet_command == "baseline":
         return _fleet_baseline(args)
     if args.command == "fleet":

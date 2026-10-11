@@ -1,4 +1,4 @@
-# Spike results (Stages 2–4)
+# Spike results (Stages 2–5)
 
 Spikes run against the installed Entire 0.11.4, entire-graph v0.4.0 and Claude Code 2.1.269 on
 Windows 11, 2026-10-11. Each result is locked by a test: CI runs the golden-fixture tests;
@@ -64,3 +64,18 @@ tier `free`. The contract is the published OpenAPI 3.1 document (285 operations)
 | Detections | Which detection types work? | ✅ regex (input and output patterns, error text included), PII (per span) and the built-in `refusals` classifier (scores 0.86–0.87) all fire within seconds. ❌ conditional detections accepted `tool_call_count`, `toolCallsCount`, `latency_ms`, `cost_usd`, with or without a workflow filter, and never fired. PII `PHONE_NUMBER` matched healthy Ledger journal lines (3 of 6 fresh answers; 137 baseline answers); the other entities matched none. | `kintsugi/senses/receptors/` |
 | Traces | Shape of a host's trace | ⚠️ Each `grader.verdict` was its own one-span trace; fixed so the verdict shares the `task:<id>` trace (A-28), verified live. Healthy tool calls per task: Ledger median 10 (max 27), Scout 11 (27), Triage 3 (5). About 3–4% of task traces never appear (A-39). | `trace_spans.json` |
 | Writes | Idempotency and tag revisions | ✅ `PATCH /traces/{id}` with `expectedRevision` moved revision 0 → 1; a UUIDv5 idempotency key was refused (`INVALID_IDEMPOTENCY_KEY`), base64url SHA-256 accepted. | `tests/senses/test_records_and_tags.py` |
+
+## Stage 5 spikes and drills (control plane)
+
+Run 2026-10-11 (IST) on Windows 11 with temporalio 1.34.0. The SDK fetched its two single
+binaries on first use (ruling D6): the time-skipping test server (CI and unit tests) and the
+Temporal CLI 1.9.1 dev server (Server 1.32.0, in-memory persistence) for the live drills.
+`KINTSUGI_CONTRACT=1 uv run pytest tests/contract/test_control_drill.py
+tests/contract/test_spikes.py -k "drill or n7"` re-runs them.
+
+| Spike | Question | Result | Evidence |
+|---|---|---|---|
+| N7 | Can a headless session be resumed in place (L2 orphan recovery, long-lived roles)? | ✅ After the local transcript was removed (a fresh machine), `entire session resume <branch> --force` restored it from the checkpoint; `claude -p --resume <id>` then continued the **same** session id and recalled the nonce written in the first run (haiku, about 20 s, under $0.01). `SessionRequest(resume=True)` emits `--resume` instead of `--session-id`. | `test_n7_session_resume_restores_the_log_and_continues_the_same_session` |
+| L2 / Temporal | Does a `kill -9` of the Surgeon pool lead to attempt 2 with the right adoption rule? | ✅ Worker processes on the dev server; the worker's process tree is killed while attempt 1 runs; a new worker starts. The server's history shows attempt 2 starting with a `HEARTBEAT` timeout as its last failure. **Adopt**: attempt 1 had committed with its nonce; attempt 2 keeps that commit and starts no session. **Cleanup**: attempt 1 had only dirtied the worktree; attempt 2 kills the orphan, resets and cleans, and commits under a new nonce. **Through the Watchdog**: the chaos API kills the pool, the supervisor restarts it, attempt 2 adopts, and every task queue's pollers are fresh afterwards. 3 tests, about 54 s. | `tests/contract/test_control_drill.py` |
+| L2 / SQLite | Does reduced mode survive a `kill -9` of the whole stack? | ✅ Executor (with its session) and the single writer killed together; on restart the WAL-recovered log still folds to REPAIRING, the dead executor's lease is marked abandoned, and the restarted executor runs the step as attempt 2 (adopt and cleanup cases). | `test_reduced_mode_survives_kill9_of_the_whole_stack` |
+| Kill semantics | Does `proc.kill_tree` reach the session under a killed worker? | ⚠️ On Windows the whole tree dies. On Linux the worker and its process group die, but a grandchild that leads its own session (the Surgeon's session) survives as an orphan; attempt 2 kills it through the worktree lock before adopting or resetting, as §6.6 requires. | `kintsugi/control/surgeon_step.py` |

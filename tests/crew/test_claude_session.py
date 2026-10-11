@@ -78,6 +78,15 @@ def test_argv_keeps_the_prompt_off_the_command_line(monkeypatch: pytest.MonkeyPa
     assert settings["attribution"] == {"commit": "", "pr": "", "sessionUrl": False}
 
 
+def test_a_resumed_session_continues_its_own_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("KINTSUGI_CLAUDE_BIN", raising=False)
+    request = cs.SessionRequest(prompt="go on", cwd=Path("."), allowed_tools=("Read",),
+                                session_id="sid-2", resume=True)  # fmt: skip
+    argv = cs.build_argv(request)
+    assert argv[argv.index("--resume") + 1] == "sid-2"
+    assert "--session-id" not in argv  # spike N7: resume the session, never fork a new id
+
+
 @pytest.fixture
 def fake_claude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     script = tmp_path / "fake_claude.py"

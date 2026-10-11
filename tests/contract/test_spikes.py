@@ -154,6 +154,48 @@ def test_a1_n2_commit_after_exit_links_and_passes_c2_to_c5(host: Path) -> None:
 
 
 @needs_model
+def test_n7_session_resume_restores_the_log_and_continues_the_same_session(host: Path) -> None:
+    """Spike N7 (plan §2a L2): ``entire session resume`` + ``claude -p --resume`` in place."""
+    attempt = wt.create(host, "INC-N7", "H1")
+    nonce = new_nonce()
+    prompt = _task(nonce, name="notes.txt")
+    first = cs.run(_request(attempt.path, prompt))
+    assert first.ok, first.stream.result
+    signer = attest.Ed25519Signer.generate()
+    attestation = attest.SessionAttestation(
+        nonce=nonce, role="surgeon", hypothesis="H1", incident="INC-N7",
+        worktree=str(attempt.path), base_sha=attempt.base_sha,
+        prompt_template_sha=c.prompt_digest(prompt), t_start="spike",
+    )  # fmt: skip
+    outcome = c.orchestrator_commit(
+        attempt.path, attestation=attestation, signer=signer, subject="spike: N7",
+        policy=POLICY, session_paths=c.tool_edited_paths(first.stream.tool_uses, attempt.path),
+    )  # fmt: skip
+    assert outcome.checkpoint_id is not None
+    assert first.transcript_path is not None
+    parked = first.transcript_path.with_name(first.transcript_path.name + ".parked")
+    first.transcript_path.rename(parked)  # a fresh machine: no local session log
+    try:
+        printed = entire.session_resume(attempt.path, attempt.branch)
+        restored = cs.find_transcript(first.session_id)
+        assert restored is not None, printed  # restored from the checkpoint
+        second = cs.run(_request(
+            attempt.path,
+            "What exact text did you write into notes.txt earlier in this conversation? "
+            "Reply with that text only and do not use any tool.",
+            session_id=first.session_id, resume=True,
+        ))  # fmt: skip
+        assert second.ok, second.stream.result
+        assert second.session_id == first.session_id  # the same session continued
+        answer = second.stream.result
+        text = answer.get("result", "") if isinstance(answer, dict) else str(answer or "")
+        assert nonce in text  # with its context
+    finally:
+        if parked.exists():
+            parked.unlink()
+
+
+@needs_model
 def test_n1_headless_honeytoken_survives_and_c6_catches_it(host: Path) -> None:
     attempt = wt.create(host, "INC-S", "N1")
     nonce, token = new_nonce(), new_honeytoken()

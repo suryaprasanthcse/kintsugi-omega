@@ -61,6 +61,7 @@ class SessionRequest:
     settings: Mapping[str, Any] = field(default_factory=lambda: dict(DEFAULT_SETTINGS))
     extra_env: Mapping[str, str] = field(default_factory=dict)
     append_system_prompt: str | None = None
+    resume: bool = False  # continue ``session_id`` (spike N7) instead of starting it
 
 
 def build_argv(request: SessionRequest) -> list[str]:
@@ -69,7 +70,7 @@ def build_argv(request: SessionRequest) -> list[str]:
         executable(), "-p",
         "--output-format", "stream-json", "--verbose",
         "--model", request.model,
-        "--session-id", request.session_id,
+        "--resume" if request.resume else "--session-id", request.session_id,
         "--allowedTools", ",".join(request.allowed_tools),
         "--strict-mcp-config",
         "--setting-sources", "project,local",  # no user plugins, skills or hooks in a Surgeon

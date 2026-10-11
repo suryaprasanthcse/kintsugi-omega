@@ -98,6 +98,29 @@ def test_senses_ingress_needs_provisioned_secrets(
     assert len(made.path_secret) >= 43
     assert made.path_secret not in repr(made)
     assert service.ingress_secrets(tmp_path) == made
+    assert len({made.path_secret, made.signing_secret, made.admin_token}) == 3
+
+
+def test_pre_stage5_ingress_secrets_gain_an_admin_token(tmp_path: Path) -> None:
+    import json
+
+    from kintsugi.senses import service
+
+    path = tmp_path / service.SECRET_PATH
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps({"path_secret": "p" * 43, "signing_secret": "s" * 43}), "utf-8")
+    first = service.ingress_secrets(tmp_path)
+    assert len(first.admin_token) >= 43
+    assert service.ingress_secrets(tmp_path).admin_token == first.admin_token  # kept
+
+
+def test_control_deadman_pages_without_a_heartbeat(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert main(["control", "deadman"]) == EXIT_FAIL
+    assert "DEAD" in capsys.readouterr().out
+    assert (tmp_path / ".state" / "watchdog" / "pages.jsonl").is_file()
 
 
 def test_holdout_keygen_refuses_an_identity_inside_a_repo(

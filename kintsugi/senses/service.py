@@ -34,22 +34,30 @@ EVIDENCE_DIR = Path("evidence")
 class IngressSecrets:
     path_secret: str
     signing_secret: str
+    admin_token: str  # the Watchdog's chaos API switches the ingress with it (Stage 5)
 
     def __repr__(self) -> str:
         return "IngressSecrets(<redacted>)"
+
+
+def _save(path: Path, made: IngressSecrets) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(vars(made)), encoding="utf-8", newline="\n")
+    os.chmod(path, 0o600)
 
 
 def ingress_secrets(repo: Path, *, create: bool = False) -> IngressSecrets:
     path = repo / SECRET_PATH
     if path.is_file():
         data = json.loads(path.read_text(encoding="utf-8"))
-        return IngressSecrets(data["path_secret"], data["signing_secret"])
+        if "admin_token" not in data:  # written before Stage 5: add the admin token once
+            data["admin_token"] = secrets.token_urlsafe(32)
+            _save(path, IngressSecrets(**data))
+        return IngressSecrets(data["path_secret"], data["signing_secret"], data["admin_token"])
     if not create:
         raise FileNotFoundError(f"{SECRET_PATH} is missing: run `kintsugi senses provision`")
-    made = IngressSecrets(secrets.token_urlsafe(32), secrets.token_urlsafe(32))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(vars(made)), encoding="utf-8", newline="\n")
-    os.chmod(path, 0o600)
+    made = IngressSecrets(*(secrets.token_urlsafe(32) for _ in range(3)))
+    _save(path, made)
     return made
 
 
@@ -81,7 +89,8 @@ def ingress_app(repo: Path, store: SenseStore, state: IngressState | None = None
     bindings = {k: vars(v) for k, v in (manifest.detections if manifest else {}).items()}
     config = IngressConfig(path_secret=keys.path_secret, signing_secret=keys.signing_secret,
                            evidence_dir=repo / EVIDENCE_DIR, bindings=bindings,
-                           source_header="cf-connecting-ip")  # fmt: skip
+                           source_header="cf-connecting-ip",
+                           admin_token=keys.admin_token)  # fmt: skip
     return create_app(config, store, state=state)
 
 

@@ -3,6 +3,47 @@
 Each stage's verification targets (from `docs/EXECUTION_PLAN.md` §4) with the result and the
 evidence that reproduces it. Numbers are copied from committed artifacts or from the named test.
 
+## Stage 5 — Control plane: Temporal + SQLite-WAL + Watchdog (D6)
+
+Recorded 2026-10-11 (IST) on Windows 11 with temporalio 1.34.0, the SDK's time-skipping test
+server and the Temporal CLI 1.9.1 dev server (Server 1.32.0). Spikes and drills:
+`docs/SPIKES.md` (Stage 5); deviations: amendments A-40 to A-46.
+
+### Targets
+
+| Target | Result | Evidence |
+|---|---|---|
+| Time-skipping tests for every workflow | ✅ all 8 workflows (FleetSupervisor, Incident, Canary, CrossHostMaturation, VaccinationWave, Onboarding, SabotageCampaign, AuditAnchor) on the time-skipping server; durable timers are skipped, not slept (a canary interval, five hours of anchors) | `tests/control/test_workflows.py` (27 tests, about 21 s) |
+| Replay-determinism tests | ✅ recorded histories of a resolved incident, a canary re-entry and an exhausted repair replay without error; an unpatched reordering (reproduce before triage) is caught by replay | `test_recorded_histories_replay_deterministically`, `test_an_unpatched_code_change_is_caught_by_replay` |
+| `kill -9` drill, Temporal mode | ✅ live dev server and worker processes: after the worker's process tree is killed, the server records attempt 2 starting after a **HEARTBEAT** timeout; attempt 2 adopts attempt 1's commit by its nonce, or cleans up and commits under a new nonce; through the Watchdog, the chaos API kill → restart → adoption, with fresh pollers on every queue afterwards | `tests/contract/test_control_drill.py` (3 live tests, about 54 s) |
+| `kill -9` drill, SQLite mode | ✅ the executor (with its session) and the single writer killed together; on restart the WAL-recovered log folds to REPAIRING, the dead lease is abandoned, attempt 2 adopts or cleans up | `test_reduced_mode_survives_kill9_of_the_whole_stack` (adopt, cleanup) |
+| `continue_as_new` | ✅ FleetSupervisor continues every N events (7 events at 3 per run → 3 runs) carrying open incidents, waiting alerts, budgets and recent hit keys (a repeated key is still dropped); AuditAnchor continues daily | `test_the_supervisor_continues_as_new_and_keeps_its_state`, `test_the_audit_anchor_ticks_hourly_and_continues_as_new` |
+| All signals and queries | ✅ `hit`, `drift`, `budget_update`, `pause_antibody`, `operator_pause`/`operator_resume`, `incident_closed`; Incident `drift_signal`, `attach`; VaccinationWave `pause`/`resume`; SabotageCampaign `request`/`close`; queries `status`, `open_incidents`, `budget`, `current_state`, `transition_log`, `progress`, `commitments` | supervisor, vaccination and sabotage tests |
+| Activities with timeouts, heartbeats, retries and idempotency keys | ✅ the §5.3.2 table row for row (asserted), non-retryable `InvalidAlert`, `BudgetExceeded`, `ProtectedPathViolation`; heartbeats while the crew works; a replayed step returns its recorded result without redoing it; separate crew, surgeon and senses pools | `tests/control/test_activities.py` |
+| **I3** (every incident terminates) | ✅ ten terminal scenarios (PARKED, every ESCALATED exit, RESOLVED, the secondary response) each fold to a legal `states.py` log; rounds and canary re-entries are bounded | `test_every_path_ends_terminal_with_a_legal_log`, `test_canary_re_entries_are_bounded` |
+| **I1** ordering | ✅ ship runs only after the round's gates, once; a Coordinator naming a hypothesis that failed G0–G6 fails the workflow instead of shipping | `test_a_repaired_incident_resolves_through_every_stage`, `test_a_coordinator_cannot_ship_a_hypothesis_that_failed_its_gates` |
+| L4 signal path | ✅ a `drift` signal mid-round triggers `rebase_and_rerun` before the next round | `test_a_drift_signal_mid_round_rebases_and_reruns_the_impacted_gates` |
+| T8 (crash recovery not faked) | ✅ the server's own event history is the evidence (attempt 2 after a heartbeat timeout); `kintsugi control history` exports any workflow's history as JSON | `retried_after_heartbeat_timeout`; `tests/control/test_service.py` |
+| Watchdog | ✅ restarts a pool at most 5 times in 10 minutes, then pages once; chaos API (bearer token, sabotage id required, Watchdog never a target, ingress outage with automatic recovery); health checks page once per failure; dead-man heartbeat | `tests/control/test_watchdog.py` |
+| Senses → control plane | ✅ the queue forwarder turns claimed hits into `FleetSupervisor.hit` signals at least once (failed hand-offs are released and retried) and wakes the Watchdog on `ingestion_silent` for `kintsugi:*` | `test_forwarded_hits_reach_the_fleet_supervisor` |
+| Spike N7 | ✅ `entire session resume` restores the session log; `claude -p --resume` continues the same session with its context | `docs/SPIKES.md` |
+
+### Invariants and proof
+
+- **I3**: the control plane enforces `states.py` at runtime: an illegal transition fails the
+  workflow before it is recorded, in both Temporal and reduced mode.
+- **I1** ordering: the Incident workflow ships only a winner whose G0–G6 verdict passed.
+- **L2** (S-18): both modes recover from a `kill -9` with the §6.6 adoption rule; **T8**: the
+  evidence is the server's event history.
+
+### Known limits carried forward
+
+- The crew is a port: Stage 6 binds the real Sentinel, Pathologist, Archivist, Coordinator,
+  Surgeons and Auditor; Stage 5 runs the loop with scripted crews and the drill Surgeon.
+- The Temporal dev server keeps history in memory; the 24-hour run needs the dev server's
+  `--db-filename` (or Postgres), set up in WSL2 at Stage 13 (D2).
+- The dead-man Lambda and the neatlogs `ingestion_health` rule are Stage 13 / A-38.
+
 ## Stage 4 — Senses: neatlogs, receptors, ingress, poller, Fixes
 
 Recorded 2026-10-11 (IST) against the live neatlogs Public API (project tier `free`) with a
