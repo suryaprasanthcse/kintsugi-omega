@@ -25,6 +25,7 @@ FAKE = {
     "age_secret_key": "AGE-SECRET-" + "KEY-1" + "Q" * 58,
     "private_key_block": "-----BEGIN " + "OPENSSH PRIVATE KEY-----",
     "neatlogs_api_key": "NEATLOGS" + "_API_KEY=" + "nl_" + "x" * 30,
+    "neatlogs_access_token": "nl" + "sa_" + "Ab3-" * 10,
     "bearer_token": "Authorization: " + "Bearer " + "e" * 40,
 }
 

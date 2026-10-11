@@ -36,7 +36,11 @@ CHECKPOINT_REFS = "refs/entire/checkpoints/"
 # Valid in both Python `re` and Go RE2.
 ENTIRE_RULES: Mapping[str, str] = {
     "anthropic_api_key": r"sk-ant-[A-Za-z0-9_\-]{20,}",
-    "neatlogs_api_key": r"(?i)neatlogs[_-]?api[_-]?key[\"' ]*[:=][\"' ]*[A-Za-z0-9_.\-]{16,}",
+    "neatlogs_api_key": (
+        r"(?i)neatlogs[_-]?(?:api[_-]?key|service[_-]?token|oauth[_-]?token|webhook[_-]?secret)"
+        r"[\"' ]*[:=][\"' ]*[A-Za-z0-9_.\-]{16,}"
+    ),
+    "neatlogs_access_token": r"nl(?:sa|oa)_[A-Za-z0-9_\-]{16,}",
     "bearer_token": r"(?i)bearer\s+[A-Za-z0-9._~+/=\-]{20,}",
     "github_token": r"(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})",
     "aws_access_key": r"AKIA[0-9A-Z]{16}",

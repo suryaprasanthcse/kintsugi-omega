@@ -4,8 +4,9 @@
     python -m hostkit.evalrun --host ledger --split holdout --tasks-file -   # Omega pipes in the
                                                                              # decrypted holdout
 
-For each task the host's agent runs under the task id; the host's grader then emits the
-``grader.verdict`` span (``PASS`` or ``FAIL:<reason>``, spec §4.1.1) and one JSON line is
+For each task the host's agent runs under the task id inside a ``task:<id>`` root span; the
+host's grader then emits the ``grader.verdict`` span (``PASS`` or ``FAIL:<reason>``, spec §4.1.1)
+in the same trace, and one JSON line is
 written: task, split, seed, verdict, latency. A host is a package ``<host>`` with
 ``<host>.agent.run_task(task) -> output``, ``<host>.graders.grader.grade(task, output)`` and
 ``<host>.evals.generate.tasks(split)``.
@@ -48,7 +49,7 @@ def reason_code(error: BaseException) -> str:
 def run_one(agent: Agent, grader: Grader, task: dict[str, Any], split: str, seed: int) -> dict:
     task_id = str(task["id"])
     started = time.monotonic()
-    with task_context(task_id):
+    with task_context(task_id), telemetry.task_trace(task_id):
         try:
             output = agent(task)
         except Exception as error:  # a failed task is graded, never crashes the run

@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import os
 from collections.abc import Sequence
+from contextlib import AbstractContextManager
+from typing import Any
 
 import neatlogs
 from neatlogs import span
@@ -40,6 +42,16 @@ def shutdown() -> None:
         neatlogs.flush()
         neatlogs.shutdown()
         _started = False
+
+
+def task_trace(task_id: str) -> AbstractContextManager[Any]:
+    """The root span of one task, named ``task:<id>``.
+
+    The agent's spans and its ``grader.verdict`` share this trace, so a receptor hit on the
+    verdict (R-007) leads straight to the tool and model spans that produced it. Without it the
+    verdict was exported as a one-span trace of its own (Stage 4 contract spike, A-28).
+    """
+    return neatlogs.trace(f"task:{task_id}", kind="WORKFLOW")
 
 
 @span(kind="CHAIN", name="grader.verdict")

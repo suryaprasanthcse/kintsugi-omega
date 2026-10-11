@@ -52,6 +52,32 @@ def test_a_raising_agent_is_graded_not_crashed() -> None:
     assert (row["task"], row["split"], row["seed"]) == ("T1", "train", 2)
 
 
+def test_the_agent_and_its_verdict_share_one_task_trace(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Stage 4 spike: a verdict emitted after the agent's root span closed became a one-span trace
+    # of its own, so a receptor hit on it could not reach the tool spans (amendment A-28).
+    opened: list[str] = []
+    real = telemetry.task_trace
+
+    def recording(task_id: str):
+        opened.append(task_id)
+        return real(task_id)
+
+    monkeypatch.setattr(telemetry, "task_trace", recording)
+    seen: list[str] = []
+
+    def agent(task: dict[str, Any]) -> dict[str, Any]:
+        seen.append(f"agent:{opened[-1] if opened else None}")
+        return {}
+
+    def grader(task: dict[str, Any], output: dict[str, Any]) -> str:
+        seen.append(f"grader:{opened[-1] if opened else None}")
+        return "PASS"
+
+    evalrun.run_one(agent, grader, {"id": "T7"}, "train", 1)
+    assert opened == ["T7"]
+    assert seen == ["agent:T7", "grader:T7"]
+
+
 def test_verdicts_are_pass_or_fail_with_a_reason() -> None:
     assert telemetry.grader_verdict("T", "PASS") == "PASS"
     assert telemetry.grader_verdict("T", "FAIL:DUPLICATE_ENTRY") == "FAIL:DUPLICATE_ENTRY"
