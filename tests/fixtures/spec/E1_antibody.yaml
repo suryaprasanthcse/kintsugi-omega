@@ -1,0 +1,25 @@
+# Blueprint Omega master specification, Appendix E.1, verbatim (including its "…" placeholders).
+id: AB-17
+version: "1.1"
+state: ACTIVE                       # CANDIDATE | MATURED | ACTIVE | QUARANTINED | RETIRED
+signature:
+  hash: "sha256:…"
+  fields: {span: post_journal_entry, error: DuplicateEntry,
+           ngram: [fx_rate, "fx_rate#retry", post_journal_entry], detections: [R-007]}
+receptor: {detection_id: "det_…", type: condition, rule: "retry_count > 0 AND output ~ /duplicate entry/i",
+           precision_preview: 0.97}
+motif:
+  nodes: {W: {kind: function, pred: [is_retry_wrapper]}, F: {kind: function},
+          S: {kind: class, pred: [has_mutable_accumulator]}, T: {kind: function, pred: [is_side_effecting]}}
+  edges: [[W, F, CALLS], [F, S, CALLS], [F, T, CALLS]]
+  negative: []
+preconditions: ["side_effecting callee inside retried scope"]
+recipe: |
+  Hoist construction of {S} out of the scope retried by {W}; preserve resume semantics;
+  honour intent: {intent_record.behavioral_contract}. Stay within {allowed_files}; diff ≤ 120 lines.
+contract: {repro: "3/3", holdout: {test: mcnemar_exact, alpha: 0.05, holm: true},
+           cost_delta_ub: 0.05, p95_delta_ub: 0.10, canary: {p0: host_baseline, p1: "2*p0", alpha: 0.05, beta: 0.10}}
+evidence: {origin_incident: INC-0042, checkpoints: {intent: ck_7f3a, repair: ck_…, refinement: ck_…},
+           traces: {before: […], after: […]}, prs: […], ci_runs: […]}
+economics: {primary_usd: null, secondary_usd_mean: null}     # filled from actuals
+lineage: {versions: ["1.0", "1.1"], quarantines: 1, hosts_protected: [ledger, clinic-a, oss-1]}
