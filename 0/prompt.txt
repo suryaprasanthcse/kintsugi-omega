@@ -1,0 +1,87 @@
+Incident INC-REH-0001, hypothesis H4. Session nonce: boro-kiga-joza-rifa-dula-sano-kuku-bagu-voso-posu-tafu
+
+Hypothesis: H1: Hoist PostingSession construction back outside the retried closure (minimal fix)
+Root cause: The refactor moved `current = session or PostingSession(batch)` from `reconcile`'s body into the retried closure `book_pending_lines`. When `fx_rate` raises RateLimited (HTTP 429) mid-pass, `retry_with_backoff` re-invokes the closure, which constructs a fresh empty PostingSession; its `pending()` therefore still lists lines already posted in attempt one, so `post_line` posts to books:/lines a second time and the grader's duplicate-count check returns FAIL:DUPLICATE_ENTRY at grader.verdict.
+Approach: In `practice_ledger/reconcile.py`, construct the session exactly once per `reconcile` call, before the retried pass is defined/handed to `retry_with_backoff`, restoring the deleted invariant that the ledger outlives a retry. Bind that single session into `book_pending_lines` (closure capture or explicit parameter) and remove the per-attempt `PostingSession(batch)` construction from inside the closure. Keep the refactor's readability gains: keep the `book_pending_lines` name and its docstring, and amend the docstring only if needed so it states that a rate limit retries the pass against the same session (resumption, not re-booking). No change to retry policy, backoff, tool signatures, or grader. Expect the traced sequence to become fx_rate -> books:/lines -> (retry) books:/lines only for genuinely unposted lines, i.e. no duplicate posting.
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+- The PostingSession must live outside the retried scope so bookings survive retries.: "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+- A rate limit must merely retry the pass, implying resumption rather than re-booking.: "+    """Book every pending line of ``batch`` in USD; a rate limit retries the whole pass.""""
+- The change remains scoped to the retry logic of reconcile: naming and documenting the retried pass, not altering retry semantics.: "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+- The author's own named fix for the exact observed failure mode is the one to apply.: "If the caller passes no session and a 429 hits mid-pass, the retry builds a fresh session and re-books lines the first attempt already posted. That is a double-booking risk, and the existing tests don't exercise it."
+
+Files you may edit: practice_ledger/reconcile.py
+Diff budget: at most 14 changed lines.
+
+Cause report excerpt:
+Symptom: All 4 traces in this cluster (signature sha256:b9fe39c5383c, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, raised at the CHAIN grader.verdict span with tool books:/lines. In every case the preceding call sequence is the same: fx_rate, then books:/lines, then a second books:/lines; the repeated posting to books:/lines immediately precedes the duplicate-entry verdict. Detection omega:R-007:ledger-practice fires on each trace. Observed in traces TR-003, TR-013, TR-015 and TR-021 of run local:reh-20261011-232114-s1 — 4 of 4 traces in the cluster, with no successful variant of this sequence present. No other failing span, tool, or error class appears in the cluster.
+Root cause (Coordinator): The refactor moved `current = session or PostingSession(batch)` from `reconcile`'s body into the retried closure `book_pending_lines`. When `fx_rate` raises RateLimited (HTTP 429) mid-pass, `retry_with_backoff` re-invokes the closure, which constructs a fresh empty PostingSession; its `pending()` therefore still lists lines already posted in attempt one, so `post_line` posts to books:/lines a second time and the grader's duplicate-count check returns FAIL:DUPLICATE_ENTRY at grader.verdict.
+
+Gate feedback from earlier rounds (aggregates only):
+{
+ "H1": {
+  "G3_flips": [],
+  "G4": {
+   "ci_after": [
+    0.968981,
+    1.0
+   ],
+   "ci_before": [
+    0.692431,
+    0.840508
+   ],
+   "cost_delta": -0.142188,
+   "delta_pass": 0.225,
+   "p95_delta": -0.435268
+  },
+  "G4_summary": "b=27, c=0, p=7.45e-09; bounds hold",
+  "failed": []
+ },
+ "H2": {
+  "G3_flips": [],
+  "G4": {
+   "ci_after": [
+    0.968981,
+    1.0
+   ],
+   "ci_before": [
+    0.692431,
+    0.840508
+   ],
+   "cost_delta": -0.142188,
+   "delta_pass": 0.225,
+   "p95_delta": -0.435914
+  },
+  "G4_summary": "b=27, c=0, p=7.45e-09; bounds hold",
+  "failed": []
+ },
+ "H3": {
+  "G3_flips": [],
+  "G4": {
+   "ci_after": [
+    0.968981,
+    1.0
+   ],
+   "ci_before": [
+    0.692431,
+    0.840508
+   ],
+   "cost_delta": -0.142188,
+   "delta_pass": 0.225,
+   "p95_delta": -0.43477
+  },
+  "G4_summary": "b=27, c=0, p=7.45e-09; bounds hold",
+  "failed": []
+ }
+}
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
