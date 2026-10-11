@@ -68,16 +68,14 @@ class PostingSession:
 
 
 def reconcile(batch: Batch, session: PostingSession | None = None) -> PostingSession:
-    """Book every pending line of ``batch`` in USD; a rate limit retries the whole pass."""
+    session = session or PostingSession(batch)  # outside the retried scope: survives retries
 
-    def book_pending_lines() -> PostingSession:
-        current = session or PostingSession(batch)
-        for line in current.pending():
-            usd_rate = fx_rate(line.currency, line.date)
-            current.book(line, usd_rate)
-        return current
+    def attempt() -> PostingSession:
+        for line in session.pending():
+            session.book(line, fx_rate(line.currency, line.date))
+        return session
 
-    return retry_with_backoff(book_pending_lines)
+    return retry_with_backoff(attempt)
 
 
 def batch_worker(
