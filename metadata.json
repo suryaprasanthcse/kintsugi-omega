@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NZY086V3R1BQJJPH1M7JCE",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/EXECUTION_PLAN.md",
+    "docs/SPIKES.md",
+    "docs/VERIFICATION.md",
+    "kintsugi/cli.py",
+    "kintsugi/control/service.py",
+    "kintsugi/crew/claude_session.py",
+    "kintsugi/senses/service.py",
+    "tests/contract/test_spikes.py",
+    "tests/control/test_service.py",
+    "tests/crew/test_claude_session.py",
+    "tests/test_cli.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 38,
+    "cache_creation_tokens": 42394,
+    "cache_read_tokens": 15969090,
+    "output_tokens": 27629,
+    "api_call_count": 19
+  }
+}
