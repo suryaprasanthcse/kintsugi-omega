@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MYYX61GQR549HH188N3MYB",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".kintsugi/protected_paths.yaml",
+    "docs/EXECUTION_PLAN.md",
+    "kintsugi/control/__init__.py",
+    "kintsugi/control/states.py",
+    "kintsugi/gates/__init__.py",
+    "kintsugi/gates/protected_paths.py",
+    "kintsugi/proof/schemas.py",
+    "pyproject.toml",
+    "schemas/E1_antibody.schema.json",
+    "schemas/E2_ledger_entry.schema.json",
+    "schemas/E3_proof_bundle.schema.json",
+    "schemas/E4_repair_receipt.schema.json",
+    "schemas/E4_repair_receipt.template.md",
+    "schemas/E5_sabotage_commitment.schema.json",
+    "schemas/E6_session_attestation.schema.json",
+    "tests/control/test_states.py",
+    "tests/fixtures/spec/E2_ledger_entry.json",
+    "tests/fixtures/spec/E3_proof_bundle.json",
+    "tests/fixtures/spec/E5_sabotage_commitment.json",
+    "tests/fixtures/spec/E6_session_attestation.json",
+    "tests/gates/test_protected_paths.py",
+    "tests/proof/test_bundle.py",
+    "tests/proof/test_schemas.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 22,
+    "cache_creation_tokens": 43967,
+    "cache_read_tokens": 7070331,
+    "output_tokens": 39307,
+    "api_call_count": 11
+  }
+}
