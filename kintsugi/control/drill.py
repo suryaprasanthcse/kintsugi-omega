@@ -89,6 +89,19 @@ def crew() -> Any:
     return DrillCrew({})
 
 
+def surgeon_drill_step(card: dict[str, Any], attempt: int) -> dict[str, Any]:
+    """Reduced mode: one surgeon step for ``card`` at ``attempt``, as a JSON-able dict."""
+    from dataclasses import asdict
+
+    from kintsugi.control.activities import StepContext
+    from kintsugi.control.surgeon_step import AttemptLog, SurgeonStep
+
+    step = SurgeonStep(Path(os.environ[REPO_ENV]), AttemptLog(os.environ[LEDGER_ENV]),
+                       DrillSession())  # fmt: skip
+    outcome = step.run(c.Card(**card), StepContext("surgeon", "fsm", attempt, lambda *_: None))
+    return asdict(outcome)
+
+
 DRILL_CONFIG = c.ControlConfig(heartbeat_s=3.0)
 DRILL_TIMEOUT = timedelta(minutes=5)
 
