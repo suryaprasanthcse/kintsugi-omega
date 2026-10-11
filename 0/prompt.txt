@@ -1,0 +1,31 @@
+Incident INC-R235459-0001, hypothesis H1. Session nonce: bato-maja-sira-rota-finu-zugi-kuta-mugu-puta-mijo-kosu
+
+Hypothesis: Hoist PostingSession back outside the retried closure (minimal fix)
+Root cause: The readability refactor moved `session = session or PostingSession(batch)` from `reconcile`'s body into the retried closure `book_pending_lines`. `retry_with_backoff` re-invokes that closure after `fx_rate` raises RateLimited, so the session that records which lines are already booked is reconstructed fresh on every attempt; `pending()` then re-yields the line already written, producing a second `post_line` / books:/lines call and FAIL:DUPLICATE_ENTRY at grader.verdict.
+Approach: In `practice_ledger/reconcile.py`, move the `session = session or PostingSession(batch)` initialization back into `reconcile`'s body, above the definition of `book_pending_lines`, so exactly one session is constructed per `reconcile` call and is closed over (not rebuilt) by the retried pass. Keep the refactor's surviving intent: retain the `book_pending_lines` name and its docstring, and leave `retry_with_backoff` and the retry loop structure untouched. Make no change to tool signatures, grader, or host.yaml. Verify that with `session=None` and a RateLimited raised from `fx_rate` after the first line is booked, the retried pass emits exactly one books:/lines write per pending line.
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+- The PostingSession must be constructed outside the retried scope so that it survives retries.: "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+- The change remains a readability refactor of the retry logic — the rename and docstring stay, behavior of the retry loop is otherwise intact.: "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+- A rate limit retries the whole pass over `batch`'s pending lines; resumption is driven by what is still pending, not by re-booking everything.: """"Book every pending line of ``batch`` in USD; a rate limit retries the whole pass.""""
+
+Files you may edit: practice_ledger/reconcile.py
+Diff budget: at most 12 changed lines.
+
+Cause report excerpt:
+Symptom: All 4 traces in the dominant cluster (TR-003, TR-013, TR-015, TR-021, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, reported at the CHAIN grader.verdict span. In every trace the span sequence is the same: a single fx_rate call followed by two consecutive books:/lines calls, with books:/lines as the failing tool. The second books:/lines write is the point at which the duplicate-entry condition appears; no retry, fault injection, or alternate path is visible before it. Detection omega:R-007:ledger-practice fires on all traces. Reproduction is 100% consistent across the cluster (4/4 traces, one host, one signature sha256:b9fe39c5383c) with no variation in ordering, tool, or verdict.
+Root cause (Coordinator): The readability refactor moved `session = session or PostingSession(batch)` from `reconcile`'s body into the retried closure `book_pending_lines`. `retry_with_backoff` re-invokes that closure after `fx_rate` raises RateLimited, so the session that records which lines are already booked is reconstructed fresh on every attempt; `pending()` then re-yields the line already written, producing a second `post_line` / books:/lines call and FAIL:DUPLICATE_ENTRY at grader.verdict.
+
+Gate feedback from earlier rounds (aggregates only):
+(first round)
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
