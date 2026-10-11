@@ -1,0 +1,86 @@
+Incident INC-REH-0001, hypothesis H5. Session nonce: basi-mata-riga-mafi-vipo-jubo-kato-ziho-furo-nuna-pagu
+
+Hypothesis: H2: Revert the originating commit's behavioral delta in reconcile (restore pre-change retry structure)
+Root cause: Same mechanism as H1, but treated as a regression to be undone rather than patched: commit 81f4d5c0876820afc745f2fdd034290074c98c95 (checkpoint 01M4PMAYHYAF025KPN33QZ9RTQ) was sold as readability-only yet relocated session ownership into the retried pass, deleting the explicit `outside the retried scope: survives retries` guarantee. Any residue of that relocation reintroduces duplicate posting under a mid-pass 429.
+Approach: Restore `practice_ledger/reconcile.py`'s pre-commit control flow for the retried pass verbatim in substance: session created in `reconcile` (or taken from the caller-supplied `session` argument), the retried body closing over it, and the original comment documenting that the session survives retries. Where the revert and the readability refactor do not conflict, prefer the pre-change semantics; the named helper and docstring may be kept only if they do not reintroduce per-attempt construction. Do not revert anything outside `reconcile`'s retry structure (leave `retry_with_backoff`, `tools.py`, and the grader untouched). This card exists so the gates can compare a clean revert against the targeted hoist of H1.
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+- The pre-change code's deleted promise is the behavior to restore.: "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+- The refactor was not behavior-preserving; the original structure is the correct baseline.: "The patch also changes behavior, which the review may not have covered. The original code created the `PostingSession` outside the retried function so bookings survived a retry."
+- Scope stays inside reconcile's retry logic.: "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+
+Files you may edit: practice_ledger/reconcile.py
+Diff budget: at most 30 changed lines.
+
+Cause report excerpt:
+Symptom: All 4 traces in this cluster (signature sha256:b9fe39c5383c, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, raised at the CHAIN grader.verdict span with tool books:/lines. In every case the preceding call sequence is the same: fx_rate, then books:/lines, then a second books:/lines; the repeated posting to books:/lines immediately precedes the duplicate-entry verdict. Detection omega:R-007:ledger-practice fires on each trace. Observed in traces TR-003, TR-013, TR-015 and TR-021 of run local:reh-20261011-232114-s1 — 4 of 4 traces in the cluster, with no successful variant of this sequence present. No other failing span, tool, or error class appears in the cluster.
+Root cause (Coordinator): Same mechanism as H1, but treated as a regression to be undone rather than patched: commit 81f4d5c0876820afc745f2fdd034290074c98c95 (checkpoint 01M4PMAYHYAF025KPN33QZ9RTQ) was sold as readability-only yet relocated session ownership into the retried pass, deleting the explicit `outside the retried scope: survives retries` guarantee. Any residue of that relocation reintroduces duplicate posting under a mid-pass 429.
+
+Gate feedback from earlier rounds (aggregates only):
+{
+ "H1": {
+  "G3_flips": [],
+  "G4": {
+   "ci_after": [
+    0.968981,
+    1.0
+   ],
+   "ci_before": [
+    0.692431,
+    0.840508
+   ],
+   "cost_delta": -0.142188,
+   "delta_pass": 0.225,
+   "p95_delta": -0.435268
+  },
+  "G4_summary": "b=27, c=0, p=7.45e-09; bounds hold",
+  "failed": []
+ },
+ "H2": {
+  "G3_flips": [],
+  "G4": {
+   "ci_after": [
+    0.968981,
+    1.0
+   ],
+   "ci_before": [
+    0.692431,
+    0.840508
+   ],
+   "cost_delta": -0.142188,
+   "delta_pass": 0.225,
+   "p95_delta": -0.435914
+  },
+  "G4_summary": "b=27, c=0, p=7.45e-09; bounds hold",
+  "failed": []
+ },
+ "H3": {
+  "G3_flips": [],
+  "G4": {
+   "ci_after": [
+    0.968981,
+    1.0
+   ],
+   "ci_before": [
+    0.692431,
+    0.840508
+   ],
+   "cost_delta": -0.142188,
+   "delta_pass": 0.225,
+   "p95_delta": -0.43477
+  },
+  "G4_summary": "b=27, c=0, p=7.45e-09; bounds hold",
+  "failed": []
+ }
+}
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
