@@ -1,0 +1,55 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NCTXZ4QX556RZ5SP5ZYVV3",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "hosts/hostkit/hostkit/__init__.py",
+    "hosts/hostkit/hostkit/context.py",
+    "hosts/hostkit/hostkit/evalrun.py",
+    "hosts/hostkit/hostkit/external.py",
+    "hosts/hostkit/hostkit/llm.py",
+    "hosts/hostkit/hostkit/telemetry.py",
+    "hosts/hostkit/pyproject.toml",
+    "hosts/hostkit/tests/test_hostkit.py",
+    "hosts/ledger/host.yaml",
+    "hosts/ledger/ledger/__init__.py",
+    "hosts/ledger/ledger/agent.py",
+    "hosts/ledger/ledger/db.py",
+    "hosts/ledger/ledger/evals/__init__.py",
+    "hosts/ledger/ledger/evals/documents.py",
+    "hosts/ledger/ledger/evals/generate.py",
+    "hosts/ledger/ledger/evals/offline_model.py",
+    "hosts/ledger/ledger/graders/__init__.py",
+    "hosts/ledger/ledger/graders/grader.py",
+    "hosts/ledger/ledger/reconcile.py",
+    "hosts/ledger/ledger/services/__init__.py",
+    "hosts/ledger/ledger/services/fx_api.py",
+    "hosts/ledger/ledger/tools.py",
+    "hosts/ledger/ledger/util/__init__.py",
+    "hosts/ledger/ledger/util/retry.py",
+    "hosts/ledger/ledger/vendors.py",
+    "hosts/ledger/pyproject.toml",
+    "hosts/ledger/tests/test_evals.py",
+    "hosts/ledger/tests/test_reconcile.py",
+    "hosts/ledger/tests/test_tools.py",
+    "pyproject.toml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 80,
+    "cache_creation_tokens": 118632,
+    "cache_read_tokens": 17426345,
+    "output_tokens": 94872,
+    "api_call_count": 40
+  }
+}
