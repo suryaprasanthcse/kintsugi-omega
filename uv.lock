@@ -2,6 +2,13 @@ version = 1
 revision = 3
 requires-python = "==3.12.*"
 
+[manifest]
+members = [
+    "kintsugi-host-ledger",
+    "kintsugi-hostkit",
+    "kintsugi-omega",
+]
+
 [[package]]
 name = "agnost"
 version = "0.1.13"
@@ -558,6 +565,34 @@ wheels = [
 ]
 
 [[package]]
+name = "kintsugi-host-ledger"
+version = "0.1.0"
+source = { editable = "hosts/ledger" }
+dependencies = [
+    { name = "kintsugi-hostkit" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "kintsugi-hostkit", editable = "hosts/hostkit" }]
+
+[[package]]
+name = "kintsugi-hostkit"
+version = "0.1.0"
+source = { editable = "hosts/hostkit" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "httpx" },
+    { name = "neatlogs", extra = ["anthropic"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = ">=1.13" },
+    { name = "httpx", specifier = ">=0.28" },
+    { name = "neatlogs", extras = ["anthropic"], specifier = ">=1.4.26" },
+]
+
+[[package]]
 name = "kintsugi-omega"
 version = "0.1.0"
 source = { editable = "." }
@@ -579,6 +614,8 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "hypothesis" },
+    { name = "kintsugi-host-ledger" },
+    { name = "kintsugi-hostkit" },
     { name = "pyright", extra = ["nodejs"] },
     { name = "pytest" },
     { name = "ruff" },
@@ -605,6 +642,8 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "hypothesis", specifier = ">=6.120" },
+    { name = "kintsugi-host-ledger", editable = "hosts/ledger" },
+    { name = "kintsugi-hostkit", editable = "hosts/hostkit" },
     { name = "pyright", extras = ["nodejs"], specifier = ">=1.1.390" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "ruff", specifier = ">=0.9" },

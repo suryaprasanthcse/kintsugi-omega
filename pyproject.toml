@@ -24,8 +24,17 @@ dependencies = [
 [project.scripts]
 kintsugi = "kintsugi.cli:main"
 
+[tool.uv.workspace]
+members = ["hosts/hostkit", "hosts/ledger"]
+
+[tool.uv.sources]
+kintsugi-hostkit = { workspace = true }
+kintsugi-host-ledger = { workspace = true }
+
 [dependency-groups]
 dev = [
+    "kintsugi-hostkit",
+    "kintsugi-host-ledger",
     "hypothesis>=6.120",
     "pyright[nodejs]>=1.1.390",
     "pytest>=8.3",
@@ -55,7 +64,7 @@ select = ["B", "C4", "E", "F", "I", "PIE", "PT", "RUF", "SIM", "TID", "UP", "W"]
 allowed-confusables = ["×", "‖", "–", "—", "−", "′", "″", "Ω", "α", "β", "δ", "κ", "λ", "σ", "τ", "φ", "ψ", "ι", "ρ", "∗"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["kintsugi"]
+known-first-party = ["kintsugi", "hostkit", "ledger", "scout", "triage"]
 
 # Every child process goes through kintsugi.sandbox.proc (docs/EXECUTION_PLAN.md §2d).
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
@@ -69,7 +78,7 @@ known-first-party = ["kintsugi"]
 "kintsugi/sandbox/proc.py" = ["TID251"]
 
 [tool.pyright]
-include = ["kintsugi", "tests"]
+include = ["kintsugi", "tests", "hosts"]
 exclude = ["tests/fixtures"]  # fixture repos import their own packages (ledger.*, scout.*)
 pythonVersion = "3.12"
 typeCheckingMode = "standard"
@@ -79,7 +88,7 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "hosts"]
 pythonpath = ["."]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = [

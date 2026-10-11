@@ -1,0 +1,17 @@
+[project]
+name = "kintsugi-host-ledger"
+version = "0.1.0"
+description = "Ledger: an invoice-to-ledger reconciliation agent (KINTSUGI-Ω host, spec §5.9.1)."
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Surya Prasanth R", email = "suryaprasanthcse@gmail.com" }]
+dependencies = ["kintsugi-hostkit"]
+
+[tool.uv.sources]
+kintsugi-hostkit = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ledger"]

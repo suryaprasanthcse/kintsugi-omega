@@ -1,0 +1,28 @@
+# Ledger — invoice-to-ledger reconciliation (spec §5.9.1).
+id: ledger
+package: ledger
+description: Turns vendor invoices, credit notes and payment receipts into USD journal lines.
+model: claude-haiku-5-5
+slo:
+  pass_rate: 0.90
+  p95_s: 25
+economics:
+  tier: Team
+  price_usd_month: 299
+  value_per_failed_task_usd: 3.00
+  tasks_per_hour: 40
+  llm_budget_usd_month: 30.00
+eval:
+  splits: {train: 80, holdout: 40}
+  grader: exact journal-line match (account, cents, currency, date); duplicates fail
+# Tool registry: `side_effect` feeds the motif predicate is_side_effecting (§2c of the plan).
+tools:
+  parse_invoice: {side_effect: false, model: true}
+  lookup_vendor: {side_effect: false}
+  fx_rate: {side_effect: false, external: fx}
+  post_journal_entry: {side_effect: true}
+  reconcile_report: {side_effect: false}
+# "External" services behind the chaos proxy: name -> handler (method, path, query, body).
+services:
+  fx: ledger.services.fx_api:handle
+offline_model: ledger.evals.offline_model:respond

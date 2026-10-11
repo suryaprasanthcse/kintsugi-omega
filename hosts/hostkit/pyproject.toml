@@ -1,0 +1,18 @@
+[project]
+name = "kintsugi-hostkit"
+version = "0.1.0"
+description = "Shared runtime for KINTSUGI-Ω's own hosts: telemetry, external calls, model client, eval runner."
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Surya Prasanth R", email = "suryaprasanthcse@gmail.com" }]
+dependencies = [
+    "anthropic>=1.13",
+    "httpx>=0.28",
+    "neatlogs[anthropic]>=1.4.26",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["hostkit"]
