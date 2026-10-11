@@ -1,0 +1,12 @@
+# How KINTSUGI-Omega's gates check this repository (protected: no Surgeon may change it).
+version: 1
+hosts:
+  ledger-practice:
+    host_yaml: host.yaml
+    package_root: "."
+    tests: tests
+    lint: [practice_ledger]
+    typecheck: [practice_ledger]
+    holdout: practice_ledger/evals/holdout/tasks.jsonl.age
+    stress_profile: profiles/stress.yaml
+    live_services: [books]  # the agent's own ledger: replays recompute it, never serve it

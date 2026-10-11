@@ -1,0 +1,27 @@
+# Ledger practice (Stage 6 rehearsal host): books vendor documents in USD through a paid FX
+# API and a books API. Disclosed and disposable: it exists only for rehearsals.
+id: ledger-practice
+package: practice_ledger
+description: Books each line of a vendor document in USD, exactly once.
+model: claude-haiku-5-5
+slo:
+  pass_rate: 0.90
+  p95_s: 5
+economics:
+  tier: Team
+  price_usd_month: 299
+  value_per_failed_task_usd: 3.00
+  tasks_per_hour: 40
+  llm_budget_usd_month: 30.00
+  service_costs_usd: {fx: 0.0002, books: 0.0004}
+eval:
+  splits: {train: 60, holdout: 40}
+  grader: every line booked exactly once at the right USD amount
+tools:
+  fx_rate: {side_effect: false, external: fx}
+  post_line: {side_effect: true}
+  list_lines: {side_effect: false}
+services:
+  fx: practice_ledger.services.fx_api:handle
+  books: practice_ledger.services.books_api:handle
+offline_model: practice_ledger.evals.offline_model:respond
