@@ -1,0 +1,271 @@
+<pasted_content id="a7a0">
+# KINTSUGI-Ω — Session Handoff & Memory Transfer (end of Stage 2 → start of Stage 3)
+
+| Field | Value |
+|---|---|
+| Written | 2026-10-11 (IST), end of build session `7e998687-8d07-465f-9bf5-c412ec900e65` |
+| Repository | https://github.com/suryaprasanthcse/kintsugi-omega (public), local `C:\myspace\hacckathons\kintsugi-omega` |
+| Specification | `C:\myspace\hacckathons\Blueprint_Omega_Master.md` (v1.0, full version; no reduced cut) |
+| Plan of record | `docs/EXECUTION_PLAN.md` (14 stages, rulings D1–D8, Amendments A-1…A-21) |
+| Spike evidence | `docs/SPIKES.md` |
+| Visual archive | `C:\myspace\hacckathons\kintsugi-omega-blueprints\kintsugi-omega-blueprint-img_{1..12}.png` |
+| Architect | Surya Prasanth R (@suryaprasanthcse) — sole author and committer of every commit |
+| Stage status | Stage 1 ✅ approved. Stage 2 ✅ complete except 4 model-tier spikes, **carried into Stage 3 by Architect ruling** (record it as A-22 first). Stage 3 not started; needs explicit Architect go-ahead. |
+
+---
+
+## 0. Resume checklist for the new session (do these first, in order)
+
+1. Read `CLAUDE.md`, `.entire/graph-agent.md`, `docs/EXECUTION_PLAN.md`, `docs/SPIKES.md`, then this handoff.
+2. Confirm the toolchain and the repo state:
+   ~~~bash
+   git status -sb && git log --oneline -6
+   entire version && entire graph version --json
+   uv run python -I -c "from kintsugi.memory import entire; print(entire.sync_checkpoint_refs('.'))"
+   uv run ruff check . && uv run ruff format --check . && uv run pyright && uv run pytest -q
+   ~~~
+   Expected: `main...origin/main` clean at `a309faa` (or later); `Entire CLI 0.11.4`; graph `v0.4.0`; `SyncReport(... out_of_sync=())`; 384 passed, 13 skipped (the contract tests).
+   Note: every Stop hook adds a "Finalize transcript" commit to the last checkpoint ref, so the first sync of a new session normally pushes 1–2 refs. That is expected.
+3. Append **A-22** to the Amendments log: "Architect ruling: the model tier of spikes A1/N2, N1 (headless), N5 (commit linkage) and A14 (mid-tool kill) is carried into Stage 3 and runs once a model provider is wired."
+4. Resolve the environment items in §5 (`NEATLOGS_PROJECT_ID`, `gh` on PATH, model-provider choice).
+5. Ask the Architect for the Stage 3 go-ahead if it has not been given in the new chat.
+
+---
+
+## 1. System architecture and invariants
+
+### 1.1 Mission (spec §3.1)
+Given a fleet H of AI agents and an autonomy window W, keep every agent at or above its reliability SLO and the fleet at or above the gross-margin floor (GM_floor 0.70) while an adversary attacks both the agents and the immune system, with **zero human commits to protected branches**, and produce a signed, independently checkable account of every infection, repair, prevention and economic decision. Biological model: neatlogs = senses (afferent/efferent), Entire = episodic memory + body map (entire-graph) + notary, cfo.ai = metabolism; antibodies compound (Wright's law, Zipf coverage, network effect).
+
+### 1.2 Invariants (spec §3.4) and where they are enforced so far
+| ID | Invariant | Built so far |
+|---|---|---|
+| I1 | No Omega change reaches a protected branch without G0–G7 | State machine ordering (`kintsugi/control/states.py`); gates G0–G7 in Stage 6 |
+| I2 | No commit in W without a valid attestation | `kintsugi/proof/attest.py`, `kintsugi/proof/commit.py` (protocol + C2/C3) |
+| I3 | Every incident ends RESOLVED, ESCALATED or PARKED | `states.py`: outcome model + 4 closure exits (A-5) + bounded rounds/re-entries; exhaustive DAG proof + Hypothesis walks |
+| I4 | Spend per host per month stays within Pool_h | `kintsugi/econ/governor.py` (formulas, `DailyCap`); proxy enforcement Stage 3 |
+| I5 | Holdout content never enters crew context (except Auditor G4) | Protected paths (`.kintsugi/protected_paths.yaml`); age encryption + canary strings Stage 3 |
+| I6 | Sabotage specs never enter crew context before reveal (honeytokens) | `sealed.py` + passphrase honeytokens + C6 scanner (`redaction.honeytoken_hits`) with live positive/negative controls |
+| I7 | Every detection hit in W maps to an incident or dedupe record | Ledger primitive (`ledger.py`); poller/dedupe Stage 4 |
+
+### 1.3 Core components built (Stages 1–2)
+- **Subprocess gateway** `kintsugi/sandbox/proc.py` — the ONLY place allowed to start processes (architecture test + ruff TID251). Forces `ENTIRE_TEST_TTY=0`, `GIT_TERMINAL_PROMPT=0`, `GIT_EDITOR=true` (cannot be overridden); env allowlist (secrets only via explicit `extra_env`); stdin closed unless given; stdin written as **exact UTF-8 bytes** (A-12); new process group + no console; timeout → tree kill **root first** (a killed `git commit` aborts instead of finishing without its trailer); `resolve_executable` follows npm `.cmd` shims to the real `.exe` and refuses batch files (A-12); `run_binary` for exact bytes; `start(..., stdin_path=)` for streaming children; `pid_alive`, `kill_tree` (Toolhelp32/TerminateProcess on Windows, killpg on POSIX).
+- **Proof plane** `kintsugi/proof/`: `canonical.py` (RFC 8785 JCS via `rfc8785`, restricted fallback proven equal), `passphrase.py` (11-word 128-bit nonces, 6-word 72-bit honeytokens; survive Entire redaction), `ledger.py` (h0 = SHA-256("kintsugi-omega-genesis" ‖ T0 ‖ pubkey), h_i = SHA-256(JCS(entry−hash) ‖ raw h_{i−1}); tamper located at exact seq; anchors catch re-chained forgeries), `sealed.py` (c = SHA-256(JCS(spec) ‖ 32-byte salt), coarse class_family, age storage via pyrage), `attest.py` (Ed25519 signer, OpenSSH `.kintsugi/attest.pub` format, signing digest = SHA-256(JCS([nonce, tree, parent, role/hyp, incident, prompt_sha])), trailers, multi-paragraph trailer parsing (A-21), Co-authored-by rejection), `bundle.py` (E.3, canonical bytes on disk = recorded digest, attachment manifest), `schemas.py` (loads `schemas/E1–E6`), `commit.py` (orchestrator commit protocol + C2–C5 + `why_agrees`), `redaction.py` (Entire `custom_redactions` rules, pre-push scan, C6).
+- **Statistics** `kintsugi/stats/`: SPRT (A=2.890, B=−2.251, +0.6931/−0.0660, accepts after 35 clean, §6.7 rejects n=8 LLR 3.268, §6.5 accepts n=46 LLR −2.275), exact one-sided McNemar (b=26,c=1 → 28/2^27 = 2.09e-7), Connor n=34 with POWER_FLOOR 0.8 enforced, Holm (+adjusted), Wilson (edges exact), seeded paired bootstrap UB (δ_cost 0.05, δ_p95 0.10).
+- **Economics** `kintsugi/econ/`: governor (Pool/Remaining/Cap/VaR/B/Priority; §6.2 → $71.70/$12.40/$518; §6.8 → B $4.83, repairs $10.80/$8.00 rejected, T1 $2.34, GM 78.6%, decision TREAT_AND_ESCALATE; §3.5.5 table), `DailyCap` (D7 hard cap primitive), Wright OLS + bootstrap CI (b≈0.28, PR≈0.82), Zipf coverage (45.8/57.0/67.9/81.5/91.0%).
+- **Memory** `kintsugi/memory/`: `antibody.py` (E.1 models, lifecycle incl. RETIRED from any non-retired state (A-6), major/minor/patch rules), `motif.py` (VF2 monomorphism on relation-set edges, `CALLS*` closure, feature-detected relations, negative patterns, deterministic `ast` mutable-accumulator scan, retry/side-effect predicates, validation incl. precision ≥ 0.9), `entire.py` (strict pydantic adapters for version/checkpoint list/explain/transcript/why/session current|info|list|stop|resume; `checkpoint_ref` sharding; `read_checkpoint` via plain git with `content_hash` integrity; `sync_checkpoint_refs` = push only stale refs, judge by remote, never force, secret-scan first (A-19)), `graph.py` (all entire-graph wrappers incl. `callers`/`callees`/`context` mapping (A-10), strict snapshot parser, `to_code_graph(side_effect_tools=, source_root=)`, golden normalisation).
+- **Control** `kintsugi/control/states.py`: incident states, transitions (10 spec + 4 closure), outcome space, `fold` (event-sourcing replay used by the future SQLite-WAL FSM), `check_termination`. The SQLite-WAL `sqlite_fsm.py` itself is Stage 5 (D6: both WAL FSM and Temporal).
+- **Gates** `kintsugi/gates/protected_paths.py` + `.kintsugi/protected_paths.yaml`: scopes `surgeon` (tests/evals/graders/holdout/*.age/.kintsugi/.github/.claude/.entire/CLAUDE.md/AGENTS.md) and `self_repair` (kintsugi/proof|stats|gates, sandbox/proc.py, schemas, .kintsugi, workflows, EXECUTION_PLAN.md); diff budget 120; escape paths always violations.
+- **Worktrees** `kintsugi/sandbox/worktree.py`: `wt/<INC>/<Hk>` on branch `kintsugi/<INC>/<Hk>`; `wt/` excluded via `.git/info/exclude`; meta `wt/.meta/<INC>/<Hk>.json`; locks `wt/.locks/<INC>/<Hk>.lock`; `pin` = create-only `refs/kintsugi/attempts/<INC>/<Hk>/<n>`; `discard` = pin → `worktree remove --force` → prune → delete branch; `reset_clean` (L2) refuses paths outside `wt/`; `kill_orphan`.
+- **Headless sessions** `kintsugi/crew/claude_session.py`: `claude -p --output-format stream-json --verbose --model … --session-id <orchestrator-chosen> --allowedTools … --strict-mcp-config --setting-sources project,local --settings {"attribution":{"commit":"","pr":"","sessionUrl":false}} [--max-budget-usd]`; prompt fed on **stdin from a file** (exact bytes, no 32k argv limit); stream parser (init/assistant tool_use/result cost/usage); `on_event` stop + timeout tree kill; transcript located at `~/.claude/projects/*/<session>.jsonl` and hashed; `KINTSUGI_CLAUDE_BIN` override; `auth_status`/`require_logged_in` (API key in explicit env satisfies it).
+- **CLI** `kintsugi/cli.py`: `version`; `keys generate --private-key <outside any repo> [--public-key .kintsugi/attest.pub]` (prints only the public half; refuses in-repo paths and overwrites); `audit`/`demo`/`fleet` exit 2 "not built yet" until their stages.
+
+### 1.4 Orchestrator commit protocol (`kintsugi/proof/commit.py::orchestrator_commit`)
+`git add -A` → refuse if nothing changed → refuse staged paths not explained by the session's Write/Edit tool calls (`session_paths`, from `tool_edited_paths(stream.tool_uses, worktree)`; A-16) → refuse protected-path violations → refuse diff > 120 lines unless `approved_large_diff` → `git write-tree` + parent → sign attestation → message = subject + body + `Kintsugi-Incident/Role/Nonce/Prompt/Attestation` trailers → refuse forbidden trailers → `git commit -F -` (gateway forces ENTIRE_TEST_TTY=0; Entire's hook appends `Entire-Checkpoint:`) → verify tree & parent unchanged, exactly one valid ULID checkpoint trailer, and the ref exists → otherwise `reset --soft parent` and raise `CheckpointMissing` (an unlinked commit is never kept). `Kintsugi-Prompt` = sha256 of the exact first-prompt bytes (A-17).
+
+### 1.5 Proof matrix C1–C14 (spec §7.5) — build status
+| Check | Verifies | Status |
+|---|---|---|
+| C1 | Ledger chain h0→head; anchors match | Primitive ✅ (`ledger.verify(anchors=)`); anchors on `ledger` branch (D5) Stage 8 |
+| C2 | Kintsugi trailers on every protected-branch commit in W | ✅ `commit.message_problems` |
+| C3 | Signatures verify against T0 key | ✅ `attest.verify_attestation` via `commit.verify_commit` |
+| C4 | Checkpoint exists, transcript intact, nonce verbatim, files covered | ✅ `commit.check_c4`, **full PASS on real checkpoint `01M4N700MS3ADXA1AFYKQ86S6T`** |
+| C5 | First prompt hashes to Kintsugi-Prompt | ✅ `commit.check_c5` (+ real-transcript extraction); byte-exact on a headless session = carried spike |
+| C6 | Sabotage commitment/reveal + ordering + zero honeytoken hits | ✅ `sealed.verify_reveal`, `redaction.honeytoken_hits` (live positive/negative controls); ordering/reveal flow Stage 8 |
+| C7 | G7 Actions run exists and passed | Stage 6 |
+| C8 | Bundle trace IDs exist in neatlogs | Stage 4 |
+| C9 | Completeness: every hit in W maps to ledger | Stage 4 / 8 |
+| C10 | Cost actuals = neatlogs session costs ±1% | Stage 9 |
+| C11 | Antibody lineage consistent | Model ✅ (`antibody.py`); check Stage 7/8 |
+| C12 | Rulesets active through W | Stage 13 |
+| C13 | Holdout manifest hashes unchanged since T0 | Stage 3 (hashes) / Stage 8 (check) |
+| C14 | Self-repairs touched no protected self-repair path | Policy ✅ (`self_repair` scope); check Stage 8/12 |
+`kintsugi audit` CLI and the C1–C14 mutation suite are Stage 8 (also the D1 go/no-go gate for W length and T0).
+
+---
+
+## 2. Git and CI state at handoff
+
+- Branch `main` = `origin/main` = **`a309faa`**; working tree clean.
+- Commit history (all authored and committed by `Surya Prasanth R <suryaprasanthcse@gmail.com>`, zero `Co-authored-by`):
+  | SHA | Subject | Entire-Checkpoint |
+  |---|---|---|
+  | 28c5826 | feat: initialize kintsugi-omega repository | — (pre-Entire linkage) |
+  | dcffdb6 | chore: configure Entire CLI telemetry and Claude Code session hooks | — |
+  | 1bef822 | chore: pin Python 3.12 and initialize entire-graph agent guidance | — (shell-only mid-turn commit) |
+  | 3ea631e | docs: record verified Entire 0.11.4 and entire-graph 0.4.0 CLI surface | 01M4MSF9Q8JSKGD3RBEZB0XR1M |
+  | c299a26 | chore: lock commit attribution policy and add AI tooling disclosure | 01M4MT4M6K467TEZ3R6J340DAB |
+  | 8b97d4f | build: scaffold Stage 1 toolchain and record the approved execution plan | 01M4MXCTAM5YSYDX4HXMJ5V7H4 |
+  | 0cae732 | feat(sandbox): add the single subprocess gateway … | 01M4MXM04ZJZ2NF5TZQ900CRFT |
+  | ec591da | feat(proof): add JCS hashing, hash-chained ledger, sealed commit-reveal and Ed25519 attestation | 01M4MXZGEZSTWVVFEY0WRWMP60 |
+  | d2921c8 | feat(stats): add SPRT canary, exact McNemar, Connor power, Holm, Wilson and bootstrap gates | 01M4MY5K7V7DAGA98BPF93CFYD |
+  | 96c3124 | feat(econ): add the budget governor, L5 decision rule, daily cap and Wright-law fitter | 01M4MY9W8XVEV1MBTTYT9YXCTB |
+  | d1353e7 | feat(memory): add E.1 antibody lifecycle and the VF2 motif engine with CALLS* closure | 01M4MYKG1FBTPSEXC6WGPRK1W1 |
+  | b6dcf43 | feat(control): add the I3-complete incident state machine, E.1-E.6 schemas and protected paths | 01M4MYYX61GQR549HH188N3MYB |
+  | a932fb9 | feat(memory): add strict Entire and entire-graph adapters with A9 golden snapshots | 01M4N4ZMR4YV8A5FKHZHD5TFZX |
+  | a0001b4 | feat(sandbox): add disposable attempt worktrees and the headless Claude Code session runner | 01M4N57VFGVQ37XCRFZDN807Y8 |
+  | 30ca283 | feat(proof): add the orchestrator commit protocol, C2-C6 checks and Entire redaction rules | 01M4N6NY5RRR1AN0HX900T2DV4 |
+  | a309faa | test(contract): lock Stage 2 spikes and refuse changes the session's tool calls do not explain | 01M4N700MS3ADXA1AFYKQ86S6T |
+- Checkpoint refs: 13 under `refs/entire/checkpoints/<last-2-chars>/<ULID>`, all in sync with `origin` at handoff (`sync_checkpoint_refs` → `out_of_sync=()`). Backend is per-checkpoint refs (`git-refs`), not the legacy `entire/checkpoints/v1` branch.
+- No other branches; no `refs/original`; the pre-scrub history was pruned and the GitHub repo was recreated (sole contributor verified by the Architect).
+- CI: GitHub Actions `omega-ci` (`.github/workflows/omega-ci.yml`: `uv sync --locked` + `make check` = ruff, ruff format, pyright, pytest on ubuntu-latest): **success** on `a309faa` (run 38130937674), `a0001b4` (38129101280), `b6dcf43` (38122650954).
+- Local test suite: 384 passed, 13 skipped (contract tests; run with `KINTSUGI_CONTRACT=1`).
+
+---
+
+## 3. Amendment ledger (A-1 … A-21; full text in `docs/EXECUTION_PLAN.md`)
+
+| # | Stage | Amendment |
+|---|---|---|
+| A-1 | 1 | Entire attribution is binary: Edit/Write lines = agent; tool-generated files (uv.lock, golden fixtures) count as `human_added`. Authorship rests on attestation + checkpoints. |
+| A-2 | 1 | Attestation digest realises `‖` as a JCS array (unambiguous field boundaries). |
+| A-3 | 1 | Nonces = 11-word 128-bit passphrases; honeytokens = 6-word 72-bit passphrases; hex nonces refused (E.6 hex example superseded). |
+| A-4 | 1 | T0 attestation key generated by the Architect with `kintsugi keys generate` outside any repo; only `.kintsugi/attest.pub` is committed, at T0 (Stage 13). No key exists yet. |
+| A-5 | 1 | Four I3-closure transitions: REPRODUCED→ESCALATED (no suspect), ATTRIBUTED→ESCALATED (zero budget), SHIPPED→ESCALATED (merge blocked), CANARY→ESCALATED (revert failed / re-entry limit); canary re-entries bounded (default 2). The spec's §5.4 table alone lets incidents get stuck. |
+| A-6 | 1 | Antibody RETIRED reachable from CANDIDATE, MATURED and QUARANTINED. |
+| A-7 | 1 | E.2/E.5/E.6 schemas require real hex/sha256/passphrase values (spec placeholders fail by design); E.4 placeholders normalised to identifiers in `schemas/E4_repair_receipt.template.md`. |
+| A-8 | 1 | Motif kind `function` accepts snapshot kinds function/method/lambda/closure. |
+| A-9 | 1 | Helper modules: passphrase.py, schemas.py, protected_paths.py, `typings/pyrage` stubs, `tests/fixtures/spec/`. |
+| A-10 | 2 | entire-graph has no `context`/`callers`/`callees`; provided as `search --format agent` and `neighbors --direction in/out`. |
+| A-11 | 2 | `entire doctor` is an interactive fixer, never invoked; health = `entire graph doctor --json` + `entire status`. |
+| A-12 | 2 | Gateway hardening: npm `.cmd` shims resolved to `.exe`, batch files refused (cmd.exe would execute `&`, `|`, `>` in prompts); stdin exact bytes (text mode turned `\n` into `\r\n`, corrupting `git commit -F -` and `git mktree`); long prompts on stdin from a file (Windows argv cap ~32k). |
+| A-13 | 2 | Snapshot schema 1.1 pinned; graph credits closure calls/constructions to the enclosing function too, so motifs bind the retried scope F via CONTAINS. |
+| A-14 | 2 | Checkpoint `i/content_hash.txt` = sha256(`i/full.jsonl`); offline audit reads refs with plain git. |
+| A-15 | 2 | `.entire/settings.json` → `redaction.custom_redactions` (name → RE2 map; lists rejected): anthropic_api_key, neatlogs_api_key, bearer_token, github_token, aws_access_key, age_secret_key, private_key_block, kintsugi_redaction_probe. Same rules drive the pre-push scan. |
+| A-16 | 2 | `orchestrator_commit` refuses staged changes not explained by the session's Write/Edit tool calls (real checkpoint showed shell-written files are not in `files_touched`). |
+| A-17 | 2 | `Kintsugi-Prompt` = sha256 of exact first-prompt bytes (stdin-delivered); attestation `prompt_template_sha` carries the same digest. |
+| A-18 | 2 | Headless sessions: `--setting-sources project,local`, `--strict-mcp-config`, orchestrator-chosen `--session-id`, `--max-budget-usd`. |
+| A-19 | 2 | Ref sync judged by remote state (Entire's pre-push hook races explicit pushes), never force-push, secret-scan before push. |
+| A-20 | 2 | Model tier of A1/N2, N1, N5, A14 waits on a logged-in headless CLI or a Stage 3 provider; desktop app auth is host-scoped and never borrowed. |
+| A-21 | 2 | Trailers parsed across consecutive trailing trailer-only paragraphs. |
+| A-22 | 3 | **To append first in Stage 3:** Architect ruling carrying the 4 model-tier spikes into Stage 3. |
+
+Architect rulings D1–D8 (in force): D1 W/T0 decided at Stage 8 go/no-go; D2 Stages 1–2 cross-platform via proc.py, WSL2 Ubuntu + Docker/gVisor for Stage 3+ and the autonomy run; D3 monorepo (`hosts/ledger`, `hosts/scout`, `hosts/triage`, `antibodies/`, `sabotage-log/`) with configurable remote adapters later; D4 sole identity Surya Prasanth R, never a bot or Co-authored-by; D5 unprotected append-only `ledger` branch for anchors; D6 both SQLite-WAL FSM and Temporal (CLI dev server or Docker Compose) in Stage 5; D7 `ANTHROPIC_API_KEY` with hard daily cap in `llm_proxy.py` + `governor.py` from Stage 3/6; D8 parallel lanes allowed only with clean `ENTIRE_TEST_TTY=0` commits, verified trailers and accurate attribution.
+
+---
+
+## 4. Spike and contract status
+
+Resolved (evidence in `docs/SPIKES.md`):
+- **A15** RFC 8785 library present; fallback proven equal on its domain.
+- **N3** `last_checkpoint_commit_hash` updates on the next normal commit (041ada4 → 8b97d4f).
+- **A2** checkpoint data readable programmatically (ref layout + `checkpoint explain --json/--transcript` + `why --json`).
+- **A10** Python semantic support confirmed.
+- **A9** snapshot schema pinned: goldens `tests/fixtures/graph/snapshots/{ledger_before,ledger_after,scout}.ndjson` from fixture repos `tests/fixtures/graph/{ledger_before,ledger_after,scout}`; live = golden (`tests/contract/test_graph_contract.py`); reconciled motif validated on real output (`tests/memory/test_graph.py`).
+- **N1** passphrase nonce + honeytoken survive Entire's real redaction byte-exact (checkpoint `01M4N6NY5RRR1AN0HX900T2DV4`); a base64 high-entropy decoy was redacted (risk confirmed); probe `REDACTED` redacted (custom rules live, `inline_patterns: 8`).
+- **C6** positive control found the planted honeytoken in `0/full.jsonl` and `0/transcript.jsonl`; negative control (fresh token) = 0 hits.
+- **C4** full PASS on real checkpoint `01M4N700MS3ADXA1AFYKQ86S6T` (5/5 files recorded, nonce verbatim, content_hash intact); stripped-nonce negative control fails; `entire why` agrees with the trailer mapping.
+- **N4** hooks fire inside linked worktrees (git: common hooks dir; Claude Code: session registered under the worktree path).
+- **N5 (registration tier)** 3 concurrent headless sessions register in isolation (own session ID, own worktree path).
+- **A14 (mechanics)** early kill → `entire session stop --force` → reset/clean → no checkpoint ref → transcript hashed.
+- Real captured fixtures: `tests/fixtures/entire/*.json`, `tests/fixtures/claude/stream_auth_failure.jsonl` (sanitised).
+
+Carried into Stage 3 (tests already written in `tests/contract/test_spikes.py`, auto-skip until a model provider is available; gate = `_logged_in()`: `ANTHROPIC_API_KEY` set or `claude auth status` loggedIn):
+| Test | Proves |
+|---|---|
+| `test_a1_n2_commit_after_exit_links_and_passes_c2_to_c5` | Commit after `claude -p` exits links to that session's checkpoint; C2–C5 pass incl. byte-exact C5; why agrees; mutated nonce/prompt fail |
+| `test_n1_headless_honeytoken_survives_and_c6_catches_it` | N1 + C6 on a headless session |
+| `test_n5_concurrent_sessions_each_link_their_own_checkpoint` | Each of 3 concurrent commits links to its own session; no nonce crossover |
+| `test_a14_kill_mid_tool_use_leaves_no_checkpoint` | Kill during a tool call → no checkpoint, hashed transcript |
+Run: `KINTSUGI_CONTRACT=1 uv run pytest tests/contract -v` (model via `KINTSUGI_SPIKE_MODEL`, default `haiku`). If the provider is Bedrock, the session needs `CLAUDE_CODE_USE_BEDROCK=1`, `AWS_REGION` and AWS credentials passed **explicitly** through `SessionRequest.extra_env` (the gateway allowlist does not inherit them), and `_logged_in()` must be extended to accept that provider.
+
+Open spikes: A3, A5, A6, A7, A11, A13 (Stage 4), A4 (6), A8 (9), A12 (7), N7 (5), N8 gVisor in WSL2 (3), N9 rulesets + merge identity (6/13).
+
+---
+
+## 5. Environment and credentials (verified at handoff unless marked)
+
+| Item | State |
+|---|---|
+| OS / shell | Windows 11; Claude desktop app (MSIX `Claude_pzs8sxrjxfjjc`, Claude Code 2.1.295); Git Bash + PowerShell |
+| MSIX caveat | Writes under `%APPDATA%`/`%LOCALAPPDATA%` from Claude sessions are virtualised. Tooling lives under `%USERPROFILE%\.local` (`UV_PYTHON_INSTALL_DIR=%USERPROFILE%\.local\share\uv\python`, `ENTIRE_PLUGIN_DIR=%USERPROFILE%\.local\share\entire\plugins`). Never install tooling into AppData from a Claude session; never launch the 24 h run from inside the desktop app. |
+| Python | uv-managed CPython 3.12.14, `.python-version` = 3.12, `uv.lock` committed |
+| Entire | CLI 0.11.4 (`~/.local/bin/entire.exe`), graph plugin v0.4.0, `no_egress: true`; `.claude/settings.json` has Entire hooks + `env.ENTIRE_TEST_TTY=0`, `includeCoAuthoredBy:false`, `attribution {commit:"", sessionUrl:false}` |
+| Headless Claude CLI | 2.1.269 at `%APPDATA%\npm\node_modules\@anthropic-ai\claude-code\bin\claude.exe` (shim `claude.cmd` resolved by the gateway). **Not logged in** (`claude auth status` → loggedIn false). |
+| `.env` (repo root) | Present, gitignored, untracked. Keys: `NEATLOGS_API_KEY` = set, `GITHUB_TOKEN` = set. **`NEATLOGS_PROJECT_ID` NOT found as a `KEY=VALUE` line**; one non-comment line is not in `KEY=VALUE` form (possibly the project ID, malformed). Fix before Stage 3/4 neatlogs work. Values never printed in-session. |
+| `gh` CLI | 2.102.0 installed at `C:\Program Files\GitHub CLI\gh.exe`, logged in as `suryaprasanthcse` (keyring), scopes `gist, read:org, repo, workflow`. **Not on the session PATH** (restart the app or add `C:\Program Files\GitHub CLI` to PATH). Ruleset administration scope to be confirmed at Stage 6/13. |
+| AWS | AWS MCP server connected in-session. **Support Case `17917138100975` for Bedrock model access — reported by the Architect, not verified in this session.** |
+| Docker / WSL | Docker Desktop installed, engine stopped; WSL2 distros `Ubuntu` and `docker-desktop` stopped. gVisor not yet installed (spike N8). |
+| Not installed | `temporal` CLI (Stage 5), `make` on Windows (CI runs it), `age` CLI (pyrage replaces it), `pnpm`. Node + npm present (Arena, Stage 11). |
+| Scratch area | Session scratchpad under `%LOCALAPPDATA%\Temp\claude\…`; scratch repos used by spikes live in pytest tmp dirs; nothing scratch is ever pushed. |
+
+---
+
+## 6. Execution rules (binding)
+
+1. **Authorship (D4):** every commit authored and committed by `Surya Prasanth R <suryaprasanthcse@gmail.com>`. Never add `Co-authored-by:` or `Claude-Session:` trailers; never a bot identity. Machine origin is proven only by `Entire-Checkpoint:` and `Kintsugi-*` trailers + Ed25519 attestation.
+2. **Every build commit:** edit files with the Edit/Write tools (so Entire attributes and links them in the same turn); commit with `ENTIRE_TEST_TTY=0`; immediately verify (a) `Entire-Checkpoint:` trailer present, (b) `git show-ref refs/entire/checkpoints/<last2>/<id>` exists, (c) agent/human line counts in `.entire/logs/entire.log`, (d) zero co-author lines. Tool-generated files (lockfiles, goldens) are expected to count as `human_added` (A-1).
+3. **Before committing:** `uv run ruff check . && uv run ruff format --check . && uv run pyright && uv run pytest -q` all green. Fix lint with Edit, not formatter rewrites, to keep attribution accurate.
+4. **Push:** `ENTIRE_TEST_TTY=0 git push origin main`, then `entire.sync_checkpoint_refs('.')` and confirm `out_of_sync=()`; then confirm `omega-ci` success via the GitHub API. Never force-push; never rewrite published history (the one rewrite happened pre-Stage 1 under explicit Architect instruction).
+5. **If a commit hangs:** kill `git.exe` first (aborts), then the hook processes; never let a commit finish without its trailer.
+6. **Subprocesses:** only through `kintsugi/sandbox/proc.py` (`run`, `run_binary`, `start`); never import `subprocess`, `os.system`, `asyncio.create_subprocess_*`, `pty` elsewhere (architecture test + ruff TID251 enforce it). Secrets reach a child only via explicit `extra_env`.
+7. **Secrets:** never print, echo or commit secret values; tests assemble fake secret-shaped strings at runtime (GitHub push protection); checkpoint transcripts are public once pushed; the pre-push scan must stay green.
+8. **Keys:** never generate or handle the T0 attestation private key in an agent session (A-4).
+9. **Scope:** full Blueprint Omega; no reduced cut; deviations go into the Amendments log with what/why; Architect approval gates each stage.
+10. **Graph-first workflow** (`.entire/graph-agent.md`): for locate/fix tasks start with `entire graph search --repo . --profile full --query "…"`.
+11. **Safety for destructive ops:** worktree reset/clean/remove only inside `wt/`; protected paths per `.kintsugi/protected_paths.yaml`; holdout content never in crew context.
+
+---
+
+## 7. Stage 3 blueprint and execution directives
+
+### 7.1 Goal (plan §4, Stage 3 — "Fleet: Ledger, Scout, Triage + sandbox and proxies", monorepo per D3)
+Build the three host agents, their evals/graders/holdouts, and the sandbox runtime they run in, instrumented with the neatlogs SDK, so later stages can sense, reproduce and repair their failures. Note: per the approved plan, the **neatlogs Public-API client, poller, ingress and receptors are Stage 4**; Stage 3 covers the SDK side (spans, `grader.verdict`). Pulling the poller/subscriber forward into Stage 3 is an Architect decision — ask before doing it.
+
+### 7.2 Modules and files
+- `hosts/ledger/` — invoice-to-ledger reconciliation: `ledger/reconcile.py` (`ReconcileSession` with posted-line memory, `run_reconcile` with a retried closure — correct pre-sabotage, constructed **outside** the retried scope), `ledger/util/retry.py` (`retry_with_backoff`), tools `parse_invoice`, `lookup_vendor` (with a default argument, S‑19 target), `fx_rate` (through the chaos proxy), side-effecting `post_journal_entry` (ledger DB), `reconcile_report`, `fmt_amount` (S‑19 rename target); runtime with auto-deploy from main; traffic generator (40 tasks/h); `evals/` generator: 120 seeded synthetic invoices (multi-currency, multi-page, credit notes, partial payments) split 80 train / 40 holdout; `graders/` exact journal-line match (duplicates/missing = FAIL); `tests/` incl. `test_resume_after_partial_batch`; SLO ≥ 90%, p95 ≤ 25 s; model `claude-haiku-5-5`; tool registry marks `post_journal_entry` `side_effect: true`.
+- `hosts/scout/` — research with citations: BM25 over a frozen local corpus, `fetch_document`, `verify_citations`; the **disclosed look-alike**: per-attempt scratch buffer constructed inside the retry wrapper (intended; tests L3); 60 questions (40/20); grader = rubric (neatlogs evaluator later) + citation precision/recall, duplicate citations fail; SLO ≥ 85%.
+- `hosts/triage/` — GitHub issue triage on a frozen snapshot: local `search_issues`, `get_issue`, side-effecting `apply_label` + `comment` on a mock GitHub, `config/routing.yaml` (not a protected path; L5 treatment target), mixed-language titles; 100 issues (70/30); SLO ≥ 88%; Pilot tier ($99) on Haiku for the L5 story; optional Crustdata enrichment.
+- `kintsugi/sandbox/runner.py` — sandbox execution (WSL2 Ubuntu + Docker + gVisor `runsc` per D2; non-root, read-only root, tmpfs, CPU/mem/PID/wall limits; egress allowlist).
+- `kintsugi/sandbox/llm_proxy.py` — LLM metering proxy outside the sandbox: injects credentials, per-host budgets, hard daily cap (reuse `econ.governor.DailyCap`), cost per host for actuals; provider = Anthropic API or Bedrock (decide; see §5 AWS case).
+- `kintsugi/sandbox/chaos_proxy.py` — seeded chaos (latency, HTTP 429, schema drift, partial responses); background profile: `fx_rate` 429 on 8% + mild jitter (disclosed).
+- `kintsugi/sandbox/cassette.py` — record/replay of tool I/O for G0/G2 (deterministic by seed).
+- Holdouts: age-encrypted (pyrage), manifest hashes in `.kintsugi/holdout.sha256`; canary strings embedded for I5 leak scans. `.gitignore` currently ignores `*.age` → add a narrow exception (e.g. `!hosts/*/evals/holdout/*.age`) if encrypted holdouts are committed for G7.
+- neatlogs SDK instrumentation per host: `neatlogs.init(api_key, workflow_name="host:<id>", instrumentations=["anthropic"])` **before** importing instrumented libraries; `@span(kind="WORKFLOW", ...)`; `grader.verdict` span output `PASS` / `FAIL:<reason>`; scripts call `neatlogs.flush()` then `neatlogs.shutdown()`. Add `neatlogs[anthropic,mcp]` (and `anthropic`) to dependencies; neatlogs requires Python ≥3.10 <3.14 (3.12 ✓).
+- CI: per-host test jobs + a reusable G7 workflow skeleton (holdout key as an Actions secret; logs print aggregates only).
+- Carried spikes: run the four model-tier tests once a provider is wired; update `docs/SPIKES.md`.
+
+### 7.3 Verification targets (plan Stage 3)
+- Baselines at 3 seeds per host ≥ SLO, with Wilson CIs (`kintsugi.stats.wilson`).
+- Ledger handles the 8% background 429s with **no duplicate journal lines** (pre-sabotage correctness).
+- Deterministic cassette replay (same verdict 3/3 seeds); chaos proxy identical per seed.
+- LLM proxy enforces per-host budgets + daily cap and meters cost within 1%.
+- Sandbox blocks non-allowlisted egress (spike N8: gVisor in WSL2).
+- `neatlogs doctor --local --json` and `neatlogs doctor --probe --json` pass; `grader.verdict` spans visible.
+- Holdout unreadable without the key; canary strings present; `.kintsugi/holdout.sha256` matches.
+- Fixture-repo motif tests keep passing (Ledger's real code must keep the S‑17 target shape: run_reconcile → retry_with_backoff(attempt) with ReconcileSession constructible inside `attempt`).
+- Invariants touched: I4 (proxy caps), I5 (holdout encryption). Cascade substrate for L0 (S‑17), L3 (Scout look-alike), L4 (S‑19 targets), L5 (Triage Pilot/Haiku + routing.yaml). Expected ~12 commits.
+
+### 7.4 Launch sequence
+1. Resume checklist (§0), append A-22.
+2. Fix `.env` (`NEATLOGS_PROJECT_ID=<uuid>` as a proper line), put `gh` on PATH, choose the model provider for hosts and headless sessions (Anthropic API key with daily cap, Bedrock after case 17917138100975 resolves, or `claude auth login` for spikes) and record the choice as an amendment.
+3. Start Docker Desktop / WSL2 Ubuntu; install Docker Engine + gVisor in Ubuntu; prove `runsc` isolation and egress denial (N8).
+4. Build `kintsugi/sandbox/{cassette,chaos_proxy,llm_proxy,runner}.py` with tests (CI-safe parts) + contract tests (WSL/Docker parts).
+5. Build `hosts/ledger` end to end (tools, runtime, evals 80/40, grader, tests, holdout encryption, neatlogs spans), then `hosts/scout`, then `hosts/triage`.
+6. Run baselines (3 seeds) and record health cards; verify all §7.3 targets.
+7. Run the four carried model-tier spikes; update `docs/SPIKES.md`.
+8. Commit in ~12 clean commits, push, sync refs, confirm CI, report the Stage 3 verification table, and ask the Architect for Stage 4 approval.
+
+### 7.5 Schedule reminder
+Submission window closes 23:55 IST, Oct 12, 2026. T0 ≤ 19:55 IST Oct 12 − W; W and T0 are decided at the Stage 8 go/no-go (D1). Clinic intake (third-party PRs) needs lead time and is the Architect's to post.---
+
+## ARCHITECT GO-AHEAD FOR STAGE 3
+
+1. **Handoff & Rulings Approved:** Record Amendment **A-22** (carrying the 4 model-tier spikes `A1/N2`, `N1` headless, `N5` commit linkage, and `A14` mid-tool kill into Stage 3). Keep the Neatlogs Public-API poller/subscriber in Stage 4 as specified in the approved plan; Stage 3 covers the host agents, sandbox/proxies, and Neatlogs SDK span instrumentation.
+2. **Environment Fixes Applied:**
+   - `.env` has been rewritten as BOM-free UTF-8 with `\n` line endings (`NEATLOGS_PROJECT_ID`, `NEATLOGS_API_KEY`, and `GITHUB_TOKEN` are all clean `KEY=VALUE` lines).
+   - `C:\Program Files\GitHub CLI` (`gh` v2.102.0) is installed and authenticated as `suryaprasanthcse`.
+   - Docker Desktop is running on the host (`docker ps` is active).
+   - AWS Support Case ID is `179171381300975` (queued for Bedrock authorization).
+3. **Execute Stage 3:** Run the §0 resume checklist, verify the headless `claude auth status` (and run the 4 carried contract spikes if logged in), and proceed through the §7.4 Stage 3 launch sequence (`kintsugi/sandbox/{cassette,chaos_proxy,llm_proxy,runner}.py`, `hosts/ledger`, `hosts/scout`, `hosts/triage`, age-encrypted holdouts, and Neatlogs SDK spans). Maintain strict `ENTIRE_TEST_TTY=0` and sole authorship (`Surya Prasanth R`) on every commit.
+</pasted_content id="a7a0">
+
+---
+
+<task-notification>
+<task-id>b9g4mrur7</task-id>
+<tool-use-id>toolu_01VYeZ38Y45GwTKGHW9yWiK9</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\516f4e83-2d48-43de-87ea-c570c49a517f\tasks\b9g4mrur7.output</output-file>
+<status>completed</status>
+<summary>Background command "Run the four model-tier contract spikes" completed (exit code 0)</summary>
+</task-notification>
