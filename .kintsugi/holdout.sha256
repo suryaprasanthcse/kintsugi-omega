@@ -1,0 +1,3 @@
+# KINTSUGI-Ω holdout manifest (spec §6.1): sha256 of each sealed holdout file.
+# canary ledger-practice sha256:e20184198610d2dca9e6f5de291ab6f93798452f49eb87f714b2e86f7ca84154
+88581e3c0f125befeae782c01c809a90bc1df4fa49461f19507635754e7d67c0  practice_ledger/evals/holdout/tasks.jsonl.age
