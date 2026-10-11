@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4PFWRBGWVJNJAN3FQSWDJZR",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/control/workflows.py",
+    "kintsugi/crew/archivist.py",
+    "kintsugi/crew/auditor.py",
+    "kintsugi/crew/context.py",
+    "kintsugi/crew/coordinator.py",
+    "kintsugi/crew/factory.py",
+    "tests/crew/test_coordinator_auditor_surgeon.py",
+    "tests/crew/test_incident_loop.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 68,
+    "cache_creation_tokens": 64522,
+    "cache_read_tokens": 22112009,
+    "output_tokens": 45951,
+    "api_call_count": 34
+  }
+}
