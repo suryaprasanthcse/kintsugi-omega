@@ -312,17 +312,23 @@ def start(
     cwd: str | os.PathLike[str] | None = None,
     extra_env: Mapping[str, str] | None = None,
     stderr_to: str | os.PathLike[str] | None = None,
+    stdin_path: str | os.PathLike[str] | None = None,
 ) -> Proc:
-    """Start a long-running child. stderr goes to ``stderr_to`` or is merged into stdout."""
+    """Start a long-running child. stderr goes to ``stderr_to`` or is merged into stdout.
+
+    ``stdin_path`` feeds a file's exact bytes to stdin (e.g. a prompt too long for a command
+    line, which Windows caps near 32k characters); otherwise stdin is closed.
+    """
     args = _normalise_argv(argv)
     flags, new_session = _group_flags()
     stderr_target = open(stderr_to, "ab") if stderr_to is not None else subprocess.STDOUT  # noqa: SIM115
+    stdin_source = open(stdin_path, "rb") if stdin_path is not None else subprocess.DEVNULL  # noqa: SIM115
     try:
         popen = subprocess.Popen(
             args,
             cwd=cwd,
             env=build_env(extra_env),
-            stdin=subprocess.DEVNULL,
+            stdin=stdin_source,
             stdout=subprocess.PIPE,
             stderr=stderr_target,
             text=True,
@@ -333,8 +339,9 @@ def start(
             start_new_session=new_session,
         )
     finally:
-        if stderr_to is not None and not isinstance(stderr_target, int):
-            stderr_target.close()  # the child holds its own handle
+        for handle in (stderr_target, stdin_source):  # the child holds its own handles
+            if not isinstance(handle, int):
+                handle.close()
     return Proc(popen, tuple(args))
 
 
