@@ -13,3 +13,10 @@ __pycache__/
 
 # Node
 node_modules/
+
+# Allow the business-plan actuals export (spec §4.6.5)
+!business/actuals.csv
+
+# Re-assert after the exception: secrets stay ignored everywhere, business/ included
+*accessKeys*
+*credentials*
