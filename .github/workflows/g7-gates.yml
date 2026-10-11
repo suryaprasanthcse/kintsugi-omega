@@ -113,7 +113,9 @@ jobs:
           exit $status
 
   fleet:
-    name: G7 · ${{ inputs.host }}
+    # A distinct name: rulesets require "G7 · <host>" from the incident job, and a skipped job
+    # sharing that name would make the required check ambiguous (spike N9).
+    name: G7 fleet · ${{ inputs.host }}
     if: ${{ inputs.mode != 'incident' }}
     runs-on: ubuntu-latest
     steps:

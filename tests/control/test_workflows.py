@@ -17,6 +17,7 @@ from typing import Any
 import pytest
 from temporalio import workflow
 from temporalio.client import Client, WorkflowFailureError, WorkflowHistory
+from temporalio.service import RPCError
 from temporalio.worker import Replayer, UnsandboxedWorkflowRunner
 
 from kintsugi.control import contracts as c
@@ -284,7 +285,10 @@ def test_the_supervisor_continues_as_new_and_keeps_its_state() -> None:
             latest = client.get_workflow_handle("sup-can")  # follows the continue_as_new chain
 
             async def eight() -> bool:  # a condition, not a fixed sleep: robust under load
-                return (await latest.query(FleetSupervisor.status))["events"] == 8
+                try:
+                    return (await latest.query(FleetSupervisor.status))["events"] == 8
+                except RPCError:  # mid continue_as_new the new run may not answer yet
+                    return False
 
             await wait_for(eight)
             status = await latest.query(FleetSupervisor.status)

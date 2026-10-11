@@ -60,7 +60,12 @@ class Target:
         return self.host.id
 
     def code_env(self, checkout: Path) -> dict[str, str]:
-        return {"PYTHONPATH": str((checkout / self.package_root).resolve())}
+        # No bytecode caches: a same-size edit within the same second would otherwise run the
+        # stale .pyc (mtime and size match), and a gate must judge the source it was given.
+        return {
+            "PYTHONPATH": str((checkout / self.package_root).resolve()),
+            "PYTHONDONTWRITEBYTECODE": "1",
+        }
 
     def stress(self) -> chaos.Profile | None:
         if self.stress_profile is None:

@@ -423,7 +423,8 @@ def run(cfg: Rehearsal) -> dict[str, Any]:
         bindings={DETECTION: binding},
         traces=LocalTraces(cfg.root / "observations"),
         holdout_identity=cfg.identity,
-        incident_prefix="INC-REH",
+        # Unique per run: incident ids name worktrees, branches, issues and workflow ids.
+        incident_prefix="INC-R" + "".join(ch for ch in cfg.run if ch.isdigit())[-6:],
         models=dict(cfg.models),
     )
     ledger = FileLedger(

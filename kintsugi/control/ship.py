@@ -90,13 +90,14 @@ class GhCli:
         return result.stdout
 
     def issue_find(self, marker: str) -> int | None:
+        """An open issue for this incident (a retried ship step reuses it; a closed one never)."""
         out = self._run(
             "issue",
             "list",
             "--repo",
             self.repo,
             "--state",
-            "all",
+            "open",
             "--search",
             f'"{marker}" in:title',
             "--json",
@@ -421,14 +422,13 @@ class GitHubShipper:
     def _wait_g7(self, number: int) -> tuple[bool, str]:
         deadline = time.monotonic() + self.config.g7_timeout_s
         while True:
+            # Skipped jobs (the reusable workflow's other mode) are not a verdict either way.
             checks = [
                 k
                 for k in self.github.pr_checks(number)
-                if self.config.g7_check in str(k.get("name"))
+                if self.config.g7_check in str(k.get("name")) and str(k.get("bucket")) != "skipping"
             ]
-            done = [
-                k for k in checks if str(k.get("bucket")) in ("pass", "fail", "cancel", "skipping")
-            ]
+            done = [k for k in checks if str(k.get("bucket")) in ("pass", "fail", "cancel")]
             if checks and len(done) == len(checks):
                 ok = all(str(k.get("bucket")) == "pass" for k in checks)
                 return ok, str(checks[0].get("link") or "")

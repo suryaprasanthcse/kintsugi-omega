@@ -165,7 +165,9 @@ def test_ship_waits_for_g7_then_writes_the_receipt_and_merges(shipped: dict[str,
             "name": "g7 / G7 · ledger-practice",
             "bucket": "pass",
             "link": "https://github.com/o/r/actions/runs/1",
-        }
+        },
+        # the reusable workflow's other mode: skipped, and not a verdict either way
+        {"name": "g7 / G7 fleet · ledger-practice", "bucket": "skipping", "link": ""},
     ]
     github = FakeGitHub([pending, pending, green])
     shipper = GitHubShipper(
