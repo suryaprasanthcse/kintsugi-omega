@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NYFC85F58FD6VV3J49SRJE",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/control/drill.py",
+    "kintsugi/control/surgeon_step.py",
+    "kintsugi/control/worker.py",
+    "tests/contract/test_control_drill.py",
+    "tests/control/test_surgeon_step.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 32,
+    "cache_creation_tokens": 40096,
+    "cache_read_tokens": 11873133,
+    "output_tokens": 27764,
+    "api_call_count": 16
+  }
+}
