@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NRFPNXVX59YYQ2JFQSZH2R",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".entire/settings.json",
+    "hosts/hostkit/hostkit/evalrun.py",
+    "hosts/hostkit/hostkit/telemetry.py",
+    "hosts/hostkit/tests/test_hostkit.py",
+    "kintsugi/proof/redaction.py",
+    "tests/proof/test_redaction.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 222,
+    "cache_creation_tokens": 539194,
+    "cache_read_tokens": 28170794,
+    "output_tokens": 131343,
+    "api_call_count": 112
+  }
+}
