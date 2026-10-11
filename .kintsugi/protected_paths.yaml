@@ -1,0 +1,43 @@
+# Protected paths: enforced twice, by a pre-commit hook in every worktree and by the Auditor's
+# diff check (spec §5.11), and verified after the window by audit check C14 (spec §6.9).
+# Paths are repository-relative POSIX globs: `*` stays inside one directory, `**` spans any number
+# of directories (including none). A path that escapes the worktree is always a violation.
+version: 1
+
+# Spec §5.11: a larger diff needs a recorded Coordinator approval.
+diff_budget_lines: 120
+
+scopes:
+  surgeon:
+    description: >-
+      What no Surgeon, recipe application or vaccination may modify in a host worktree
+      (spec §5.7 Surgeon "Forbidden"). Tests, evals and graders define success, so editing
+      them would let a fix grade itself. Agent and hook configuration could disable Entire
+      checkpoints or detections.
+    patterns:
+      - "**/tests/**"
+      - "**/evals/**"
+      - "**/graders/**"
+      - "**/holdout/**"
+      - "**/*.age"
+      - "**/.kintsugi/**"
+      - "**/.github/**"
+      - "**/.claude/**"
+      - "**/.entire/**"
+      - "**/CLAUDE.md"
+      - "**/AGENTS.md"
+
+  self_repair:
+    description: >-
+      What Omega's repairs of itself must never touch, so Omega cannot weaken its own
+      verification (spec §6.9, audit check C14). Applies in addition to the surgeon scope
+      when the repaired host is Omega itself.
+    patterns:
+      - "kintsugi/proof/**"
+      - "kintsugi/stats/**"
+      - "kintsugi/gates/**"
+      - "kintsugi/sandbox/proc.py"
+      - "schemas/**"
+      - ".kintsugi/**"
+      - ".github/workflows/**"
+      - "docs/EXECUTION_PLAN.md"

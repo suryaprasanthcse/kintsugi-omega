@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suryaprasanthcse/kintsugi-omega/schemas/E2_ledger_entry.schema.json",
+  "title": "E.2 Ledger entry",
+  "description": "One entry of the hash-chained incident ledger: h_i = SHA-256(JCS(entry without hash) ‖ h_{i-1}) (spec §7.3, Appendix E.2). The spec's symbolic h_811 values are illustrative; real entries carry 64 lowercase hex characters.",
+  "type": "object",
+  "required": ["seq", "type", "at", "prev", "hash"],
+  "properties": {
+    "seq": {"type": "integer", "minimum": 1},
+    "type": {"type": "string", "minLength": 1, "examples": ["incident.opened", "incident.resolved", "gate.verdict", "merge", "revert", "antibody.quarantined", "budget.decision", "gap", "sabotage.sealed"]},
+    "at": {"type": "string", "minLength": 1},
+    "incident": {"type": "string"},
+    "host": {"type": "string"},
+    "signature": {"type": "string"},
+    "bundle_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "plan_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "commits": {"type": "array", "items": {"type": "string"}},
+    "pr": {"type": "string"},
+    "ci_run": {"type": "string"},
+    "cost_usd": {"type": "number", "minimum": 0},
+    "sabotage": {"type": "string"},
+    "prev": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -1,0 +1,3 @@
+{"nonce": "9f2c4e…", "role": "surgeon", "incident": "INC-0042", "hypothesis": "H2'",
+ "worktree": "wt/INC-0042/H2p", "base_sha": "a1b2c3…", "prompt_template_sha": "sha256:…",
+ "t_start": "…", "tree_sha": "…", "parent_sha": "…", "signature": "ecdsa-p256:…"}

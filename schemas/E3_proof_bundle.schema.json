@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suryaprasanthcse/kintsugi-omega/schemas/E3_proof_bundle.schema.json",
+  "title": "E.3 Proof bundle (bundle.json)",
+  "description": "Per-incident evidence, stored as canonical JSON so its file digest equals the digest recorded in the ledger (spec §7.4, Appendix E.3).",
+  "type": "object",
+  "required": ["incident", "host"],
+  "properties": {
+    "incident": {"type": "string", "minLength": 1},
+    "host": {"type": "string", "minLength": 1},
+    "sealed_sabotage": {
+      "type": "object",
+      "properties": {"id": {"type": "string"}, "commitment": {"type": "string"}}
+    },
+    "traces": {
+      "type": "object",
+      "additionalProperties": {"type": "array", "items": {"type": "string"}}
+    },
+    "cassette": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string"},
+        "g0": {"type": "string"}
+      }
+    },
+    "cause": {
+      "type": "object",
+      "properties": {
+        "suspects": {"type": "array", "items": {"type": "string"}},
+        "graph_outputs": {"type": "array"},
+        "intent_record": {"type": "object"},
+        "first_bad_checkpoint": {"type": "string"}
+      }
+    },
+    "rounds": {"type": "array", "items": {"type": "object"}},
+    "dispute": {"type": "object"},
+    "winner": {"type": "object"},
+    "reverify": {"type": "object", "additionalProperties": {"type": "string"}},
+    "ship": {"type": "object"},
+    "canary": {
+      "type": "object",
+      "properties": {
+        "p0": {"type": "number"},
+        "p1": {"type": "number"},
+        "path": {"type": "array"},
+        "decision": {"enum": ["accept", "reject", "continue", "skipped"]},
+        "n": {"type": "integer", "minimum": 0}
+      }
+    },
+    "cost": {"type": "object"},
+    "antibody": {"type": "string"}
+  }
+}

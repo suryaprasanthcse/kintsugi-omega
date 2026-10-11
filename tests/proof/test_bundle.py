@@ -1,36 +1,15 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
 from kintsugi.proof import bundle as b
 
 # Appendix E.3, verbatim (including its "…" placeholders).
-E3_EXAMPLE: dict[str, Any] = {
-    "incident": "INC-0042",
-    "host": "ledger",
-    "sealed_sabotage": {"id": "S-17", "commitment": "…"},
-    "traces": {"failing": ["…"], "before": ["…"], "after": ["…"], "canary": ["…"]},
-    "cassette": {"path": "cas/INC-0042.yaml", "sha256": "…", "g0": "3/3 fail"},
-    "cause": {
-        "suspects": ["run_reconcile", "ReconcileSession.__init__"],
-        "graph_outputs": ["…"],
-        "intent_record": {"checkpoint": "ck_7f3a", "quotes": ["…"]},
-        "first_bad_checkpoint": "ck_7f3a",
-    },
-    "rounds": [{"hyps": [{"id": "H1", "checkpoint": "ck_…", "gates": {"G5": "warn"}}, "…"]}],
-    "dispute": {"protocol": "…", "result": "tie → cost → H2'"},
-    "winner": {
-        "hyp": "H2'",
-        "checkpoint": "ck_…",
-        "stats": {"b": 26, "c": 1, "p": 2.1e-7, "cost_delta_ub": -0.004, "p95_delta_ub": 0.01},
-    },
-    "reverify": {"G3": "rerun:7", "G4": "rerun:intersection{run_reconcile}"},
-    "ship": {"issue": 12, "pr": 13, "g7": "…"},
-    "canary": {"p0": 0.06, "p1": 0.12, "path": [0.693, "…"], "decision": "accept", "n": 46},
-    "cost": {"total_usd": 9.84, "by_role": {"…": 0}},
-    "antibody": "AB-17@1.0",
-}
+E3_EXAMPLE: dict[str, Any] = json.loads(
+    (Path(__file__).parents[1] / "fixtures" / "spec" / "E3_proof_bundle.json").read_bytes()
+)
 
 
 def test_the_spec_example_is_a_valid_bundle() -> None:

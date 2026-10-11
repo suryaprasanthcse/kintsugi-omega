@@ -1,0 +1,5 @@
+{"seq": 812, "type": "incident.resolved", "at": "2026-10-12T05:51:03Z",
+ "incident": "INC-0042", "host": "ledger", "signature": "sha256:…",
+ "bundle_sha256": "sha256:…", "plan_sha256": "sha256:…",
+ "commits": ["…"], "pr": "https://github.com/…/pull/13", "ci_run": "https://github.com/…/actions/runs/…",
+ "cost_usd": 9.84, "sabotage": "S-17", "prev": "h_811", "hash": "h_812"}

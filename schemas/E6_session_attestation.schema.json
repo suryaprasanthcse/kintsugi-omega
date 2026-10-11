@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suryaprasanthcse/kintsugi-omega/schemas/E6_session_attestation.schema.json",
+  "title": "E.6 Session attestation",
+  "description": "Created for every orchestrator-launched Claude Code session and signed at commit time over sha256(JCS([nonce, tree_sha, parent_sha, role, incident, prompt_template_sha])) (spec §4.5.2, Appendix E.6). The nonce is a 128-bit, 11-word passphrase so Entire's redaction cannot blank it (spike N1); the spec example's hex nonce is superseded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["nonce", "role", "incident", "worktree", "base_sha", "prompt_template_sha", "t_start"],
+  "properties": {
+    "nonce": {
+      "type": "string",
+      "pattern": "^[bdfghjklmnprstvz][aiou][bdfghjklmnprstvz][aiou](-[bdfghjklmnprstvz][aiou][bdfghjklmnprstvz][aiou]){10}$"
+    },
+    "role": {"type": "string", "minLength": 1},
+    "incident": {"type": "string", "minLength": 1},
+    "hypothesis": {"type": ["string", "null"]},
+    "worktree": {"type": "string", "minLength": 1},
+    "base_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "prompt_template_sha": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "t_start": {"type": "string", "minLength": 1},
+    "tree_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "parent_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "signature": {"type": ["string", "null"], "pattern": "^(ed25519|ecdsa-p256):[A-Za-z0-9+/=]+$"}
+  }
+}

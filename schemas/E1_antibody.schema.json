@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suryaprasanthcse/kintsugi-omega/schemas/E1_antibody.schema.json",
+  "title": "E.1 Antibody (antibody.yaml)",
+  "description": "A verified, portable repair unit: receptor + motif + preconditions + recipe + contract + evidence (spec §5.8, Appendix E.1).",
+  "type": "object",
+  "required": ["id", "version", "state", "signature", "receptor", "motif", "recipe"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^AB-[0-9]+$"},
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "description": "major (recipe) . minor (motif or precondition) [. patch (receptor threshold)]"
+    },
+    "state": {"enum": ["CANDIDATE", "MATURED", "ACTIVE", "QUARANTINED", "RETIRED"]},
+    "signature": {
+      "type": "object",
+      "required": ["hash"],
+      "properties": {
+        "hash": {"type": "string"},
+        "fields": {"type": "object"}
+      }
+    },
+    "receptor": {
+      "type": "object",
+      "required": ["type", "rule"],
+      "properties": {
+        "detection_id": {"type": ["string", "null"]},
+        "type": {"enum": ["regex", "condition", "pii", "classifier"]},
+        "rule": {"type": "string"},
+        "precision_preview": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "motif": {"$ref": "#/$defs/motif"},
+    "preconditions": {"type": "array", "items": {"type": "string"}},
+    "recipe": {"type": "string", "minLength": 1},
+    "contract": {
+      "type": "object",
+      "properties": {
+        "repro": {"type": "string"},
+        "holdout": {"type": "object"},
+        "cost_delta_ub": {"type": "number"},
+        "p95_delta_ub": {"type": "number"},
+        "canary": {"type": "object"}
+      }
+    },
+    "evidence": {"type": "object"},
+    "economics": {
+      "type": "object",
+      "properties": {
+        "primary_usd": {"type": ["number", "null"]},
+        "secondary_usd_mean": {"type": ["number", "null"]}
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "properties": {
+        "versions": {"type": "array", "items": {"type": "string"}},
+        "quarantines": {"type": "integer", "minimum": 0},
+        "hosts_protected": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {"type": "string"},
+        "pred": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "edge": {
+      "type": "array",
+      "prefixItems": [{"type": "string"}, {"type": "string"}, {"type": "string"}],
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "[source node, target node, relation]; relations must come from `entire graph capabilities --json` or be the derived CALLS*"
+    },
+    "motif": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/node"}},
+        "edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}},
+        "negative": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["edges"],
+            "properties": {
+              "nodes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/node"}},
+              "edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}}
+            }
+          }
+        }
+      }
+    }
+  }
+}
