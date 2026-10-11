@@ -1,0 +1,17 @@
+<task-notification>
+<task-id>by1g63n6z</task-id>
+<tool-use-id>toolu_013ckr5LfopmEFBW1M8GwsNB</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\516f4e83-2d48-43de-87ea-c570c49a517f\tasks\by1g63n6z.output</output-file>
+<status>completed</status>
+<summary>Background command "Run the full contract suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bh01i3nud</task-id>
+<tool-use-id>toolu_01CPPDTiXhWq3vDaovX9Qq2M</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\516f4e83-2d48-43de-87ea-c570c49a517f\tasks\bh01i3nud.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for the contract suite summary line" completed (exit code 0)</summary>
+</task-notification>

@@ -1,0 +1,92 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NEVZNTXRBR7JA2YXMNKFZ0",
+  "session_id": "516f4e83-2d48-43de-87ea-c570c49a517f",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T12:26:43.5810539Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "docs/EXECUTION_PLAN.md",
+    "docs/VERIFICATION.md",
+    "tests/contract/test_fleet_motifs.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "59380cf5bc48",
+  "checkpoint_transcript_start": 1739,
+  "transcript_lines_at_start": 1739,
+  "compact_transcript_start": 171,
+  "token_usage": {
+    "input_tokens": 46,
+    "cache_creation_tokens": 33316,
+    "cache_read_tokens": 14396252,
+    "output_tokens": 18823,
+    "api_call_count": 23
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_012sAzYqoZLZ9hW75B2qcZCY",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "claude-api"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "cdbb7ce2236d",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 182,
+        "end": 183,
+        "entry_ids": [
+          "a5beef8a-bbba-4d02-82fc-791f9f5679e2"
+        ],
+        "tool_use_id": "toolu_012sAzYqoZLZ9hW75B2qcZCY"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_012sAzYqoZLZ9hW75B2qcZCY"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: claude-api",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T12:26:43.3903089Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 1,
+    "total_committed": 0,
+    "total_lines_changed": 1,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 203,
+      "user_lines_removed": 1,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "README.md": 14,
+        "docs/EXECUTION_PLAN.md": 1,
+        "docs/VERIFICATION.md": 69,
+        "tests/contract/test_fleet_motifs.py": 119
+      },
+      "user_removed_per_file": {
+        "README.md": 1
+      }
+    }
+  ]
+}
