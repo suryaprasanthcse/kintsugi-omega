@@ -1,0 +1,22 @@
+<pasted_content id="2edb">
+Before starting Stage 1, execute this contributor cleanup and configuration lockdown so `suryaprasanthcse` (Surya Prasanth R) is the sole GitHub contributor on the repository, while AI tool usage is transparently disclosed in `README.md` and tracked via `Entire-Checkpoint` trailers:
+
+1. LOCK `.claude/settings.json` & `CLAUDE.md`:
+   - Add `"env": { "ENTIRE_TEST_TTY": "0" }` to `.claude/settings.json` so Entire's Windows `prepare-commit-msg` hook never hangs on `CONIN$`.
+   - Add `"includeCoAuthoredBy": false` to `.claude/settings.json` so Claude Code never appends `Co-authored-by: Claude` trailers.
+   - Using your native `Edit` tool, add a strict rule in `CLAUDE.md`: "NEVER include `Co-authored-by:` trailers in any git commit message (human or headless Surgeon). Authorship attribution is tracked exclusively via `Entire-Checkpoint:` and `Kintsugi-*` trailers."
+
+2. ADD AI DISCLOSURE TO `README.md`:
+   - Using your native `Edit` tool, add an "Architect & AI Tooling Disclosure" section to `README.md` stating that Surya Prasanth R (`@suryaprasanthcse`) is the sole human architect and contributor, and disclosing that KINTSUGI-Ω is built and operated using Claude Code, neatlogs, Entire (`entire-graph`), and cfo.ai for #neatHack.
+
+3. SCRUB `Co-authored-by:` FROM EXISTING GIT HISTORY:
+   - Rewrite the 4 existing commits on `main` to strip all `Co-authored-by:` lines from their commit messages while preserving the `Entire-Checkpoint:` trailer on the `CLAUDE.md` commit.
+   - Commit the new edits to `.claude/settings.json`, `CLAUDE.md`, and `README.md` with `ENTIRE_TEST_TTY=0` and NO `Co-authored-by:` trailer (ensure the new commit gets its `Entire-Checkpoint:` trailer—if a 2-turn stop is needed for the new commit's checkpoint, stop after preparing and let me know, or complete it if the hook links cleanly).
+   - Force-push the cleaned `main` branch to `origin` (`git push --force origin main`) and sync checkpoint refs.
+
+4. VERIFY:
+   - Confirm `git log --grep="Co-authored-by" -i` returns zero commits across all of `main`.
+   - Confirm `entire checkpoint list` and `entire why CLAUDE.md:12` still resolve cleanly after the history scrub.
+
+Report the verification results and stop for the Stage 1 go-ahead.
+</pasted_content id="2edb">
