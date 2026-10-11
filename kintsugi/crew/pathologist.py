@@ -125,6 +125,7 @@ class Pathologist:
                 "size": dominant.size,
                 "clusters": len(groups),
                 "label": answer.data["label"],
+                "trace_ids": [m.trace_id for m in dominant.members][:20],  # the receipt links
             },
             by="pathologist",
         )

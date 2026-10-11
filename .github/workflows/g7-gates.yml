@@ -1,21 +1,41 @@
-# G7 — independent CI (spec §5.11): re-runs the gates in GitHub Actions with a fresh seed, in
-# public logs. Reusable: Stage 6's ship step calls it for every candidate merge.
+# G7 — independent CI (spec §5.11): G1–G4 re-run in GitHub Actions with a fresh seed, in
+# public logs. Reusable: a repaired repository's own workflow calls it on every pull request
+# Omega opens, and the merge waits for it (the ruleset requires this check).
 #
-# Skeleton (Stage 3): G1 (build and static), G3 (the host's tests) and the G4 holdout run with a
-# fresh seed. G2 (cassette replay of the incident) and G4's paired McNemar / cost / p95 bounds
-# are added in Stage 6, when incidents carry cassettes and before/after runs.
+# mode: incident  (pull requests opened by kintsugi/control/ship.py)
+#   G1 build and static on the head; G2 the incident's repro tasks (named in the PR body as
+#   "Kintsugi-Repro-Tasks:") at three fresh seeds under the target's stress profile; G3
+#   pass→fail flips between base and head; G4 the paired holdout evaluation at three fresh
+#   seeds (exact McNemar, cost and p95 bounds). `kintsugi gates g7` does all four.
+# mode: fleet  (manual) the Stage 3 host check: G1, G3, the holdout manifest, a G4 run.
 #
-# The holdout identity is the Actions secret HOLDOUT_AGE_IDENTITY (T0 custody, amendment A-26).
-# Logs print aggregates only: pass counts and Wilson intervals, never task content.
+# The holdout identity is the Actions secret HOLDOUT_AGE_IDENTITY (the rehearsal identity until
+# the T0 re-seal under Architect custody, amendment A-26). Logs print aggregates only: pass
+# counts, intervals and bounds, never task content.
 name: g7-gates
 
 on:
   workflow_call:
     inputs:
       host:
-        description: host id (ledger, scout, triage)
+        description: host id (as in the target's .kintsugi/target.yaml)
         required: true
         type: string
+      mode:
+        description: incident (a repair PR) or fleet (a host check)
+        required: false
+        type: string
+        default: fleet
+      base:
+        description: incident mode, the PR's base commit
+        required: false
+        type: string
+        default: ""
+      head:
+        description: incident mode, the PR's head commit
+        required: false
+        type: string
+        default: ""
       seed:
         description: fresh seed for this run (defaults to the run id)
         required: false
@@ -44,8 +64,54 @@ env:
   GIT_TERMINAL_PROMPT: "0"
 
 jobs:
-  g7:
+  incident:
     name: G7 · ${{ inputs.host }}
+    if: ${{ inputs.mode == 'incident' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Omega (the gate code)
+        uses: actions/checkout@v4
+        with:
+          repository: suryaprasanthcse/kintsugi-omega
+          ref: main
+          path: omega
+      - name: Check out the target (base and head)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head }}
+          path: target
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: omega/uv.lock
+      - name: Install Omega's locked environment
+        working-directory: omega
+        run: uv sync --locked
+      - name: G1–G4 with a fresh seed (aggregates only)
+        env:
+          HOLDOUT_AGE_IDENTITY: ${{ secrets.HOLDOUT_AGE_IDENTITY }}
+          SEED: ${{ inputs.seed || github.run_id }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [ -z "$HOLDOUT_AGE_IDENTITY" ]; then
+            echo "::error::HOLDOUT_AGE_IDENTITY is not set: G4 cannot run" && exit 1
+          fi
+          TASKS=$(printf '%s\n' "$PR_BODY" | tr -d '\r' | sed -n 's/^Kintsugi-Repro-Tasks: *//p' | head -n 1)
+          umask 077
+          printf '%s\n' "$HOLDOUT_AGE_IDENTITY" > "$RUNNER_TEMP/holdout.agekey"
+          git -C target config user.name "Kintsugi G7"
+          git -C target config user.email "g7@kintsugi.invalid"
+          status=0
+          uv run --project omega kintsugi gates g7 --repo target --host "${{ inputs.host }}" \
+            --base "${{ inputs.base }}" --head "${{ inputs.head }}" --seed "$((SEED % 1000000))" \
+            --tasks "$TASKS" --holdout-identity "$RUNNER_TEMP/holdout.agekey" || status=$?
+          rm -f "$RUNNER_TEMP/holdout.agekey"
+          exit $status
+
+  fleet:
+    name: G7 · ${{ inputs.host }}
+    if: ${{ inputs.mode != 'incident' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

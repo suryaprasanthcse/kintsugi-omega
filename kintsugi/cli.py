@@ -112,6 +112,18 @@ def _build_parser() -> argparse.ArgumentParser:
     dead = control_sub.add_parser("deadman", help="page if the Watchdog's heartbeat is stale")
     dead.add_argument("--max-age", type=float, default=120.0)
 
+    gates = sub.add_parser("gates", help="verification gates (spec §5.11)")
+    gates_sub = gates.add_subparsers(dest="gates_command", required=True)
+    g7 = gates_sub.add_parser("g7", help="G7: G1–G4 with a fresh seed (GitHub Actions)")
+    g7.add_argument("--repo", type=Path, required=True, help="the target repository checkout")
+    g7.add_argument("--host", required=True)
+    g7.add_argument("--base", required=True)
+    g7.add_argument("--head", required=True)
+    g7.add_argument("--seed", type=int, required=True)
+    g7.add_argument("--tasks", default="", help="comma-separated repro task ids")
+    g7.add_argument("--holdout-identity", type=Path, default=None)
+    g7.add_argument("--out", type=Path, default=None, help="write the JSON summary here")
+
     keys = sub.add_parser("keys", help="attestation key custody (spec §4.5.1)")
     keys_sub = keys.add_subparsers(dest="keys_command", required=True)
     generate = keys_sub.add_parser(
@@ -144,6 +156,25 @@ def _keys_generate(private_key: Path, public_key: Path) -> int:
 
 def _repo() -> Path:
     return Path.cwd()
+
+
+def _gates_g7(args: argparse.Namespace) -> int:
+    from kintsugi.gates.g7 import report, run_g7
+    from kintsugi.gates.target import load_target
+
+    target = load_target(args.repo.resolve(), args.host)
+    identity = None
+    if args.holdout_identity is not None:
+        identity = args.holdout_identity.read_text(encoding="ascii").strip()
+    tasks = [t.strip() for t in args.tasks.split(",") if t.strip()]
+    summary = run_g7(target, args.base, args.head, seed=args.seed, task_ids=tasks,
+                     identity=identity)  # fmt: skip
+    del identity
+    text = report(summary)
+    sys.stdout.write(text.encode("ascii", errors="replace").decode("ascii"))  # cp1252 consoles
+    if args.out is not None:
+        args.out.write_text(text.splitlines()[-1] + "\n", encoding="utf-8", newline="\n")
+    return EXIT_OK if summary["passed"] else EXIT_FAIL
 
 
 def _holdout(args: argparse.Namespace) -> int:
@@ -370,6 +401,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _senses(args)
     if args.command == "control":
         return _control(args)
+    if args.command == "gates":
+        return _gates_g7(args)
     if args.command == "fleet" and args.fleet_command == "baseline":
         return _fleet_baseline(args)
     if args.command == "fleet":

@@ -200,7 +200,7 @@ def build(root: Path, session: FakeSession) -> tuple[OmegaCrew, CrewContext, c.A
         model=ScriptedModel({"coordinator": coordinator_cards}),
         traces=LocalTraces(root / "obs"),
         holdout_identity=root / "holdout.agekey",
-        g4_seeds=(1,),
+        g4_seeds=(1, 2),  # 80 pairs: the p95 bound is stable enough for equivalent fixes
     )
     surgeon = ClaudeSurgeon(
         ctx, attest.Ed25519Signer.generate(), run=session, require_checkpoint=False

@@ -30,7 +30,6 @@ from kintsugi.crew.context import CrewContext
 from kintsugi.gates import antigaming, g1, g2, g3, g4, g5, g6
 from kintsugi.gates.checkout import clean_checkout, diff_text, merged_checkout
 from kintsugi.gates.common import GATES, GateResult, failed, passed
-from kintsugi.gates.evals import EvalResult
 from kintsugi.gates.target import Target
 from kintsugi.memory.graph import GraphError
 from kintsugi.sandbox.cassette import Cassette
@@ -53,7 +52,6 @@ def skipped(gate: str, why: str) -> GateResult:
 class Auditor:
     def __init__(self, ctx: CrewContext) -> None:
         self.ctx = ctx
-        self.base_runs: dict[tuple[str, int], EvalResult] = {}
 
     def audit(self, out: c.SurgeonOutcome) -> c.GateVerdict:
         with _incident_lock(out.incident_id):
@@ -196,15 +194,10 @@ class Auditor:
             return failed("G4", "no holdout identity is configured for the Auditor")
         identity = self.ctx.holdout_identity.read_text(encoding="ascii").strip()
         try:
-            return g4.held_out_efficacy(
-                target,
-                before,
-                after,
-                identity,
-                seeds=self.ctx.g4_seeds,
-                base_cache=self.base_runs,
-                base_key=base,
-            )
+            # Base and candidate run back to back per seed in every audit: a base run cached
+            # from an earlier audit was measured under different machine load, which skews the
+            # p95 bound (wall-clock latency) in either direction.
+            return g4.held_out_efficacy(target, before, after, identity, seeds=self.ctx.g4_seeds)
         finally:
             del identity
 
