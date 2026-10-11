@@ -1,0 +1,1 @@
+Stage 4 is approved at commit 70abcfd (Amendments A-28 through A-39 accepted). Stay in this session and proceed directly to Stage 5 (Control plane: Temporal + SQLite-WAL FSM + Watchdog under kintsugi/control/ per Ruling D6 and Blueprint_Omega_Master.md). Enforce A-37 strictly on every commit: never leave any edited file uncommitted between commits within a turn.
