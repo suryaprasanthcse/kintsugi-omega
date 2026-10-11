@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NDWFRG4QTVBMJ3ZSQR0MW1",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "hosts/triage/config/routing.yaml",
+    "hosts/triage/host.yaml",
+    "hosts/triage/pyproject.toml",
+    "hosts/triage/tests/test_triage.py",
+    "hosts/triage/triage/__init__.py",
+    "hosts/triage/triage/agent.py",
+    "hosts/triage/triage/evals/__init__.py",
+    "hosts/triage/triage/evals/generate.py",
+    "hosts/triage/triage/evals/offline_model.py",
+    "hosts/triage/triage/graders/__init__.py",
+    "hosts/triage/triage/graders/grader.py",
+    "hosts/triage/triage/services/__init__.py",
+    "hosts/triage/triage/services/mock_github.py",
+    "hosts/triage/triage/snapshot.py",
+    "hosts/triage/triage/tools.py",
+    "kintsugi/cli.py",
+    "kintsugi/fleet/fabric.py",
+    "kintsugi/gates/holdout.py",
+    "pyproject.toml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 278,
+    "cache_creation_tokens": 530433,
+    "cache_read_tokens": 50236840,
+    "output_tokens": 299464,
+    "api_call_count": 139
+  }
+}

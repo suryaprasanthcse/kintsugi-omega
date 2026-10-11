@@ -1,0 +1,88 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4NDWFRG4QTVBMJ3ZSQR0MW1",
+  "session_id": "516f4e83-2d48-43de-87ea-c570c49a517f",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T12:09:31.7524558Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "hosts/triage/config/routing.yaml",
+    "hosts/triage/host.yaml",
+    "hosts/triage/pyproject.toml",
+    "hosts/triage/tests/test_triage.py",
+    "hosts/triage/triage/__init__.py",
+    "hosts/triage/triage/agent.py",
+    "hosts/triage/triage/evals/__init__.py",
+    "hosts/triage/triage/evals/generate.py",
+    "hosts/triage/triage/evals/offline_model.py",
+    "hosts/triage/triage/graders/__init__.py",
+    "hosts/triage/triage/graders/grader.py",
+    "hosts/triage/triage/services/__init__.py",
+    "hosts/triage/triage/services/mock_github.py",
+    "hosts/triage/triage/snapshot.py",
+    "hosts/triage/triage/tools.py",
+    "kintsugi/cli.py",
+    "kintsugi/fleet/fabric.py",
+    "kintsugi/gates/holdout.py",
+    "pyproject.toml"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "f658cf7dcdee",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 278,
+    "cache_creation_tokens": 530433,
+    "cache_read_tokens": 50236840,
+    "output_tokens": 299464,
+    "api_call_count": 139
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_012sAzYqoZLZ9hW75B2qcZCY",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "claude-api"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "cdbb7ce2236d",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 182,
+        "end": 183,
+        "entry_ids": [
+          "a5beef8a-bbba-4d02-82fc-791f9f5679e2"
+        ],
+        "tool_use_id": "toolu_012sAzYqoZLZ9hW75B2qcZCY"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_012sAzYqoZLZ9hW75B2qcZCY"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: claude-api",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T12:09:31.6159744Z",
+    "agent_lines": 805,
+    "agent_removed": 8,
+    "human_added": 223,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1028,
+    "total_lines_changed": 1038,
+    "agent_percentage": 78.32369942196532,
+    "metric_version": 2
+  }
+}
