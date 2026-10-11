@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4PM9G8AVNWZS7JC328GBSHW",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/g7-gates.yml",
+    "kintsugi/cli.py",
+    "kintsugi/control/ship.py",
+    "kintsugi/crew/evidence.py",
+    "kintsugi/crew/llm.py",
+    "kintsugi/crew/pathologist.py",
+    "kintsugi/crew/prompts/SHA256SUMS",
+    "kintsugi/crew/prompts/rehearsal_delivery.md",
+    "kintsugi/crew/rehearsal.py",
+    "kintsugi/gates/g7.py",
+    "tests/control/test_ship.py",
+    "tests/crew/test_rehearsal.py",
+    "tests/fixtures/rehearsal/ledger_practice/.gitignore"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 134,
+    "cache_creation_tokens": 92402,
+    "cache_read_tokens": 52354427,
+    "output_tokens": 60235,
+    "api_call_count": 67
+  }
+}

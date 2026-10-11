@@ -1,0 +1,84 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4PM9G8AVNWZS7JC328GBSHW",
+  "session_id": "e2d3a642-17cf-4466-89d1-d8a747654add",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T23:20:47.0074275Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/g7-gates.yml",
+    "kintsugi/cli.py",
+    "kintsugi/control/ship.py",
+    "kintsugi/crew/evidence.py",
+    "kintsugi/crew/llm.py",
+    "kintsugi/crew/pathologist.py",
+    "kintsugi/crew/prompts/SHA256SUMS",
+    "kintsugi/crew/prompts/rehearsal_delivery.md",
+    "kintsugi/crew/rehearsal.py",
+    "kintsugi/gates/g7.py",
+    "tests/control/test_ship.py",
+    "tests/crew/test_rehearsal.py",
+    "tests/fixtures/rehearsal/ledger_practice/.gitignore"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "2aefc213a44c",
+  "checkpoint_transcript_start": 1909,
+  "transcript_lines_at_start": 1909,
+  "compact_transcript_start": 236,
+  "token_usage": {
+    "input_tokens": 134,
+    "cache_creation_tokens": 92402,
+    "cache_read_tokens": 52354427,
+    "output_tokens": 60235,
+    "api_call_count": 67
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T23:20:46.7964621Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 67,
+    "total_committed": 0,
+    "total_lines_changed": 67,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 1005,
+      "user_lines_removed": 67,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".github/workflows/g7-gates.yml": 5,
+        "kintsugi/cli.py": 139,
+        "kintsugi/control/ship.py": 29,
+        "kintsugi/crew/evidence.py": 199,
+        "kintsugi/crew/llm.py": 2,
+        "kintsugi/crew/pathologist.py": 25,
+        "kintsugi/crew/prompts/SHA256SUMS": 1,
+        "kintsugi/crew/prompts/rehearsal_delivery.md": 13,
+        "kintsugi/crew/rehearsal.py": 467,
+        "kintsugi/gates/g7.py": 44,
+        "tests/control/test_ship.py": 13,
+        "tests/crew/test_rehearsal.py": 65,
+        "tests/fixtures/rehearsal/ledger_practice/.gitignore": 3
+      },
+      "user_removed_per_file": {
+        ".github/workflows/g7-gates.yml": 2,
+        "kintsugi/cli.py": 39,
+        "kintsugi/control/ship.py": 5,
+        "kintsugi/crew/llm.py": 1,
+        "kintsugi/gates/g7.py": 18,
+        "tests/control/test_ship.py": 2
+      }
+    }
+  ]
+}
