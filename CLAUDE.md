@@ -4,3 +4,13 @@ grep/find/whole-file reads, read .entire/graph-agent.md — resolution-first gui
 for using graph retrieval, focused source inspection, and verification.
 @.entire/graph-agent.md
 <!-- entire-graph:end -->
+
+## Verified CLI Surface (Entire 0.11.4 / entire-graph 0.4.0)
+
+Checked against the installed CLIs. Where these differ from `Blueprint_Omega_Master.md` (§4.3, Appendix D), these win.
+
+- `entire why <file>:<line>` (labs) — commit, checkpoint, prompt and session behind a line. Use for intent recovery (§4.3.2 steps 2–3).
+- `entire checkpoint explain <id|sha>` — replaces top-level `entire explain`.
+- `entire session resume <branch>` — replaces top-level `entire resume`.
+- No `rewind` command exists (`entire rewind` / `entire checkpoint rewind` are absent).
+- Python constructor calls are `CONSTRUCTS`, not `CALLS`: motif edge `[F, S, CONSTRUCTS]`. Python has no `READS_FIELD` / `WRITES_FIELD` / `ACCESSES` / `IMPLEMENTS`; feature-detect with `entire graph capabilities --json`.
