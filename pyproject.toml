@@ -51,6 +51,17 @@ allowed-confusables = ["×", "‖", "–", "—", "Ω", "α", "β", "δ", "κ", 
 [tool.ruff.lint.isort]
 known-first-party = ["kintsugi"]
 
+# Every child process goes through kintsugi.sandbox.proc (docs/EXECUTION_PLAN.md §2d).
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"subprocess".msg = "Use kintsugi.sandbox.proc: the single gateway (ENTIRE_TEST_TTY=0, env allowlist, tree kill)."
+"os.system".msg = "Use kintsugi.sandbox.proc.run."
+"os.popen".msg = "Use kintsugi.sandbox.proc.run."
+"asyncio.create_subprocess_exec".msg = "Use kintsugi.sandbox.proc."
+"asyncio.create_subprocess_shell".msg = "Use kintsugi.sandbox.proc."
+
+[tool.ruff.lint.per-file-ignores]
+"kintsugi/sandbox/proc.py" = ["TID251"]
+
 [tool.pyright]
 include = ["kintsugi", "tests"]
 pythonVersion = "3.12"
@@ -61,7 +72,7 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers --import-mode=importlib"
 markers = [
     "contract: needs local Entire or Claude Code tooling (Stage 2+)",
     "slow: long-running",
