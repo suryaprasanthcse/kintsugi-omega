@@ -72,6 +72,23 @@ def _build_parser() -> argparse.ArgumentParser:
     seal.add_argument("--host", action="append", help="host id (default: every host)")
     holdout_sub.add_parser("verify", help="check sealed files against .kintsugi/holdout.sha256")
 
+    senses = sub.add_parser("senses", help="neatlogs receptors, webhook ingress, poller (§4.1)")
+    senses_sub = senses.add_subparsers(dest="senses_command", required=True)
+    prov = senses_sub.add_parser("provision", help="receptors R-001…R-007, alert rules, webhook")
+    prov.add_argument("--public-url", help="the ingress's public origin (e.g. a tunnel)")
+    prov.add_argument("--dry-run", action="store_true", help="render and validate only")
+    ingress = senses_sub.add_parser("ingress", help="serve the webhook ingress")
+    ingress.add_argument("--port", type=int, default=8787)
+    ingress.add_argument("--host", default="127.0.0.1")
+    poll = senses_sub.add_parser("poll", help="the reconciliation poller (source of truth)")
+    poll.add_argument("--once", action="store_true", help="one sweep of every receptor")
+    poll.add_argument("--interval", type=float, default=60.0)
+    complete = senses_sub.add_parser("completeness", help="invariant I7 over a window")
+    complete.add_argument("--since", required=True, help="ISO-8601 start of the window")
+    rehearse = senses_sub.add_parser("rehearse", help="R-007 on Ledger FAIL verdicts, end to end")
+    rehearse.add_argument("--tasks", type=int, default=6)
+    rehearse.add_argument("--seed", type=int, default=11)
+
     keys = sub.add_parser("keys", help="attestation key custody (spec §4.5.1)")
     keys_sub = keys.add_subparsers(dest="keys_command", required=True)
     generate = keys_sub.add_parser(
@@ -204,6 +221,76 @@ def _fleet_down() -> int:
     return EXIT_OK
 
 
+def _senses(args: argparse.Namespace) -> int:
+    import threading
+    from datetime import UTC, datetime
+
+    from kintsugi.fleet.fabric import load_dotenv
+    from kintsugi.senses import detections, service
+    from kintsugi.senses.completeness import completeness, reported_hits
+    from kintsugi.senses.store import SenseStore
+
+    repo = _repo()
+    if args.senses_command == "provision" and args.dry_run:
+        rendered = detections.plan()
+        for item in rendered.detections:
+            count, window = item.alert.get("thresholdCount", 1), item.alert.get("windowMinutes", 0)
+            print(f"neatlogs  {item.name:<22} {item.detection['type']:<10} "
+                  f"alert >={count} in {window}m")  # fmt: skip
+        for metric in rendered.metrics:
+            print(f"omega     {metric.detection_id:<30} {metric.field} {metric.operator} "
+                  f"{metric.threshold:g}")  # fmt: skip
+        return EXIT_OK
+    env = load_dotenv(repo / ".env")
+    store = SenseStore(repo / service.STORE_PATH)
+    if args.senses_command == "ingress":
+        print(f"senses ingress: http://{args.host}:{args.port}/hook/<secret> (state "
+              f"{service.STORE_PATH})")  # fmt: skip
+        service.serve(service.ingress_app(repo, store), host=args.host, port=args.port)
+        return EXIT_OK
+    with service.api_from_env(env) as api:
+        if args.senses_command == "provision":
+            manifest, changes = service.provision(repo, api, args.public_url)
+            print(f"senses provision: {len(manifest.detections)} detections, "
+                  f"{len(manifest.metrics)} omega receptors, webhook "
+                  f"{'registered' if manifest.webhook_id else 'not registered (no --public-url)'}"
+                  f" -> {service.MANIFEST_PATH}")  # fmt: skip
+            for change in changes:
+                print(f"  {change}")
+            return EXIT_OK
+        if args.senses_command == "poll":
+            poll = service.poller(repo, api, store)
+            if args.once:
+                for report in poll.run_once():
+                    print(f"{report.detection_id}: {report.seen} seen, {report.new} new, "
+                          f"{report.duplicates} already claimed, {report.pages} pages")  # fmt: skip
+                return EXIT_OK
+            print(f"senses poll: every {args.interval:g}s — Ctrl+C to stop")
+            stop = threading.Event()
+            with contextlib.suppress(KeyboardInterrupt):
+                service.poll_forever(poll, stop, args.interval)
+            return EXIT_OK
+        if args.senses_command == "rehearse":
+            from kintsugi.senses.rehearsal import rehearse
+
+            manifest = service.load_manifest(repo)
+            result = rehearse(repo, api, manifest, service.poller(repo, api, store),
+                              tasks=args.tasks, seed=args.seed)  # fmt: skip
+            new = sum(s.new for s in result.sweeps)
+            print(f"rehearsal: {len(result.failed_tasks)}/{len(result.rows)} Ledger tasks FAIL "
+                  f"under the FX outage; R-007 hits on {result.hits} of them after "
+                  f"{result.waited_s:.0f}s; poller claimed {new} new hits "
+                  f"({store.pending()} queued)")  # fmt: skip
+            detected = bool(result.failed_tasks) and result.hits == len(result.failed_tasks)
+            return EXIT_OK if detected else EXIT_FAIL
+        start = datetime.fromisoformat(args.since.replace("Z", "+00:00")).astimezone(UTC)
+        manifest = service.load_manifest(repo)
+        hits = reported_hits(api, manifest.detections, start)
+        report = completeness(hits, store.seen_hits(), start, datetime.now(UTC))
+        print(f"I7 completeness since {start.isoformat()}: {report.summary()}")
+        return EXIT_OK if report.ok else EXIT_FAIL
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "version":
@@ -215,6 +302,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _keys_generate(args.private_key, args.public_key)
     if args.command == "holdout":
         return _holdout(args)
+    if args.command == "senses":
+        return _senses(args)
     if args.command == "fleet" and args.fleet_command == "baseline":
         return _fleet_baseline(args)
     if args.command == "fleet":

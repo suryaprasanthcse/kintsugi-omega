@@ -51,9 +51,12 @@ def run_eval(
     limit: int | None = None,
     extra_env: Mapping[str, str] | None = None,
     timeout_s: float = 3600.0,
+    phase: str | None = None,
 ) -> EvalRun:
     argv = [sys.executable, "-m", "hostkit.evalrun", "--host", spec.package, "--split", split,
             "--seed", str(seed), "--workers", str(workers)]  # fmt: skip
+    if phase is not None:
+        argv += ["--phase", phase]
     if tasks_jsonl is not None:
         argv += ["--tasks-file", "-"]
     if limit is not None:

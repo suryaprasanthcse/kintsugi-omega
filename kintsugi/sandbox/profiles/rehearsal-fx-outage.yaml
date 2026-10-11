@@ -1,0 +1,13 @@
+# A disclosed rehearsal profile (Stage 4): the FX API is down, so every Ledger task that needs a
+# conversion fails and its grader emits FAIL:<reason>. It exercises receptor R-007, the alert
+# rule, the webhook ingress and the poller end to end with an environment fault only; no host
+# code changes. Runs using it are tagged phase:rehearsal and never count as baselines.
+name: rehearsal-fx-outage
+disclosed: true
+seed: 11
+rules:
+  - service: fx
+    path: /rate
+    fault: status
+    status: 503
+    rate: 1.0

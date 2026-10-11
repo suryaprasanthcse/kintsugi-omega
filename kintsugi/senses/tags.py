@@ -24,9 +24,11 @@ from typing import Protocol
 MAX_TAGS = 10
 MAX_TAG_LENGTH = 128
 SINGLE_VALUED = frozenset({"host", "inc", "phase", "split", "seed", "run"})
+# The spec's phases plus `rehearsal` (unsealed practice runs before T0, never W evidence).
 PHASES = frozenset(
-    {"baseline", "repro", "before", "after", "canary", "vacc", "sabotage", "selfrepair"}
-)
+    {"baseline", "repro", "before", "after", "canary", "vacc", "sabotage", "selfrepair",
+     "rehearsal"}
+)  # fmt: skip
 _RULES: dict[str, re.Pattern[str]] = {
     "host": re.compile(r"[a-z][a-z0-9-]{0,62}"),
     "inc": re.compile(r"(?:INC|VAC)-[A-Za-z0-9-]{1,40}"),

@@ -75,6 +75,31 @@ def test_the_committed_holdout_manifest_verifies(monkeypatch: pytest.MonkeyPatch
     assert main(["holdout", "verify"]) == EXIT_OK
 
 
+def test_senses_provision_dry_run_renders_every_receptor(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.chdir(REPO)
+    assert main(["senses", "provision", "--dry-run"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.count("neatlogs  R-") == 12
+    assert out.count("omega     omega:R-") == 9
+    assert "R-007 ledger v1" in out
+
+
+def test_senses_ingress_needs_provisioned_secrets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from kintsugi.senses import service
+    from kintsugi.senses.store import SenseStore
+
+    with pytest.raises(FileNotFoundError, match="senses provision"):
+        service.ingress_app(tmp_path, SenseStore(tmp_path / "s.sqlite"))
+    made = service.ingress_secrets(tmp_path, create=True)
+    assert len(made.path_secret) >= 43
+    assert made.path_secret not in repr(made)
+    assert service.ingress_secrets(tmp_path) == made
+
+
 def test_holdout_keygen_refuses_an_identity_inside_a_repo(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
