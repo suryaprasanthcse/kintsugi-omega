@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MYKG1FBTPSEXC6WGPRK1W1",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "kintsugi/memory/__init__.py",
+    "kintsugi/memory/antibody.py",
+    "kintsugi/memory/motif.py",
+    "tests/fixtures/spec/E1_antibody.yaml",
+    "tests/memory/test_antibody.py",
+    "tests/memory/test_motif.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 36963,
+    "cache_read_tokens": 5401491,
+    "output_tokens": 33148,
+    "api_call_count": 9
+  }
+}
