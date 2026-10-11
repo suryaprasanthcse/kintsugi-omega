@@ -1,0 +1,32 @@
+Incident INC-REH-0001, hypothesis H1. Session nonce: bugo-pina-nami-somi-duka-huki-fino-togu-sunu-miva-fanu
+
+Hypothesis: Hoist PostingSession back outside the retried closure (minimal fix, keep the rename)
+Root cause: The readability refactor moved `current = session or PostingSession(batch)` from `reconcile`'s body into the retried closure `book_pending_lines`. Because `retry_with_backoff` re-invokes that closure after `fx_rate` raises RateLimited (HTTP 429), attempt two constructs a fresh empty PostingSession whose `pending()` still contains lines already posted in attempt one, so `post_line` re-posts to books:/lines and the grader's duplicate check fires FAIL:DUPLICATE_ENTRY.
+Approach: In `practice_ledger/reconcile.py`, move the session construction back above the closure definition in `reconcile` (lines ~70-80) so exactly one PostingSession instance exists per `reconcile` call and is captured by closure; `book_pending_lines` keeps its new name and docstring but only consumes the pre-built session, never creates one. Restore the intent of the deleted comment marking the session as living outside the retried scope. Change nothing in retry.py, tools.py, or the grader; do not alter `retry_with_backoff` semantics (the pass is still retried whole, it simply resumes against the surviving ledger).
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+- The pre-change code explicitly promised that the PostingSession lived outside the retried scope so bookings survived retries - the promise the patch deleted and this fix restores.: "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+- Retry semantics must stay as documented: a rate limit retries the pass, which implies resumption rather than re-booking.: "+    """Book every pending line of ``batch`` in USD; a rate limit retries the whole pass.""""
+- The change remains scoped to the retry logic's naming/structure; no new behavior beyond undoing the accidental semantic change.: "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+- This is precisely the fix the author identified and failed to apply.: "If the caller passes no session and a 429 hits mid-pass, the retry builds a fresh session and re-books lines the first attempt already posted. That is a double-booking risk, and the existing tests don't exercise it."
+
+Files you may edit: practice_ledger/reconcile.py
+Diff budget: at most 12 changed lines.
+
+Cause report excerpt:
+Symptom: All 4 traces in this cluster (signature sha256:b9fe39c5383c, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, raised at the CHAIN grader.verdict span with tool books:/lines. In every case the preceding call sequence is the same: fx_rate, then books:/lines, then a second books:/lines; the repeated posting to books:/lines immediately precedes the duplicate-entry verdict. Detection omega:R-007:ledger-practice fires on each trace. Observed in traces TR-003, TR-013, TR-015 and TR-021 of run local:reh-20261011-232114-s1 — 4 of 4 traces in the cluster, with no successful variant of this sequence present. No other failing span, tool, or error class appears in the cluster.
+Root cause (Coordinator): The readability refactor moved `current = session or PostingSession(batch)` from `reconcile`'s body into the retried closure `book_pending_lines`. Because `retry_with_backoff` re-invokes that closure after `fx_rate` raises RateLimited (HTTP 429), attempt two constructs a fresh empty PostingSession whose `pending()` still contains lines already posted in attempt one, so `post_line` re-posts to books:/lines and the grader's duplicate check fires FAIL:DUPLICATE_ENTRY.
+
+Gate feedback from earlier rounds (aggregates only):
+(first round)
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
