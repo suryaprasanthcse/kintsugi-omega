@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4P4JDMCW1KRADXMGD9J7V8B",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/crew/archivist.py",
+    "kintsugi/crew/casefile.py",
+    "kintsugi/crew/context.py",
+    "kintsugi/crew/pathologist.py",
+    "kintsugi/crew/sentinel.py",
+    "kintsugi/senses/signature.py",
+    "tests/crew/test_sentinel_pathologist_archivist.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34,
+    "cache_creation_tokens": 42085,
+    "cache_read_tokens": 9242612,
+    "output_tokens": 33005,
+    "api_call_count": 17
+  }
+}
