@@ -104,8 +104,14 @@ def digest(value: Any) -> str:
     return "sha256:" + sha256_hex(canonicalize(value))
 
 
+# Differences smaller than these are measurement noise (pass-rate share, relative cost, relative
+# p95): they never make one candidate dominate another, so equivalent fixes stay on the front
+# and a pre-registered experiment settles them (§5.7 disputes, §6.3 H2′ vs H3″).
+TOLERANCE = (0.02, 0.02, 0.05)
+
+
 def pareto_front(candidates: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
-    """Non-dominated candidates on (delta_pass ↑, cost_delta ↓, p95_delta ↓)."""
+    """Non-dominated candidates on (delta_pass ↑, cost_delta ↓, p95_delta ↓), within noise."""
 
     def key(item: Mapping[str, Any]) -> tuple[float, float, float]:
         g4 = item["g4"]
@@ -117,7 +123,10 @@ def pareto_front(candidates: Sequence[Mapping[str, Any]]) -> list[Mapping[str, A
 
     def dominates(a: Mapping[str, Any], b: Mapping[str, Any]) -> bool:
         (pa, ca, la), (pb, cb, lb) = key(a), key(b)
-        return pa >= pb and ca <= cb and la <= lb and (pa, ca, la) != (pb, cb, lb)
+        tp, tc, tl = TOLERANCE
+        no_worse = pa >= pb - tp and ca <= cb + tc and la <= lb + tl
+        better = pa > pb + tp or ca < cb - tc or la < lb - tl
+        return no_worse and better
 
     return [x for x in candidates if not any(dominates(y, x) for y in candidates if y is not x)]
 

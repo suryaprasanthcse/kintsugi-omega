@@ -88,6 +88,35 @@ class BlameLine:
     commit: str
     line: int
     time: int
+    path: str = ""
+
+
+def recent_regions(repo: Path, commits: int = 5) -> list[dict[str, Any]]:
+    """Git-only localisation when entire-graph is unavailable: the hunks the most recent
+    non-root commits wrote, as regions of the current tree (recorded as such in the report)."""
+    log = _git(repo, "rev-list", f"--max-count={commits}", "--no-merges", "HEAD").split()
+    regions: list[dict[str, Any]] = []
+    for commit in log:
+        if not _git(repo, "rev-list", "--parents", "-n", "1", commit).split()[1:]:
+            continue  # the root commit
+        diff = _git(repo, "diff", "--unified=0", f"{commit}^", commit, "--", "*.py")
+        path = ""
+        for row in diff.splitlines():
+            if row.startswith("+++ b/"):
+                path = row[6:]
+            hunk = re.match(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", row)
+            if hunk and path and not _is_test(path):
+                start, count = int(hunk.group(1)), int(hunk.group(2) or 1)
+                if count:
+                    regions.append(
+                        {
+                            "file_path": path,
+                            "start_line": start,
+                            "end_line": start + count - 1,
+                            "qualified_name": None,
+                        }
+                    )
+    return regions
 
 
 def blame(repo: Path, path: str, start: int, end: int) -> list[BlameLine]:
@@ -102,7 +131,7 @@ def blame(repo: Path, path: str, start: int, end: int) -> list[BlameLine]:
         elif row.startswith("committer-time ") and current is not None:
             times[current[0]] = int(row.split()[1])
         elif row.startswith("\t") and current is not None:
-            lines.append(BlameLine(current[0], current[1], times.get(current[0], 0)))
+            lines.append(BlameLine(current[0], current[1], times.get(current[0], 0), path))
     return lines
 
 
@@ -228,8 +257,12 @@ class Archivist:
         symptom = case.reader("archivist").get("symptom", "summary")["summary"]
         base = rev(target.repo, self.ctx.base_ref)
         with clean_checkout(target.repo, base) as checkout:
-            found = graph.search(checkout, symptom, top_k=10)
-            context = graph.context(checkout, symptom, top_k=10, max_context_bytes=24576)
+            try:
+                found = graph.search(checkout, symptom, top_k=10)
+                context = graph.context(checkout, symptom, top_k=10, max_context_bytes=24576)
+            except (graph.GraphError, OSError):  # no entire-graph here: localise with git only
+                found = {"results": recent_regions(checkout)}
+                context = "(entire graph unavailable: regions changed by recent commits)"
             regions = [
                 r for r in found.get("results") or [] if not _is_test(str(r.get("file_path", "")))
             ]
@@ -255,7 +288,7 @@ class Archivist:
                 name = str(region.get("qualified_name") or region.get("symbol_name"))
                 try:
                     impact[name] = graph.impact(checkout, name)
-                except graph.GraphError as error:
+                except (graph.GraphError, OSError) as error:
                     impact[name] = {"error": str(error)[:200]}
             mapping = self._checkpoint(checkout, origin, touched or regions, blamed)
         turns, transcript_sha, text = self._turns(target, mapping, touched or regions)
@@ -315,14 +348,7 @@ class Archivist:
         message = _git(checkout, "log", "-1", "--format=%B", origin)
         trailer = (parse_trailers(message).get(ENTIRE_TRAILER) or [None])[0]
         line = next((b for b in blamed if b.commit == origin), None)
-        path = next(
-            (
-                str(r["file_path"])
-                for r in regions
-                if line and int(r["start_line"]) <= line.line <= int(r["end_line"])
-            ),
-            None,
-        )
+        path = line.path if line is not None and line.path else None
         why: dict[str, Any] = {}
         if line is not None and path is not None:
             try:
@@ -334,7 +360,7 @@ class Archivist:
                     "file": path,
                     "line": line.line,
                 }
-            except entire.EntireError as error:
+            except (entire.EntireError, OSError) as error:
                 why = {"error": str(error)[:300]}
         agree = bool(trailer) and why.get("checkpoint") == trailer
         return {
@@ -413,7 +439,14 @@ class Archivist:
             why="intent of the originating change",
         )
         builder.exclude("holdout tasks", "invariant I5")
-        names = [str(r.get("qualified_name") or r.get("symbol_name")) for r in regions[:3]]
+        names = [
+            str(
+                r.get("qualified_name")
+                or r.get("symbol_name")
+                or f"{r['file_path']}:{r['start_line']}"
+            )
+            for r in regions[:3]
+        ]
 
         def fallback() -> dict[str, Any]:
             intent = heuristic_intent(turns)

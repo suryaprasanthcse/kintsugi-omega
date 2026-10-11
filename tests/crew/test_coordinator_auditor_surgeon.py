@@ -180,7 +180,7 @@ def test_the_decision_rule_and_a_pre_registered_dispute(world: dict[str, Any]) -
         ctx,
         "H14",
         "pass",
-        {"delta_pass": 0.31, "cost_delta": 0.3, "p95_delta": 0.2},
+        {"delta_pass": 0.40, "cost_delta": 0.3, "p95_delta": 0.2},  # better pass, worse cost
         world["lookup"],
     )
     v = [c.GateVerdict(h, True) for h in ("H11", "H12", "H13")]
@@ -209,6 +209,9 @@ def test_the_decision_rule_and_a_pre_registered_dispute(world: dict[str, Any]) -
     with pytest.raises(ValueError, match="changed after registration"):
         coordinator.dispute_experiment(INC, dispute)
     assert len(pareto_front([{"g4": {"delta_pass": 1}}, {"g4": {"delta_pass": 1}}])) == 2
+    noisy = [{"g4": {"delta_pass": 0.3, "p95_delta": -0.01}},
+             {"g4": {"delta_pass": 0.3, "p95_delta": 0.02}}]  # fmt: skip
+    assert len(pareto_front(noisy)) == 2  # within noise: both stay, an experiment decides
 
 
 def _card(world: dict[str, Any], hyp: str, files: list[str]) -> c.Card:

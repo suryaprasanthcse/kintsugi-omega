@@ -38,6 +38,7 @@ with workflow.unsafe.imports_passed_through():
 
 S = IncidentState
 SEEN_HIT_MEMORY = 5000  # hit keys remembered across continue_as_new (the store dedupes for good)
+L4_REVERIFY_WINNER = "l4-reverify-winner"  # Stage 6: drift before shipping re-checks the winner
 
 
 async def act(name: str, *args: Any, config: c.ControlConfig, result_type: Any = None) -> Any:
@@ -237,7 +238,21 @@ class Incident:
                     raise ApplicationError(
                         f"winner {decision.winner} did not pass G0–G6", non_retryable=True
                     )
-                return next(o for o in outs if o.hypothesis == decision.winner)
+                winner = next(o for o in outs if o.hypothesis == decision.winner)
+                if self.drift is None or not workflow.patched(L4_REVERIFY_WINNER):
+                    return winner
+                # L4 (§6.4): main moved during the round. The winner is re-verified merged
+                # onto the new main (its attested commit is never rewritten, A-49); it ships
+                # only if it still passes, otherwise the round counts as failed.
+                repo, new_main = self.drift
+                self.drift = None
+                await act("rebase_and_rerun", [winner], repo, new_main, config=config)
+                moved = replace(winner, diff_sha=f"{winner.commit_sha}@{new_main}")
+                recheck = await act("audit_gates", moved, config=config,
+                                    result_type=c.GateVerdict)  # fmt: skip
+                if recheck.passed:
+                    return moved
+                verdicts = [v for v in verdicts if v.hypothesis != winner.hypothesis] + [recheck]
             history.extend(verdicts)
             await act("rewind", outs, config=config)
             if self.drift is not None:  # L4: rebase onto the new main, re-run impacted gates

@@ -35,7 +35,6 @@ from kintsugi.gates.target import Target
 from kintsugi.memory.graph import GraphError
 from kintsugi.sandbox.cassette import Cassette
 
-G4_SEEDS = (1, 2, 3)
 _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
 
@@ -202,7 +201,7 @@ class Auditor:
                 before,
                 after,
                 identity,
-                seeds=G4_SEEDS,
+                seeds=self.ctx.g4_seeds,
                 base_cache=self.base_runs,
                 base_key=base,
             )

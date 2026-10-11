@@ -130,6 +130,7 @@ class CrewContext:
     incident_prefix: str = "INC"
     models: Mapping[str, str] = field(default_factory=dict)  # role → model id override
     clock: Callable[[], float] = time.time
+    g4_seeds: tuple[int, ...] = (1, 2, 3)  # holdout × seeds = the paired sample (§5.12)
 
     def case(self, incident: str) -> CaseFile:
         return CaseFile(self.state / "cases", incident)
