@@ -143,6 +143,17 @@ class CaseFile:
     def exists(self, kind: str, name: str) -> bool:
         return self._path(kind, name).is_file()
 
+    def tool_read(self, kind: str, name: str, *, tool: str) -> Any:
+        """Deterministic tooling (the bisect runner, the gate runner) loads the G0 cassette and
+        repro record to *execute* them; nothing it reads enters a model's context. Limited to
+        trace and summary artifacts, and logged."""
+        if KINDS.get(kind) not in ("traces", "summary"):
+            raise InformationFlowViolation(f"tool {tool} may not load {kind}")
+        if not self.exists(kind, name):
+            return None
+        self._append("access.jsonl", {"op": "tool", "role": tool, "kind": kind, "name": name})
+        return self._load(kind, name)
+
     def _load(self, kind: str, name: str) -> Any:
         return json.loads(self._path(kind, name).read_text(encoding="utf-8"))
 

@@ -193,7 +193,8 @@ def tool_names(tools: Mapping[str, Any]) -> dict[str, str]:
     """Host tool registry → ``{service: tool}`` for tools backed by one external service."""
     by_service: dict[str, list[str]] = {}
     for name, tool in tools.items():
-        service = getattr(tool, "external", None) or (tool or {}).get("external")
+        service = (tool.get("external") if isinstance(tool, Mapping)
+                   else getattr(tool, "external", None))  # fmt: skip
         if service:
             by_service.setdefault(str(service), []).append(name)
     return {service: names[0] for service, names in by_service.items() if len(names) == 1}
