@@ -15,6 +15,10 @@ from hypothesis import settings
 settings.register_profile("deterministic", derandomize=True, deadline=None)
 settings.load_profile("deterministic")
 
+# Fixture repositories carry their own test suites (the Ledger practice host's tests run inside
+# its scratch repository, gate G3); they are never collected as Omega's tests.
+collect_ignore_glob = ["fixtures/*"]
+
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     if os.environ.get("KINTSUGI_CONTRACT") == "1":

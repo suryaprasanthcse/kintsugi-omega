@@ -59,11 +59,12 @@ def _run(
     *,
     timeout_s: float = DEFAULT_TIMEOUT_S,
     input_text: str | None = None,
+    extra_env: Mapping[str, str] | None = None,
 ) -> str:
     argv = ["entire", "graph", *args]
     if repo is not None:
         argv += ["--repo", os.fspath(repo)]
-    result = proc.run(argv, timeout_s=timeout_s, input_text=input_text)
+    result = proc.run(argv, timeout_s=timeout_s, input_text=input_text, extra_env=extra_env)
     if not result.ok:
         detail = (result.stderr or result.stdout).strip()[-1500:]
         raise GraphError(f"{' '.join(argv[2:4])} failed ({result.returncode}): {detail}")
@@ -227,8 +228,13 @@ def verify(
     record_baseline: PathLike | None = None,
     pre_edit_baseline: PathLike | None = None,
     timeout_s: float = 1800.0,
+    extra_env: Mapping[str, str] | None = None,
 ) -> str:
-    """Gate G3: which tests changed state. Record a baseline first, then compare against it."""
+    """Gate G3: which tests changed state. Record a baseline first, then compare against it.
+
+    The test command must print per-test results (``pytest -rA`` or ``-v``): with ``-q`` the
+    plugin cannot parse ids and degrades to an exit-code-only verdict (amendment A-48).
+    ``extra_env`` reaches the test run (for example ``PYTHONPATH`` of the code under test)."""
     if (record_baseline is None) == (pre_edit_baseline is None):
         raise ValueError("pass exactly one of record_baseline or pre_edit_baseline")
     args = ["verify", "--test", test_command]
@@ -236,7 +242,7 @@ def verify(
         args += ["--record-baseline", os.fspath(record_baseline)]
     else:
         args += ["--pre-edit-baseline", os.fspath(pre_edit_baseline)]  # type: ignore[arg-type]
-    return _run(args, repo, timeout_s=timeout_s)
+    return _run(args, repo, timeout_s=timeout_s, extra_env=extra_env)
 
 
 # ---- snapshot (spike A9) ----------------------------------------------------------------------

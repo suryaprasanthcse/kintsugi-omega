@@ -182,6 +182,7 @@ class ChaosProxy:
         player: Player | None = None,
         sleep: Callable[[float], None] = time.sleep,
         timeout_s: float = 30.0,
+        live: frozenset[str] = frozenset(),
     ) -> None:
         if recorder is not None and player is not None:
             raise ValueError("record or replay, not both")
@@ -189,6 +190,10 @@ class ChaosProxy:
         self.profile = profile
         self.recorder = recorder
         self.player = player
+        # Services that hold the host's own state (a books API is the agent's database, not the
+        # world): never recorded, never replayed, so a replay recomputes their state against the
+        # code under test instead of serving the state the failing code left behind (A-50).
+        self.live = live
         self._sleep = sleep
         self._seen: Counter[tuple[str, str, str]] = Counter()
         self._lock = threading.Lock()
@@ -202,6 +207,8 @@ class ChaosProxy:
             return HttpResponse.of_json(404, _error_body(404) | {"service": service})
         record = request_record(request, path=path)
         if self.player is not None:  # replay: the recorded answer, faults included
+            if service in self.live:
+                return self._forward(service, path, request)
             return to_response(self.player.play(service, request.task, record).response)
 
         key = fingerprint(record)
@@ -228,7 +235,7 @@ class ChaosProxy:
         self.log.append({"service": service, "path": path, "task": request.task,
                          "occurrence": occurrence, "status": response.status,
                          "fired": fired})  # fmt: skip
-        if self.recorder is not None:
+        if self.recorder is not None and service not in self.live:
             self.recorder.record(service, request.task, record, response_record(response),
                                  latency_ms)  # fmt: skip
         return response

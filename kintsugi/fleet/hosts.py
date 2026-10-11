@@ -23,6 +23,8 @@ class Economics(BaseModel):
     value_per_failed_task_usd: float
     tasks_per_hour: float
     llm_budget_usd_month: float
+    # Price per call of a paid external service (G4's cost per task = LLM spend + these).
+    service_costs_usd: dict[str, float] = {}
 
 
 class Tool(BaseModel):

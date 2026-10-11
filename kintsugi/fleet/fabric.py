@@ -71,6 +71,7 @@ class FabricConfig:
     chaos_recorder: Recorder | None = None
     llm_recorder: Recorder | None = None
     player: Player | None = None  # replay a cassette: tool and model I/O, faults included
+    live_services: tuple[str, ...] = ()  # the host's own state: never recorded or replayed
 
 
 class Fabric:
@@ -105,8 +106,9 @@ class Fabric:
                     self._resets.append(reset)
         profile = config.profile.with_seed(config.seed)
         self.chaos = chaos.ChaosProxy(
-            services, profile, recorder=config.chaos_recorder, player=config.player
-        )
+            services, profile, recorder=config.chaos_recorder, player=config.player,
+            live=frozenset(config.live_services),
+        )  # fmt: skip
         self.llm = lp.LlmProxy(upstream, self.spend, self.tokens, recorder=config.llm_recorder)
         self._servers = [Server(self.llm, host=config.bind), Server(self.chaos, host=config.bind)]
 

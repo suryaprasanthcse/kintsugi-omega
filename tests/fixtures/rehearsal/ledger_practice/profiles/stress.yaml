@@ -1,0 +1,15 @@
+# A disclosed stress profile for dispute experiments and G7's fresh-seed G2: the FX API
+# rate-limits often enough that most multi-line batches meet a 429 after a line is booked.
+name: practice-stress
+disclosed: true
+seed: 7
+rules:
+  - service: fx
+    path: /rate
+    fault: status
+    status: 429
+    rate: 0.30
+  - service: "*"
+    fault: latency
+    rate: 1.0
+    latency_ms: [2, 30]
