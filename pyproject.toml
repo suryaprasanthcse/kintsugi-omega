@@ -7,8 +7,11 @@ requires-python = ">=3.12,<3.13"
 authors = [{ name = "Surya Prasanth R", email = "suryaprasanthcse@gmail.com" }]
 license = { text = "Proprietary — #neatHack 2026 submission" }
 dependencies = [
+    "anthropic>=1.13",
     "cryptography>=44.0",
+    "httpx>=0.28",
     "jsonschema>=4.23",
+    "neatlogs[anthropic,mcp]>=1.4.26",
     "networkx>=3.4",
     "numpy>=2.1",
     "pydantic>=2.9",

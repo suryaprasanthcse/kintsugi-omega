@@ -1,0 +1,25 @@
+# The disclosed background chaos profile, on fleet-wide from T0 (spec §6.1 precondition 2).
+# Hosts must handle it correctly before any sabotage: Ledger retries fx_rate 429s without
+# posting a journal line twice.
+name: background
+disclosed: true
+seed: 20261011  # runs override it (baselines use seeds 1, 2, 3)
+rules:
+  # Spec §6.1: fx_rate returns HTTP 429 on 8% of calls.
+  - service: fx
+    path: /rate
+    fault: status
+    status: 429
+    rate: 0.08
+  # Amendment A-24: Scout's document fetches see 429s too (4%), so the L3 path (§6.7:
+  # "multi-page questions that hit a 429") exists in live traffic. Disclosed like the rest.
+  - service: docs
+    path: /doc/*
+    fault: status
+    status: 429
+    rate: 0.04
+  # "Mild latency jitter" on every external call.
+  - service: "*"
+    fault: latency
+    rate: 1.0
+    latency_ms: [2, 30]
