@@ -52,8 +52,10 @@ deviations: amendments A-28 to A-39.
   `kintsugi senses provision --public-url <origin>` against a stable origin before T0.
 - R-005 is a `refusals` stand-in; conditional detections never fired, so R-002/3/4 run in Omega.
 - The Fixes MCP is an interface with an unconfigured implementation (spike A4 is Stage 6).
-- Stage 4 commit 3 (`01M4NRV5K0828Z1TWGGGYGREM4`) has `files_touched: null` in its checkpoint
-  (A-37); its trailer, ref and transcript are intact.
+- Two Stage 4 checkpoints under-report `files_touched` (A-37): commit 3
+  (`01M4NRV5K0828Z1TWGGGYGREM4`, null) and commit 4 (`01M4NVAAQKHEQ58DCBE9HK0S46`, only
+  `pyproject.toml`). Their trailers, refs and transcripts are intact; the cause was an edited
+  file left uncommitted across commits of one turn.
 
 ## Stage 3 — Fleet: Ledger, Scout, Triage + sandbox and proxies
 
