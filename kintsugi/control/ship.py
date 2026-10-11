@@ -37,6 +37,7 @@ from kintsugi.proof import redaction, schemas
 from kintsugi.sandbox import proc
 
 REPRO_TRAILER = "Kintsugi-Repro-Tasks"
+SYMPTOM_TRAILER = "Kintsugi-Symptom"
 GH_WINDOWS = Path("C:/Program Files/GitHub CLI/gh.exe")
 
 
@@ -191,6 +192,14 @@ class GhCli:
         commit = data.get("mergeCommit") or {}
         return str(commit.get("oid")) if data.get("state") == "MERGED" and commit else None
 
+    def api(self, method: str, path: str, body: Mapping[str, Any] | None = None) -> Any:
+        """``gh api`` (rulesets, branch protection evidence: spike N9)."""
+        args = ["api", "--method", method, path]
+        if body is not None:
+            args += ["--input", "-"]
+        out = self._run(*args, input_text=json.dumps(body) if body is not None else None)
+        return json.loads(out) if out.strip() else None
+
 
 # ---- the receipt ------------------------------------------------------------------------------
 
@@ -271,12 +280,25 @@ def _ci(pair: Any) -> str:
     return f"{low:.2f}–{high:.2f}"
 
 
-def render_receipt(values: Mapping[str, Any], repro_tasks: list[str]) -> str:
+def gate_lines(repro_tasks: list[str], symptom: str | None) -> str:
+    """What G7 reads from the PR body: the public repro tasks and the symptom's error class."""
+    lines = f"{REPRO_TRAILER}: {','.join(repro_tasks)}\n"
+    return lines + (f"{SYMPTOM_TRAILER}: {symptom}\n" if symptom else "")
+
+
+def render_receipt(
+    values: Mapping[str, Any], repro_tasks: list[str], symptom: str | None = None
+) -> str:
     problems = schemas.errors("E4", dict(values))
     if problems:
         raise ShipError(f"the E.4 receipt does not validate: {problems}")
     body = schemas.receipt_template().format(**values)
-    return body.rstrip() + f"\n\n{REPRO_TRAILER}: {','.join(repro_tasks)}\n"
+    return body.rstrip() + "\n\n" + gate_lines(repro_tasks, symptom)
+
+
+def symptom_of(view: CaseView) -> str | None:
+    signature = view.get("signature", "phi", None) or {}
+    return (signature.get("fields") or {}).get("error_class")
 
 
 # ---- shippers ---------------------------------------------------------------------------------
@@ -354,13 +376,14 @@ class GitHubShipper:
         )
         repro = view.get("repro", "g0", None) or {}
         tasks = list(repro.get("failing") or repro.get("tasks") or [])
+        symptom_class = symptom_of(view)
         pr = self.github.pr_find(branch) or self.github.pr_create(
             base,
             branch,
             f"fix({out.incident_id}): {card['title']}"[:120],
             f"Kintsugi repair for {out.incident_id} ({out.hypothesis}). The repair receipt "
             f"replaces this text once G7 has run.\n\nFixes #{issue}\n\n"
-            f"{REPRO_TRAILER}: {','.join(tasks)}\n",
+            + gate_lines(tasks, symptom_class),
         )
         number, url = int(pr["number"]), str(pr.get("url", ""))
         g7_ok, ci_url = self._wait_g7(number)
@@ -374,7 +397,7 @@ class GitHubShipper:
             detected=_detected(case.root),
         )
         if g7_ok:
-            self.github.pr_edit_body(number, render_receipt(values, tasks))
+            self.github.pr_edit_body(number, render_receipt(values, tasks, symptom_class))
         case.put(
             "decision",
             f"ship-{out.hypothesis}",
@@ -451,6 +474,7 @@ class LocalShipper:
             seed=self.seed,
             task_ids=list(repro.get("failing") or []),
             identity=identity,
+            symptom=symptom_of(view),
         )
         del identity
         url = f"local://g7/{out.incident_id}/{out.hypothesis}"
@@ -463,7 +487,7 @@ class LocalShipper:
             ledger=self.ledger_head(),
             detected=_detected(case.root),
         )
-        receipt = render_receipt(values, list(repro.get("failing") or []))
+        receipt = render_receipt(values, list(repro.get("failing") or []), symptom_of(view))
         case.put(
             "decision", f"ship-{out.hypothesis}", {"g7": summary, "receipt": receipt}, by="shipper"
         )

@@ -4,7 +4,8 @@
 #
 # mode: incident  (pull requests opened by kintsugi/control/ship.py)
 #   G1 build and static on the head; G2 the incident's repro tasks (named in the PR body as
-#   "Kintsugi-Repro-Tasks:") at three fresh seeds under the target's stress profile; G3
+#   "Kintsugi-Repro-Tasks:") at three fresh seeds under the target's stress profile, with no
+#   occurrence of the symptom's error class ("Kintsugi-Symptom:") on the head; G3
 #   pass→fail flips between base and head; G4 the paired holdout evaluation at three fresh
 #   seeds (exact McNemar, cost and p95 bounds). `kintsugi gates g7` does all four.
 # mode: fleet  (manual) the Stage 3 host check: G1, G3, the holdout manifest, a G4 run.
@@ -98,6 +99,7 @@ jobs:
             echo "::error::HOLDOUT_AGE_IDENTITY is not set: G4 cannot run" && exit 1
           fi
           TASKS=$(printf '%s\n' "$PR_BODY" | tr -d '\r' | sed -n 's/^Kintsugi-Repro-Tasks: *//p' | head -n 1)
+          SYMPTOM=$(printf '%s\n' "$PR_BODY" | tr -d '\r' | sed -n 's/^Kintsugi-Symptom: *//p' | head -n 1)
           umask 077
           printf '%s\n' "$HOLDOUT_AGE_IDENTITY" > "$RUNNER_TEMP/holdout.agekey"
           git -C target config user.name "Kintsugi G7"
@@ -105,7 +107,8 @@ jobs:
           status=0
           uv run --project omega kintsugi gates g7 --repo target --host "${{ inputs.host }}" \
             --base "${{ inputs.base }}" --head "${{ inputs.head }}" --seed "$((SEED % 1000000))" \
-            --tasks "$TASKS" --holdout-identity "$RUNNER_TEMP/holdout.agekey" || status=$?
+            --tasks "$TASKS" --symptom "$SYMPTOM" \
+            --holdout-identity "$RUNNER_TEMP/holdout.agekey" || status=$?
           rm -f "$RUNNER_TEMP/holdout.agekey"
           exit $status
 

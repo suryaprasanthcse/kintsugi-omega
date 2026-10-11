@@ -114,7 +114,14 @@ def shipped(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
         by="pathologist",
     )
     case.put(
-        "signature", "phi", {"phi": "sha256:x", "trace_ids": ["local:r:TR-003"]}, by="pathologist"
+        "signature",
+        "phi",
+        {
+            "phi": "sha256:x",
+            "trace_ids": ["local:r:TR-003"],
+            "fields": {"error_class": "DuplicateEntry"},
+        },
+        by="pathologist",
     )
     case.put(
         "repro",
@@ -182,6 +189,7 @@ def test_ship_waits_for_g7_then_writes_the_receipt_and_merges(shipped: dict[str,
     assert "https://github.com/o/r/actions/runs/1" in body
     assert "McNemar exact p = 1.2e-07" in body
     assert parse_repro_tasks(body) == ["TR-003", "TR-011"]
+    assert "Kintsugi-Symptom: DuplicateEntry" in body  # what G7's fresh-seed G2 looks for
     remote = shipped["remote"]
     assert pr.git(remote, "rev-parse", f"refs/heads/{shipment.branch}") == shipped["fixed"]
     assert pr.git(remote, "rev-parse", f"refs/kintsugi/attempts/{INC}/H1/1") == shipped["buggy"]
@@ -224,7 +232,10 @@ def test_the_local_shipper_runs_g7_and_merges(shipped: dict[str, Any]) -> None:
         "G3": "pass",
         "G4": "pass",
     }
-    assert decision["g7"]["gates"]["G2"]["evidence"]["base_failures"] > 0  # fresh seeds still bite
+    g2 = decision["g7"]["gates"]["G2"]["evidence"]
+    assert g2["symptom"] == "DuplicateEntry"
+    assert g2["base_failures"].get("DuplicateEntry", 0) > 0  # the trigger still bites the base
+    assert "DuplicateEntry" not in g2["head_failures"]
     assert shipment.merged
     repo = Path(shipped["repo"])
     assert pr.git(repo, "rev-parse", "HEAD^2") == shipped["fixed"]

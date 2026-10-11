@@ -146,7 +146,8 @@ class ClaudeCliModel:
         stream = result.stream
         if not result.ok or stream.result is None:
             reason = stream.error or (stream.result or {}).get("subtype") or result.exit_code
-            raise ModelError(f"{call.role}/{call.template}: claude -p failed ({reason})")
+            detail = str((stream.result or {}).get("result") or "")[:300]  # e.g. an API error
+            raise ModelError(f"{call.role}/{call.template}: claude -p failed ({reason}) {detail}")
         structured = stream.result.get("structured_output")
         text = str(stream.result.get("result") or "")
         data = structured if structured is not None else (parse_json(text) if call.schema else None)

@@ -112,6 +112,19 @@ def _build_parser() -> argparse.ArgumentParser:
     dead = control_sub.add_parser("deadman", help="page if the Watchdog's heartbeat is stale")
     dead.add_argument("--max-age", type=float, default=120.0)
 
+    crew = sub.add_parser("crew", help="the crew and its rehearsals (spec §5.7, §6.2–6.5)")
+    crew_sub = crew.add_subparsers(dest="crew_command", required=True)
+    rehearse = crew_sub.add_parser(
+        "rehearse", help="Stage 6 Ledger rehearsal on a disposable practice repository"
+    )
+    rehearse.add_argument("--run", default=None, help="run name (default: reh-<UTC time>)")
+    rehearse.add_argument("--root", type=Path, default=Path.home() / ".kintsugi" / "rehearsals")
+    rehearse.add_argument("--holdout-identity", type=Path, required=True)
+    rehearse.add_argument("--github", default=None, help="owner/name: ship through PRs and G7")
+    rehearse.add_argument("--crew-model", choices=["claude-cli", "offline"], default="claude-cli")
+    rehearse.add_argument("--model", action="append", default=[], help="role=model override")
+    rehearse.add_argument("--out", type=Path, default=None, help="evidence JSON (aggregates)")
+
     gates = sub.add_parser("gates", help="verification gates (spec §5.11)")
     gates_sub = gates.add_subparsers(dest="gates_command", required=True)
     g7 = gates_sub.add_parser("g7", help="G7: G1–G4 with a fresh seed (GitHub Actions)")
@@ -121,6 +134,7 @@ def _build_parser() -> argparse.ArgumentParser:
     g7.add_argument("--head", required=True)
     g7.add_argument("--seed", type=int, required=True)
     g7.add_argument("--tasks", default="", help="comma-separated repro task ids")
+    g7.add_argument("--symptom", default="", help="the incident's error class (Kintsugi-Symptom)")
     g7.add_argument("--holdout-identity", type=Path, default=None)
     g7.add_argument("--out", type=Path, default=None, help="write the JSON summary here")
 
@@ -158,6 +172,38 @@ def _repo() -> Path:
     return Path.cwd()
 
 
+def _crew_rehearse(args: argparse.Namespace) -> int:
+    import json
+    from datetime import UTC, datetime
+
+    from kintsugi.crew.rehearsal import Rehearsal, run
+    from kintsugi.fleet.fabric import load_dotenv
+
+    name = args.run or "reh-" + datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+    models = dict(item.split("=", 1) for item in args.model)
+    token = load_dotenv(_repo() / ".env").get("GITHUB_TOKEN") if args.github else None
+    cfg = Rehearsal(
+        run=name,
+        root=args.root / name,
+        identity=args.holdout_identity,
+        github=args.github,
+        token=token,
+        crew_model=args.crew_model,
+        models=models,
+        log=lambda line: print(line.encode("ascii", "replace").decode(), flush=True),
+    )
+    summary = run(cfg)
+    out = args.out or _repo() / "evidence" / "rehearsals" / f"{name}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(
+        json.dumps(summary, indent=1, sort_keys=True, default=str) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    print(f"evidence written to {out}")
+    return EXIT_OK if summary["outcome"]["state"] == "RESOLVED" else EXIT_FAIL
+
+
 def _gates_g7(args: argparse.Namespace) -> int:
     from kintsugi.gates.g7 import report, run_g7
     from kintsugi.gates.target import load_target
@@ -167,8 +213,15 @@ def _gates_g7(args: argparse.Namespace) -> int:
     if args.holdout_identity is not None:
         identity = args.holdout_identity.read_text(encoding="ascii").strip()
     tasks = [t.strip() for t in args.tasks.split(",") if t.strip()]
-    summary = run_g7(target, args.base, args.head, seed=args.seed, task_ids=tasks,
-                     identity=identity)  # fmt: skip
+    summary = run_g7(
+        target,
+        args.base,
+        args.head,
+        seed=args.seed,
+        task_ids=tasks,
+        identity=identity,
+        symptom=args.symptom.strip() or None,
+    )
     del identity
     text = report(summary)
     sys.stdout.write(text.encode("ascii", errors="replace").decode("ascii"))  # cp1252 consoles
@@ -196,8 +249,10 @@ def _holdout(args: argparse.Namespace) -> int:
             spec = hosts[host_id]
             report = holdout.seal(repo, spec.id, spec.package, spec.root)
             relative = report.path.resolve().relative_to(repo.resolve()).as_posix()
-            print(f"{spec.id}: {report.tasks} tasks sealed in {relative} sha256:{report.sha256} "
-                  f"canary sha256:{report.canary_sha256}")  # fmt: skip
+            print(
+                f"{spec.id}: {report.tasks} tasks sealed in {relative} sha256:{report.sha256} "
+                f"canary sha256:{report.canary_sha256}"
+            )
         return EXIT_OK
     problems = holdout.verify(repo)
     for problem in problems:
@@ -230,15 +285,23 @@ def _fleet_baseline(args: argparse.Namespace) -> int:
         if identity and sealed.is_file():
             holdout_jsonl = holdout.tasks_jsonl(holdout.open_holdout(sealed, identity))
         config = FabricConfig(seed=0, anthropic_key=secrets.get("ANTHROPIC_API_KEY"))
-        card = baseline(spec, args.seeds, holdout_jsonl=holdout_jsonl, config=config,
-                        workers=args.workers, extra_env=neatlogs)  # fmt: skip
+        card = baseline(
+            spec,
+            args.seeds,
+            holdout_jsonl=holdout_jsonl,
+            config=config,
+            workers=args.workers,
+            extra_env=neatlogs,
+        )
         out = args.out_dir / f"{spec.id}.json"
         out.write_text(json.dumps(card, indent=1) + "\n", encoding="utf-8", newline="\n")
         pooled = card["pooled"]
-        print(f"{spec.id}: {pooled['passed']}/{pooled['n']} PASS "
-              f"({pooled['pass_rate']:.3f}, Wilson95 {pooled['wilson95']}) "
-              f"p95 {card['p95_latency_s']}s model={card['model_mode']} "
-              f"splits={card['splits']} meets_slo={card['meets_slo']} -> {out}")  # fmt: skip
+        print(
+            f"{spec.id}: {pooled['passed']}/{pooled['n']} PASS "
+            f"({pooled['pass_rate']:.3f}, Wilson95 {pooled['wilson95']}) "
+            f"p95 {card['p95_latency_s']}s model={card['model_mode']} "
+            f"splits={card['splits']} meets_slo={card['meets_slo']} -> {out}"
+        )
         failed |= not card["meets_slo"]
     return EXIT_FAIL if failed else EXIT_OK
 
@@ -255,10 +318,19 @@ def _fleet_up(args: argparse.Namespace) -> int:
     deployer = None if args.no_deploy else Deployer(repo, repo / STATE / "deploy", args.ref)
     neatlogs = {k: secrets[k] for k in ("NEATLOGS_API_KEY",) if k in secrets}
     key = secrets.get("ANTHROPIC_API_KEY")
-    runtime = Runtime(repo, chosen, seed=args.seed, deployer=deployer, scale=args.scale,
-                      anthropic_key=key, extra_env=neatlogs)  # fmt: skip
-    print(f"fleet up: {sorted(chosen)} seed={args.seed} deploy={args.ref if deployer else 'off'}"
-          " — stop with `kintsugi fleet down`")  # fmt: skip
+    runtime = Runtime(
+        repo,
+        chosen,
+        seed=args.seed,
+        deployer=deployer,
+        scale=args.scale,
+        anthropic_key=key,
+        extra_env=neatlogs,
+    )
+    print(
+        f"fleet up: {sorted(chosen)} seed={args.seed} deploy={args.ref if deployer else 'off'}"
+        " — stop with `kintsugi fleet down`"
+    )
     with contextlib.suppress(KeyboardInterrupt):
         runtime.run(duration_s=args.duration)
     print(f"fleet down: live tasks run {runtime.counts}")
@@ -289,26 +361,34 @@ def _senses(args: argparse.Namespace) -> int:
         rendered = detections.plan()
         for item in rendered.detections:
             count, window = item.alert.get("thresholdCount", 1), item.alert.get("windowMinutes", 0)
-            print(f"neatlogs  {item.name:<22} {item.detection['type']:<10} "
-                  f"alert >={count} in {window}m")  # fmt: skip
+            print(
+                f"neatlogs  {item.name:<22} {item.detection['type']:<10} "
+                f"alert >={count} in {window}m"
+            )
         for metric in rendered.metrics:
-            print(f"omega     {metric.detection_id:<30} {metric.field} {metric.operator} "
-                  f"{metric.threshold:g}")  # fmt: skip
+            print(
+                f"omega     {metric.detection_id:<30} {metric.field} {metric.operator} "
+                f"{metric.threshold:g}"
+            )
         return EXIT_OK
     env = load_dotenv(repo / ".env")
     store = SenseStore(repo / service.STORE_PATH)
     if args.senses_command == "ingress":
-        print(f"senses ingress: http://{args.host}:{args.port}/hook/<secret> (state "
-              f"{service.STORE_PATH})")  # fmt: skip
+        print(
+            f"senses ingress: http://{args.host}:{args.port}/hook/<secret> (state "
+            f"{service.STORE_PATH})"
+        )
         service.serve(service.ingress_app(repo, store), host=args.host, port=args.port)
         return EXIT_OK
     with service.api_from_env(env) as api:
         if args.senses_command == "provision":
             manifest, changes = service.provision(repo, api, args.public_url)
-            print(f"senses provision: {len(manifest.detections)} detections, "
-                  f"{len(manifest.metrics)} omega receptors, webhook "
-                  f"{'registered' if manifest.webhook_id else 'not registered (no --public-url)'}"
-                  f" -> {service.MANIFEST_PATH}")  # fmt: skip
+            print(
+                f"senses provision: {len(manifest.detections)} detections, "
+                f"{len(manifest.metrics)} omega receptors, webhook "
+                f"{'registered' if manifest.webhook_id else 'not registered (no --public-url)'}"
+                f" -> {service.MANIFEST_PATH}"
+            )
             for change in changes:
                 print(f"  {change}")
             return EXIT_OK
@@ -316,8 +396,10 @@ def _senses(args: argparse.Namespace) -> int:
             poll = service.poller(repo, api, store)
             if args.once:
                 for report in poll.run_once():
-                    print(f"{report.detection_id}: {report.seen} seen, {report.new} new, "
-                          f"{report.duplicates} already claimed, {report.pages} pages")  # fmt: skip
+                    print(
+                        f"{report.detection_id}: {report.seen} seen, {report.new} new, "
+                        f"{report.duplicates} already claimed, {report.pages} pages"
+                    )
                 return EXIT_OK
             print(f"senses poll: every {args.interval:g}s — Ctrl+C to stop")
             stop = threading.Event()
@@ -328,13 +410,21 @@ def _senses(args: argparse.Namespace) -> int:
             from kintsugi.senses.rehearsal import rehearse
 
             manifest = service.load_manifest(repo)
-            result = rehearse(repo, api, manifest, service.poller(repo, api, store),
-                              tasks=args.tasks, seed=args.seed)  # fmt: skip
+            result = rehearse(
+                repo,
+                api,
+                manifest,
+                service.poller(repo, api, store),
+                tasks=args.tasks,
+                seed=args.seed,
+            )
             new = sum(s.new for s in result.sweeps)
-            print(f"rehearsal: {len(result.failed_tasks)}/{len(result.rows)} Ledger tasks FAIL "
-                  f"under the FX outage; R-007 hits on {result.hits} of them after "
-                  f"{result.waited_s:.0f}s; poller claimed {new} new hits "
-                  f"({store.pending()} queued)")  # fmt: skip
+            print(
+                f"rehearsal: {len(result.failed_tasks)}/{len(result.rows)} Ledger tasks FAIL "
+                f"under the FX outage; R-007 hits on {result.hits} of them after "
+                f"{result.waited_s:.0f}s; poller claimed {new} new hits "
+                f"({store.pending()} queued)"
+            )
             detected = bool(result.failed_tasks) and result.hits == len(result.failed_tasks)
             return EXIT_OK if detected else EXIT_FAIL
         start = datetime.fromisoformat(args.since.replace("Z", "+00:00")).astimezone(UTC)
@@ -368,9 +458,14 @@ def _control(args: argparse.Namespace) -> int:
     if args.control_command == "forward":
         from kintsugi.senses.service import STORE_PATH
 
-        moved = asyncio.run(svc.forward(args.target, repo / STORE_PATH,
-                                        contracts.ControlConfig().supervisor_id,
-                                        once=args.once))  # fmt: skip
+        moved = asyncio.run(
+            svc.forward(
+                args.target,
+                repo / STORE_PATH,
+                contracts.ControlConfig().supervisor_id,
+                once=args.once,
+            )
+        )
         print(f"forwarded {moved} queued items")
         return EXIT_OK
     from kintsugi.senses.service import ingress_secrets
@@ -378,10 +473,13 @@ def _control(args: argparse.Namespace) -> int:
     admin = None
     if args.ingress_admin:
         admin = ingress_secrets(repo).admin_token
-    dog = svc.build_watchdog(repo, args.target, args.crew, ingress_admin=args.ingress_admin,
-                             admin_token=admin)  # fmt: skip
-    print(f"watchdog: pools {svc.summary(dog)}; chaos API on 127.0.0.1:{args.chaos_port}"
-          f" (token in {svc.WATCHDOG_DIR / 'chaos.token'})")  # fmt: skip
+    dog = svc.build_watchdog(
+        repo, args.target, args.crew, ingress_admin=args.ingress_admin, admin_token=admin
+    )
+    print(
+        f"watchdog: pools {svc.summary(dog)}; chaos API on 127.0.0.1:{args.chaos_port}"
+        f" (token in {svc.WATCHDOG_DIR / 'chaos.token'})"
+    )
     svc.run_watchdog(dog, svc.chaos_token(repo), port=args.chaos_port)
     return EXIT_OK
 
@@ -403,6 +501,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _control(args)
     if args.command == "gates":
         return _gates_g7(args)
+    if args.command == "crew":
+        return _crew_rehearse(args)
     if args.command == "fleet" and args.fleet_command == "baseline":
         return _fleet_baseline(args)
     if args.command == "fleet":

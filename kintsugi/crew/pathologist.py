@@ -16,6 +16,7 @@ from __future__ import annotations
 import importlib
 from collections import Counter
 from collections.abc import Mapping
+from dataclasses import replace
 from typing import Any
 
 from kintsugi.control import contracts as c
@@ -66,7 +67,31 @@ class Pathologist:
             raise ValueError("the Pathologist needs a trace source")
         self.ctx = ctx
 
+    def _with_assigned_hits(self, alert: c.Alert) -> c.Alert:
+        """The opening alert carries only the hit that crossed the paging threshold; the
+        window's earlier hits were attached to the incident in the senses store (I7)."""
+        if self.ctx.store is None:
+            return alert
+        known = {h.hit_key for h in alert.hits}
+        more = tuple(
+            c.Hit(
+                s.hit_key,
+                s.detection_id,
+                s.trace_id,
+                s.span_id,
+                s.source,
+                s.receptor,
+                s.host,
+                s.detected_at,
+                s.hit_id,
+            )
+            for s in self.ctx.store.seen_hits().values()
+            if s.incident == alert.incident_id and s.hit_key not in known
+        )
+        return replace(alert, hits=alert.hits + more) if more else alert
+
     def triage(self, alert: c.Alert) -> c.Signature:
+        alert = self._with_assigned_hits(alert)
         observations = self.ctx.traces.observations(alert) if self.ctx.traces else []
         if not observations:
             raise InvalidAlert(f"{alert.incident_id}: no failing trace behind the alert")
