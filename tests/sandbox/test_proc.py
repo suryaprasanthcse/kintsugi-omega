@@ -63,6 +63,44 @@ def test_input_text_is_delivered() -> None:
     assert result.stdout.strip() == "SEAL"
 
 
+def test_stdin_bytes_are_exact_on_every_platform() -> None:
+    # Text-mode pipes on Windows rewrite "\n" as "\r\n": that would corrupt commit messages.
+    script = "import sys; print(repr(sys.stdin.buffer.read()))"
+    result = proc.run([PY, "-c", script], input_text="a\nb\nΩ", timeout_s=30, check=True)
+    assert result.stdout.strip() == repr("a\nb\nΩ".encode())
+
+
+def test_batch_shims_resolve_to_their_executable(tmp_path: Path) -> None:
+    exe = tmp_path / "node_modules" / "tool" / "bin" / "tool.exe"
+    exe.parent.mkdir(parents=True)
+    exe.write_bytes(b"")
+    shim = tmp_path / "tool.cmd"
+    shim.write_text(
+        '@ECHO off\n"%dp0%\\node_modules\\tool\\bin\\tool.exe"   %*\n', encoding="utf-8"
+    )
+    assert proc.exe_from_batch_shim(shim) == str(exe)
+    assert proc.resolve_executable(str(shim)) == str(exe)
+
+
+def test_unresolvable_batch_files_are_refused(tmp_path: Path) -> None:
+    script = tmp_path / "run.bat"
+    script.write_text("@echo %*\n", encoding="utf-8")
+    with pytest.raises(proc.UnsafeExecutable, match="batch file"):
+        proc.resolve_executable(str(script))
+
+
+def test_missing_executables_are_reported() -> None:
+    with pytest.raises(FileNotFoundError, match="not found"):
+        proc.resolve_executable("kintsugi-no-such-tool-xyz")
+
+
+def test_run_binary_returns_exact_bytes() -> None:
+    script = "import sys; sys.stdout.buffer.write(b'line1\\r\\nline2\\n\\xff')"
+    assert proc.run_binary([PY, "-c", script], timeout_s=30) == b"line1\r\nline2\n\xff"
+    with pytest.raises(proc.ProcError):
+        proc.run_binary([PY, "-c", "import sys; sys.exit(4)"], timeout_s=30)
+
+
 def test_utf8_round_trip() -> None:
     result = proc.run([PY, "-c", "print('KINTSUGI-Ω ‖ ×')"], timeout_s=30, check=True)
     assert result.stdout.strip() == "KINTSUGI-Ω ‖ ×"

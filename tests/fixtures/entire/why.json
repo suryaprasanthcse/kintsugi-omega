@@ -1,0 +1,49 @@
+{
+  "file": "CLAUDE.md",
+  "line": {
+    "line_number": 20,
+    "authorship": "ai",
+    "tag": "[AI]",
+    "commit_sha": "c299a26ce100db907c1b32dd24e7fccb9faefc23",
+    "short_commit_sha": "c299a26c",
+    "author": "Surya Prasanth R",
+    "author_time": "2026-10-11T06:24:25Z",
+    "checkpoint_id": "01M4MT4M6K467TEZ3R6J340DAB",
+    "session_id": "7e998687-8d07-465f-9bf5-c412ec900e65",
+    "agent": "Claude Code",
+    "model": "claude-opus-5-5",
+    "prompt": "<pasted_content id=\"2edb\">\nBefore starting Stage 1, execute this contributor cleanup and configuration lockdown so `suryaprasanthcse` (Surya Prasanth R) is the …",
+    "prompt_session_level": true,
+    "content": "- NEVER include `Co-authored-by:` trailers in any git commit message (human or headless Surgeon). Authorship attribution is tracked exclusively via `Entire-Checkpoint:` and `Kintsugi-*` trailers.",
+    "candidates": [
+      {
+        "checkpoint_id": "01M4MT4M6K467TEZ3R6J340DAB",
+        "session_id": "7e998687-8d07-465f-9bf5-c412ec900e65",
+        "agent": "Claude Code",
+        "model": "claude-opus-5-5",
+        "prompt": "<pasted_content id=\"2edb\">\nBefore starting Stage 1, execute this contributor cleanup and configuration lockdown so `suryaprasanthcse` (Surya Prasanth R) is the sole GitHub contributor on the repository, while AI tool usage is transparently disclosed in `README.md` and tracked via `Entire-Checkpoint` trailers:\n\n1. LOCK `.claude/settings.json` & `CLAUDE.md`:\n   - Add `\"env\": { \"ENTIRE_TEST_TTY\": \"0\" }` to `.claude/settings.json` so Entire's Windows `prepare-commit-msg` hook never hangs on `CONIN$`.\n   - Add `\"includeCoAuthoredBy\": false` to `.claude/settings.json` so Claude Code never appends `Co-authored-by: Claude` trailers.\n   - Using your native `Edit` tool, add a strict rule in `CLAUDE.md`: \"NEVER include `Co-authored-by:` trailers in any git commit message (human or headless Surgeon). Authorship attribution is tracked exclusively via `Entire-Checkpoint:` and `Kintsugi-*` trailers.\"\n\n2. ADD AI DISCLOSURE TO `README.md`:\n   - Using your native `Edit` tool, add an \"Architect & AI Tooling Disclosure\" section to `README.md` stating that Surya Prasanth R (`@suryaprasanthcse`) is the sole human architect and contributor, and disclosing that KINTSUGI-Ω is built and operated using Claude Code, neatlogs, Entire (`entire-graph`), and cfo.ai for #neatHack.\n\n3. SCRUB `Co-authored-by:` FROM EXISTING GIT HISTORY:\n   - Rewrite the 4 existing commits on `main` to strip all `Co-authored-by:` lines from their commit messages while preserving the `Entire-Checkpoint:` trailer on the `CLAUDE.md` commit.\n   - Commit the new edits to `.claude/settings.json`, `CLAUDE.md`, and `README.md` with `ENTIRE_TEST_TTY=0` and NO `Co-authored-by:` trailer (ensure the new commit gets its `Entire-Checkpoint:` trailer—if a 2-turn stop is needed for the new commit's checkpoint, stop after preparing and let me know, or complete it if the hook links cleanly).\n   - Force-push the cleaned `main` branch to `origin` (`git push --force origin main`) and sync checkpoint refs.\n\n4. VERIFY:\n   - Confirm `git log --grep=\"Co-authored-by\" -i` returns zero commits across all of `main`.\n   - Confirm `entire checkpoint list` and `entire why CLAUDE.md:12` still resolve cleanly after the history scrub.\n\nReport the verification results and stop for the Stage 1 go-ahead.\n</pasted_content id=\"2edb\">",
+        "files_touched": [
+          ".claude/settings.json",
+          "CLAUDE.md",
+          "README.md"
+        ],
+        "prompt_session_level": true
+      }
+    ]
+  },
+  "checkpoints": {
+    "01M4MT4M6K467TEZ3R6J340DAB": {
+      "checkpoint_id": "01M4MT4M6K467TEZ3R6J340DAB",
+      "session_id": "7e998687-8d07-465f-9bf5-c412ec900e65",
+      "agent": "Claude Code",
+      "model": "claude-opus-5-5",
+      "prompt": "<pasted_content id=\"2edb\">\nBefore starting Stage 1, execute this contributor cleanup and configuration lockdown so `suryaprasanthcse` (Surya Prasanth R) is the sole GitHub contributor on the repository, while AI tool usage is transparently disclosed in `README.md` and tracked via `Entire-Checkpoint` trailers:\n\n1. LOCK `.claude/settings.json` & `CLAUDE.md`:\n   - Add `\"env\": { \"ENTIRE_TEST_TTY\": \"0\" }` to `.claude/settings.json` so Entire's Windows `prepare-commit-msg` hook never hangs on `CONIN$`.\n   - Add `\"includeCoAuthoredBy\": false` to `.claude/settings.json` so Claude Code never appends `Co-authored-by: Claude` trailers.\n   - Using your native `Edit` tool, add a strict rule in `CLAUDE.md`: \"NEVER include `Co-authored-by:` trailers in any git commit message (human or headless Surgeon). Authorship attribution is tracked exclusively via `Entire-Checkpoint:` and `Kintsugi-*` trailers.\"\n\n2. ADD AI DISCLOSURE TO `README.md`:\n   - Using your native `Edit` tool, add an \"Architect & AI Tooling Disclosure\" section to `README.md` stating that Surya Prasanth R (`@suryaprasanthcse`) is the sole human architect and contributor, and disclosing that KINTSUGI-Ω is built and operated using Claude Code, neatlogs, Entire (`entire-graph`), and cfo.ai for #neatHack.\n\n3. SCRUB `Co-authored-by:` FROM EXISTING GIT HISTORY:\n   - Rewrite the 4 existing commits on `main` to strip all `Co-authored-by:` lines from their commit messages while preserving the `Entire-Checkpoint:` trailer on the `CLAUDE.md` commit.\n   - Commit the new edits to `.claude/settings.json`, `CLAUDE.md`, and `README.md` with `ENTIRE_TEST_TTY=0` and NO `Co-authored-by:` trailer (ensure the new commit gets its `Entire-Checkpoint:` trailer—if a 2-turn stop is needed for the new commit's checkpoint, stop after preparing and let me know, or complete it if the hook links cleanly).\n   - Force-push the cleaned `main` branch to `origin` (`git push --force origin main`) and sync checkpoint refs.\n\n4. VERIFY:\n   - Confirm `git log --grep=\"Co-authored-by\" -i` returns zero commits across all of `main`.\n   - Confirm `entire checkpoint list` and `entire why CLAUDE.md:12` still resolve cleanly after the history scrub.\n\nReport the verification results and stop for the Stage 1 go-ahead.\n</pasted_content id=\"2edb\">",
+      "files_touched": [
+        ".claude/settings.json",
+        "CLAUDE.md",
+        "README.md"
+      ],
+      "prompt_session_level": true
+    }
+  }
+}

@@ -67,6 +67,7 @@ known-first-party = ["kintsugi"]
 
 [tool.pyright]
 include = ["kintsugi", "tests"]
+exclude = ["tests/fixtures"]  # fixture repos import their own packages (ledger.*, scout.*)
 pythonVersion = "3.12"
 typeCheckingMode = "standard"
 reportMissingTypeStubs = false

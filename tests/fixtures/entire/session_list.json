@@ -1,0 +1,14 @@
+[
+  {
+    "session_id": "dacd63ef-15b9-4e3d-ae47-08c7416577cc",
+    "agent": "Claude Code",
+    "status": "active",
+    "branch": "main",
+    "worktree_path": "<scratch>/explore/repo",
+    "started_at": "2026-10-11T14:56:36.8502254+05:30",
+    "last_active": "2026-10-11T14:56:36.8544006+05:30",
+    "turns": 0,
+    "checkpoints": 0,
+    "last_prompt": "Kintsugi-Nonce: bula-giku-simi-zivo-fogi-pulu-dahi-tusu-riti-kora-lufa Create a file named attemp..."
+  }
+]

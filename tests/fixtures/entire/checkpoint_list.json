@@ -1,0 +1,26 @@
+[
+  {
+    "checkpoint_id": "01M4MYYX61GQR549HH188N3MYB",
+    "session_id": "7e998687-8d07-465f-9bf5-c412ec900e65",
+    "agent": "Claude Code",
+    "date": "2026-10-11T13:18:41+05:30",
+    "message": "feat(control): add the I3-complete incident state machine, E.1-E.6 schemas and protected paths",
+    "is_logs_only": true,
+    "session_count": 1,
+    "session_ids": [
+      "7e998687-8d07-465f-9bf5-c412ec900e65"
+    ]
+  },
+  {
+    "checkpoint_id": "01M4MYKG1FBTPSEXC6WGPRK1W1",
+    "session_id": "7e998687-8d07-465f-9bf5-c412ec900e65",
+    "agent": "Claude Code",
+    "date": "2026-10-11T13:12:27+05:30",
+    "message": "feat(memory): add E.1 antibody lifecycle and the VF2 motif engine with CALLS* closure",
+    "is_logs_only": true,
+    "session_count": 1,
+    "session_ids": [
+      "7e998687-8d07-465f-9bf5-c412ec900e65"
+    ]
+  }
+]

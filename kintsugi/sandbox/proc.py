@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -117,6 +118,51 @@ def which(name: str) -> str | None:
     return shutil.which(name, path=build_env().get("PATH"))
 
 
+class UnsafeExecutable(ProcError):
+    """A batch shim would hand arguments to cmd.exe, where ``&``, ``|``, ``>`` become commands."""
+
+
+_BATCH_SUFFIXES = (".cmd", ".bat")
+_SHIM_TARGET = re.compile(r'"%dp0%\\([^"%]+?\.exe)"', re.IGNORECASE)
+
+
+def resolve_executable(name: str) -> str:
+    """The real executable behind ``name``; npm ``.cmd`` shims are followed to their ``.exe``.
+
+    A batch file is never launched directly: Windows runs it through ``cmd.exe``, which would
+    interpret metacharacters inside arguments such as an agent prompt.
+    """
+    if os.sep in name or (os.altsep and os.altsep in name):
+        found: str | None = name
+    else:
+        found = which(name)
+    if found is None:
+        raise FileNotFoundError(f"executable not found on PATH: {name}")
+    if found.lower().endswith(_BATCH_SUFFIXES):
+        target = exe_from_batch_shim(found)
+        if target is None:
+            raise UnsafeExecutable(
+                f"{found} is a batch file and its target cannot be resolved safely",
+                Result((name,), -1, "", "", 0.0, False),
+            )
+        return target
+    return found
+
+
+def exe_from_batch_shim(shim: str | os.PathLike[str]) -> str | None:
+    """The ``.exe`` an npm-style shim (``"%dp0%\\…\\x.exe" %*``) launches, if it exists."""
+    path = Path(shim)
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    match = _SHIM_TARGET.search(text)
+    if match is None:
+        return None
+    target = path.parent / match.group(1).replace("\\", os.sep)
+    return str(target) if target.is_file() else None
+
+
 def run(
     argv: Sequence[str | os.PathLike[str]],
     *,
@@ -130,6 +176,8 @@ def run(
     args = _normalise_argv(argv)
     flags, new_session = _group_flags()
     started = time.monotonic()
+    # Binary pipes: text mode would rewrite "\n" as "\r\n" on Windows stdin, corrupting
+    # `git commit -F -` messages and `git mktree` input. stdin goes out as exact UTF-8 bytes.
     popen = subprocess.Popen(
         args,
         cwd=cwd,
@@ -137,33 +185,76 @@ def run(
         stdin=subprocess.PIPE if input_text is not None else subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
         creationflags=flags,
         start_new_session=new_session,
     )
+    payload = input_text.encode("utf-8") if input_text is not None else None
     timed_out = False
     try:
-        stdout, stderr = popen.communicate(input=input_text, timeout=timeout_s)
+        out, err = popen.communicate(input=payload, timeout=timeout_s)
     except subprocess.TimeoutExpired:
         timed_out = True
         kill_tree(popen.pid)
         try:
-            stdout, stderr = popen.communicate(timeout=_DRAIN_TIMEOUT_S)
+            out, err = popen.communicate(timeout=_DRAIN_TIMEOUT_S)
         except subprocess.TimeoutExpired:  # a descendant escaped the group and holds a pipe
             popen.kill()
-            stdout, stderr = "", "output not drained: a descendant held the pipe open"
+            out, err = b"", b"output not drained: a descendant held the pipe open"
     returncode = popen.returncode if popen.returncode is not None else -9
     result = Result(
         argv=tuple(args),
         returncode=returncode,
-        stdout=stdout or "",
-        stderr=stderr or "",
+        stdout=_decode(out),
+        stderr=_decode(err),
         duration_s=time.monotonic() - started,
         timed_out=timed_out,
     )
     return result.check() if check else result
+
+
+def _decode(data: bytes | None) -> str:
+    """UTF-8 text with universal newlines, as text-mode pipes would have produced."""
+    return (data or b"").decode("utf-8", errors="replace").replace("\r\n", "\n")
+
+
+def run_binary(
+    argv: Sequence[str | os.PathLike[str]],
+    *,
+    cwd: str | os.PathLike[str] | None = None,
+    timeout_s: float = DEFAULT_TIMEOUT_S,
+    extra_env: Mapping[str, str] | None = None,
+) -> bytes:
+    """Run to completion and return stdout as exact bytes (e.g. ``git show`` of a transcript
+    whose SHA-256 must match). Raises :class:`ProcError` on failure or timeout."""
+    args = _normalise_argv(argv)
+    flags, new_session = _group_flags()
+    started = time.monotonic()
+    popen = subprocess.Popen(
+        args,
+        cwd=cwd,
+        env=build_env(extra_env),
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        creationflags=flags,
+        start_new_session=new_session,
+    )
+    try:
+        stdout, stderr = popen.communicate(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        kill_tree(popen.pid)
+        popen.communicate(timeout=_DRAIN_TIMEOUT_S)
+        Result(tuple(args), -9, "", "", time.monotonic() - started, True).check()
+        raise  # unreachable: check() raises ProcTimeout
+    Result(
+        tuple(args),
+        popen.returncode,
+        "",
+        stderr.decode("utf-8", errors="replace"),
+        time.monotonic() - started,
+        False,
+    ).check()
+    return stdout
 
 
 class Proc:
@@ -305,6 +396,7 @@ def _normalise_argv(argv: Sequence[str | os.PathLike[str]]) -> list[str]:
     args = [os.fspath(arg) for arg in argv]
     if not args:
         raise ValueError("argv is empty")
+    args[0] = resolve_executable(args[0])
     return args
 
 
