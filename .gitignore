@@ -1,0 +1,15 @@
+# Secrets and credentials — never commit
+.env
+*.csv
+*accessKeys*
+*credentials*
+*.key
+*.age
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
