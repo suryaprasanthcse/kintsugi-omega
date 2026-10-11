@@ -1,0 +1,31 @@
+Incident INC-REH-0001, hypothesis H2. Session nonce: bifo-ladi-raso-voja-jisa-hipo-miku-bona-funa-supu-jiji
+
+Hypothesis: Revert the originating commit 81f4d5c to the pre-regression reconcile
+Root cause: Same mechanism, treated as a pure regression: checkpoint 01M4PMAYHYAF025KPN33QZ9RTQ / commit 81f4d5c0876820afc745f2fdd034290074c98c95 introduced the fault. The claimed readability-only refactor was admittedly not behavior-preserving, so the safest repair is to restore the known-good shape of `reconcile` rather than patch the new shape.
+Approach: Revert `practice_ledger/reconcile.py` to its pre-commit state for the affected regions (lines ~2-6 imports/comment block, ~15-19, ~70-80): restore the inline `attempt` retried pass and the `session = session or PostingSession(batch)  # outside the retried scope: survives retries` line in `reconcile`'s body, dropping the `book_pending_lines` name and its docstring. Keep the revert confined to that file and to the hunks the originating patch touched; leave retry.py, tools.py, graders and host config untouched. This card exists so the gates can compare a clean revert against the surgical hoist.
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+- The deleted guarantee is reinstated verbatim as the originating code expressed it.: "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+- The author conceded the refactor was not behavior-preserving, which justifies reverting rather than keeping the new structure.: "The patch also changes behavior, which the review may not have covered. The original code created the `PostingSession` outside the retried function so bookings survived a retry."
+- The refactor was only ever meant to be cosmetic, so losing the rename costs nothing contractually.: "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+
+Files you may edit: practice_ledger/reconcile.py
+Diff budget: at most 25 changed lines.
+
+Cause report excerpt:
+Symptom: All 4 traces in this cluster (signature sha256:b9fe39c5383c, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, raised at the CHAIN grader.verdict span with tool books:/lines. In every case the preceding call sequence is the same: fx_rate, then books:/lines, then a second books:/lines; the repeated posting to books:/lines immediately precedes the duplicate-entry verdict. Detection omega:R-007:ledger-practice fires on each trace. Observed in traces TR-003, TR-013, TR-015 and TR-021 of run local:reh-20261011-232114-s1 — 4 of 4 traces in the cluster, with no successful variant of this sequence present. No other failing span, tool, or error class appears in the cluster.
+Root cause (Coordinator): Same mechanism, treated as a pure regression: checkpoint 01M4PMAYHYAF025KPN33QZ9RTQ / commit 81f4d5c0876820afc745f2fdd034290074c98c95 introduced the fault. The claimed readability-only refactor was admittedly not behavior-preserving, so the safest repair is to restore the known-good shape of `reconcile` rather than patch the new shape.
+
+Gate feedback from earlier rounds (aggregates only):
+(first round)
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
