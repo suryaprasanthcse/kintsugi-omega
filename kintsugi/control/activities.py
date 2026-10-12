@@ -168,6 +168,15 @@ _TABLE: tuple[ActivitySpec, ...] = (
     ActivitySpec("canary_plan", 2 * M, None, 3, (), CREW,
                  lambda shipment: (shipment.incident_id, shipment.merge_sha or shipment.branch,
                                    "plan")),
+    # Stage 7: the antibody lifecycle (§5.8.2, §6.5 steps 13–14, §6.7 steps 16–19).
+    ActivitySpec("mature_antibody", 45 * M, 60 * S, 2, ("ProtectedPathViolation",), SURGEON,
+                 lambda ab, host: (ab.antibody_id, ab.version, host, "mature")),
+    ActivitySpec("promote_antibody", 5 * M, None, 3, (), CREW,
+                 lambda ab, host: (ab.antibody_id, ab.version, host, "promote")),
+    ActivitySpec("revert_vaccination", 30 * M, 60 * S, 3, (), CREW,
+                 lambda shipment: (shipment.merge_sha or shipment.branch, "revert-vaccination")),
+    ActivitySpec("refine_antibody", 45 * M, 60 * S, 2, (), CREW,
+                 lambda ab, shipment: (ab.antibody_id, ab.version, shipment.merge_sha, "refine")),
     ActivitySpec("apply_antibody", 45 * M, 60 * S, 2, ("ProtectedPathViolation",), SURGEON,
                  lambda ab, host: (ab.antibody_id, ab.version, host)),
     ActivitySpec("motif_scan", 10 * M, None, 3, (), CREW,
@@ -450,6 +459,24 @@ class OmegaActivities:
     @activity.defn(name="canary_plan")
     async def canary_plan(self, shipment: c.Shipment) -> c.CanaryPlan:
         return await self._run("canary_plan", c.CanaryPlan, shipment)
+
+    @activity.defn(name="mature_antibody")
+    async def mature_antibody(self, ab: c.AntibodyRef, host: str) -> c.VaccinationResult:
+        return await self._run("mature_antibody", c.VaccinationResult, ab, host)
+
+    @activity.defn(name="promote_antibody")
+    async def promote_antibody(self, ab: c.AntibodyRef, host: str) -> c.AntibodyRef:
+        return await self._run("promote_antibody", c.AntibodyRef, ab, host)
+
+    @activity.defn(name="revert_vaccination")
+    async def revert_vaccination(self, shipment: c.Shipment) -> c.Shipment | None:
+        return await self._run("revert_vaccination", c.Shipment | None, shipment)
+
+    @activity.defn(name="refine_antibody")
+    async def refine_antibody(
+        self, ab: c.AntibodyRef, shipment: c.Shipment
+    ) -> c.AntibodyRef | None:
+        return await self._run("refine_antibody", c.AntibodyRef | None, ab, shipment)
 
     @activity.defn(name="apply_antibody")
     async def apply_antibody(self, ab: c.AntibodyRef, host: str) -> c.VaccinationResult:

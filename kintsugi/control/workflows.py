@@ -40,6 +40,9 @@ S = IncidentState
 SEEN_HIT_MEMORY = 5000  # hit keys remembered across continue_as_new (the store dedupes for good)
 L4_REVERIFY_WINNER = "l4-reverify-winner"  # Stage 6: drift before shipping re-checks the winner
 CANARY_HOST_P0 = "canary-host-p0"  # Stage 7: the canary's H0 comes from the host's baseline
+ANTIBODY_LIFECYCLE = "antibody-lifecycle"  # Stage 7: maturation promotes MATURED → ACTIVE
+L3_VACCINATION_CANARY = "l3-vaccination-canary"  # Stage 7: canary, revert, quarantine, refine
+PAUSE_FORWARD = "pause-forwards-to-wave"  # Stage 7: pause_antibody reaches the running wave
 
 
 async def act(name: str, *args: Any, config: c.ControlConfig, result_type: Any = None) -> Any:
@@ -303,12 +306,29 @@ class CrossHostMaturation:
     @workflow.run
     async def run(self, ab: c.AntibodyRef, origin: str, config: c.ControlConfig) -> c.StepResult:
         hosts = await act("motif_scan", ab, config=config, result_type=list[str])
-        second = next((h for h in hosts if h != origin), None)
-        if second is None:
-            return c.StepResult("mature", False, {"reason": "no second matching host"})
-        result = await act("apply_antibody", ab, second, config=config,
-                           result_type=c.VaccinationResult)  # fmt: skip
-        return c.StepResult("mature", result.applied, {"host": second, "reason": result.reason})
+        if not workflow.patched(ANTIBODY_LIFECYCLE):
+            second = next((h for h in hosts if h != origin), None)
+            if second is None:
+                return c.StepResult("mature", False, {"reason": "no second matching host"})
+            result = await act("apply_antibody", ab, second, config=config,
+                               result_type=c.VaccinationResult)  # fmt: skip
+            return c.StepResult("mature", result.applied, {"host": second, "reason": result.reason})
+        # Stage 7 (§5.8.2): the first second host the antibody actually repairs (induced trigger,
+        # recipe, G0–G6, a pull request) matures it; the receptor's precision then activates it.
+        tried: dict[str, str] = {}
+        for host in hosts:
+            if host == origin:
+                continue
+            result = await act("mature_antibody", ab, host, config=config,
+                               result_type=c.VaccinationResult)  # fmt: skip
+            tried[host] = result.reason
+            if result.applied:
+                promoted = await act("promote_antibody", ab, host, config=config,
+                                     result_type=c.AntibodyRef)  # fmt: skip
+                return c.StepResult("mature", True, {"host": host, "state": promoted.state,
+                                                     "version": promoted.version,
+                                                     "reason": result.reason})  # fmt: skip
+        return c.StepResult("mature", False, {"reason": "no second host matured", "tried": tried})
 
 
 @workflow.defn
@@ -316,6 +336,7 @@ class VaccinationWave:
     def __init__(self) -> None:
         self.paused = False
         self.done: list[str] = []
+        self.l3: list[dict[str, Any]] = []  # autoimmune episodes: canary, revert, refinement
 
     @workflow.signal
     def pause(self) -> None:
@@ -329,17 +350,81 @@ class VaccinationWave:
     def progress(self) -> list[str]:
         return list(self.done)
 
+    @workflow.query
+    def autoimmunity(self) -> list[dict[str, Any]]:
+        return list(self.l3)
+
     @workflow.run
     async def run(self, ab: c.AntibodyRef, config: c.ControlConfig) -> list[c.VaccinationResult]:
         hosts = await act("motif_scan", ab, config=config, result_type=list[str])
         results: list[c.VaccinationResult] = []
-        for host in hosts:
+        if not workflow.patched(L3_VACCINATION_CANARY):
+            for host in hosts:
+                await workflow.wait_condition(lambda: not self.paused)
+                result = await act("apply_antibody", ab, host, config=config,
+                                   result_type=c.VaccinationResult)  # fmt: skip
+                results.append(result)
+                self.done.append(host)
+            return results
+        # Stage 7 (§6.5 step 14, §6.7): every merged vaccination runs its own canary. A rejection
+        # is autoimmunity: pause, revert (then a reverse canary), quarantine, learn the missing
+        # precondition, and resume with the refined version on the hosts it still matches.
+        queue = list(hosts)
+        while queue:
+            host = queue.pop(0)
             await workflow.wait_condition(lambda: not self.paused)
             result = await act("apply_antibody", ab, host, config=config,
                                result_type=c.VaccinationResult)  # fmt: skip
             results.append(result)
             self.done.append(host)
+            shipment = result.shipment
+            if not (result.applied and shipment is not None and shipment.merged):
+                continue
+            canary_id = f"canary-{shipment.incident_id}-{ab.version}"
+            canary = await workflow.execute_child_workflow(
+                Canary.run, args=[shipment, config], id=canary_id
+            )
+            if not canary.rejected:
+                continue
+            self.paused = True
+            episode: dict[str, Any] = {
+                "host": host,
+                "version": ab.version,
+                "canary": {"n": canary.samples, "llr": canary.llr},
+            }
+            await self._tell_supervisor("pause_antibody", ab.antibody_id, config)
+            undone = await act("revert_vaccination", shipment, config=config,
+                               result_type=c.Shipment | None)  # fmt: skip
+            if undone is not None and undone.merged:
+                reverse = await workflow.execute_child_workflow(
+                    Canary.run, args=[undone, config], id=f"canary-{undone.incident_id}-reverse"
+                )
+                episode["reverse_canary"] = {"accepted": reverse.accepted, "n": reverse.samples,
+                                             "llr": reverse.llr}  # fmt: skip
+            episode["revert"] = undone.pr_url if undone is not None else None
+            episode["quarantined"] = await act("quarantine_related", shipment, config=config,
+                                               result_type=int)  # fmt: skip
+            refined = await act("refine_antibody", ab, shipment, config=config,
+                                result_type=c.AntibodyRef | None)  # fmt: skip
+            episode["refined"] = f"{refined.antibody_id}@{refined.version}" if refined else None
+            self.l3.append(episode)
+            if refined is None or refined.state != "ACTIVE":
+                return results  # stays quarantined: no further application
+            ab = refined
+            rescan = await act("motif_scan", ab, config=config, result_type=list[str])
+            queue = [h for h in rescan if h not in self.done]
+            self.paused = False
+            await self._tell_supervisor("resume_antibody", ab.antibody_id, config)
         return results
+
+    async def _tell_supervisor(
+        self, signal: str, antibody_id: str, config: c.ControlConfig
+    ) -> None:
+        try:
+            supervisor = workflow.get_external_workflow_handle(config.supervisor_id)
+            await supervisor.signal(signal, antibody_id)
+        except Exception:  # a wave started without a supervisor (tests, drills) carries on
+            workflow.logger.info("no supervisor to tell: %s %s", signal, antibody_id)
 
 
 # --------------------------------------------------------------------------- onboarding, proof
@@ -453,6 +538,7 @@ class FleetSupervisor:
         self.config = c.ControlConfig()
         self.run_events = 0
         self.drifts: list[tuple[str, str]] = []
+        self.forward: list[tuple[str, str]] = []  # (pause | resume, antibody) for running waves
 
     # signals (§5.3.3) -------------------------------------------------------------------
     @workflow.signal
@@ -471,6 +557,13 @@ class FleetSupervisor:
     def pause_antibody(self, antibody_id: str) -> None:
         if antibody_id not in self.s.paused_antibodies:
             self.s.paused_antibodies.append(antibody_id)
+        self.forward.append(("pause", antibody_id))
+
+    @workflow.signal
+    def resume_antibody(self, antibody_id: str) -> None:
+        if antibody_id in self.s.paused_antibodies:
+            self.s.paused_antibodies.remove(antibody_id)
+        self.forward.append(("resume", antibody_id))
 
     @workflow.signal
     def operator_pause(self, reason: str) -> None:
@@ -510,6 +603,10 @@ class FleetSupervisor:
             self.s.runs += 1
         while True:
             await workflow.wait_condition(self._has_work)
+            if self.forward:
+                if workflow.patched(PAUSE_FORWARD):
+                    await self._forward_to_waves()
+                self.forward.clear()  # a history from before the patch only recorded the list
             while self.drifts:
                 repo, new_main = self.drifts.pop(0)
                 for incident_id in list(self.s.open):
@@ -528,8 +625,18 @@ class FleetSupervisor:
     def _host_open(self, host: str) -> int:
         return sum(1 for h in self.s.open.values() if h == host)
 
+    async def _forward_to_waves(self) -> None:
+        """§6.7 step 17: a paused antibody's VaccinationWave halts its pending applications."""
+        while self.forward:
+            action, antibody_id = self.forward.pop(0)
+            try:
+                wave = workflow.get_external_workflow_handle(f"vaccinate-{antibody_id}")
+                await wave.signal(action)
+            except Exception:  # no wave running for it: the paused list is the record
+                workflow.logger.info("no running wave for %s (%s)", antibody_id, action)
+
     def _has_work(self) -> bool:
-        if self.drifts:
+        if self.drifts or self.forward:
             return True
         if self.s.operator_paused is not None:
             return False

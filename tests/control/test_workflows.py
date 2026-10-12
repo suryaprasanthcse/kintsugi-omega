@@ -28,6 +28,7 @@ from kintsugi.control.workflows import (
     AuditAnchor,
     Campaign,
     Canary,
+    CrossHostMaturation,
     FleetSupervisor,
     Incident,
     Onboarding,
@@ -342,6 +343,125 @@ def test_vaccination_pauses_and_resumes_by_signal() -> None:
     paused, results = run(scenario())
     assert len(paused) < 3
     assert [r.host for r in results] == ["ledger", "scout", "triage"]
+
+
+def test_maturation_promotes_on_the_first_second_host_that_repairs() -> None:
+    async def scenario() -> tuple[c.StepResult, Any]:
+        crew = crew_for(Scenario())
+        crew.answers["motif_scan"] = lambda ab: ["ledger", "scout", "crm-practice"]
+        crew.answers["mature_antibody"] = lambda ab, host: c.VaccinationResult(
+            ab.antibody_id, host, host == "crm-practice",
+            "pull request opened" if host == "crm-practice" else "gates: G2")  # fmt: skip
+        ab = c.AntibodyRef("AB-1", "1.0", "CANDIDATE")
+        async with temporal(crew) as (_env, client):
+            result = await client.execute_workflow(
+                CrossHostMaturation.run, args=[ab, "ledger", FAST], id="mat", task_queue=CREW
+            )
+        return result, crew
+
+    result, crew = run(scenario())
+    assert result.ok
+    assert result.detail["host"] == "crm-practice"
+    assert result.detail["state"] == "ACTIVE"
+    assert crew.count("mature_antibody") == 2  # scout failed its gates first
+    assert crew.count("promote_antibody") == 1
+
+
+def _l3_crew() -> Any:
+    crew = crew_for(Scenario())
+    scans = {"1.0": ["scout", "oss-1"], "1.1": ["oss-1"]}
+    crew.answers["motif_scan"] = lambda ab: scans[ab.version]
+
+    def apply(ab: c.AntibodyRef, host: str) -> c.VaccinationResult:
+        shipment = c.Shipment(
+            f"VAC-{ab.antibody_id}-{host}",
+            f"{ab.antibody_id}@{ab.version}",
+            f"kintsugi/VAC-{host}",
+            "pr",
+            True,
+            True,
+            f"m-{host}-{ab.version}",
+        )
+        return c.VaccinationResult(ab.antibody_id, host, True, "merged", shipment)
+
+    def canary(shipment: c.Shipment, batch: int) -> list[bool]:
+        wrong = shipment.merge_sha == "m-scout-1.0"  # the autoimmune vaccination
+        return [True, False] * 6 if wrong else [False] * 40
+
+    crew.answers["apply_antibody"] = apply
+    crew.answers["canary_sample"] = canary
+    return crew
+
+
+def test_an_autoimmune_vaccination_is_reverted_quarantined_refined_and_the_wave_resumes() -> None:
+    async def scenario() -> tuple[list[c.VaccinationResult], list[dict[str, Any]], Any]:
+        crew = _l3_crew()
+        ab = c.AntibodyRef("AB-1", "1.0", "ACTIVE")
+        async with temporal(crew) as (_env, client):
+            wave = await client.start_workflow(VaccinationWave.run, args=[ab, FAST],
+                                               id="vaccinate-AB-1", task_queue=CREW)  # fmt: skip
+            results = await wave.result()
+            episodes = await wave.query(VaccinationWave.autoimmunity)
+        return results, episodes, crew
+
+    results, episodes, crew = run(scenario())
+    assert [(r.host, r.shipment.hypothesis if r.shipment else None) for r in results] == [
+        ("scout", "AB-1@1.0"), ("oss-1", "AB-1@1.1")]  # fmt: skip
+    [episode] = episodes
+    assert episode["host"] == "scout"
+    assert episode["revert"] == "pr-revert"
+    assert episode["reverse_canary"]["accepted"]
+    assert episode["refined"] == "AB-1@1.1"
+    assert episode["quarantined"] == 1
+    for name in ("revert_vaccination", "quarantine_related", "refine_antibody"):
+        assert crew.count(name) == 1
+    names = [n for n, _ in crew.calls]
+    assert names.index("revert_vaccination") < names.index("quarantine_related")
+    assert names.index("quarantine_related") < names.index("refine_antibody")
+
+
+def test_a_paused_antibody_reaches_its_running_wave_through_the_supervisor() -> None:
+    async def scenario() -> tuple[list[str], list[str], dict[str, Any]]:
+        gate = threading.Event()
+        crew = crew_for(Scenario())
+
+        def slow(ab: c.AntibodyRef, host: str) -> c.VaccinationResult:
+            gate.wait(timeout=30)
+            return c.VaccinationResult(ab.antibody_id, host, True)
+
+        crew.answers["apply_antibody"] = slow
+        config = c.ControlConfig(supervisor_id="sup-pause", canary_interval_s=1.0)
+        ab = c.AntibodyRef("AB-5", "1.0", "ACTIVE")
+        async with temporal(crew) as (_env, client):
+            sup = await client.start_workflow(FleetSupervisor.run, args=[config, None],
+                                              id=config.supervisor_id, task_queue=CREW)  # fmt: skip
+            wave = await client.start_workflow(VaccinationWave.run, args=[ab, config],
+                                               id="vaccinate-AB-5", task_queue=CREW)  # fmt: skip
+            await sup.signal(FleetSupervisor.pause_antibody, "AB-5")
+
+            async def forwarded() -> bool:
+                return "AB-5" in (await sup.query(FleetSupervisor.status))["paused_antibodies"]
+
+            await wait_for(forwarded)
+            await asyncio.sleep(0.5)  # the supervisor forwards the pause to the wave
+            gate.set()
+            await asyncio.sleep(1.0)
+            held = await wave.query(VaccinationWave.progress)
+            await sup.signal(FleetSupervisor.resume_antibody, "AB-5")
+
+            async def finished() -> bool:  # poll: awaiting a result would let the time-skipping
+                return len(await wave.query(VaccinationWave.progress)) == 3  # server time out sup
+
+            await wait_for(finished)
+            done = await wave.query(VaccinationWave.progress)
+            status = await sup.query(FleetSupervisor.status)
+            await sup.terminate("test over")
+        return held, done, status
+
+    held, done, status = run(scenario())
+    assert len(held) <= 1  # held at most after the application already running
+    assert done == ["ledger", "scout", "triage"]
+    assert status["paused_antibodies"] == []
 
 
 def test_onboarding_runs_o1_to_o7_and_stops_at_a_failure() -> None:

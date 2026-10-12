@@ -121,6 +121,13 @@ def crew_for(s: Scenario) -> ScriptedCrew:
         "canary_plan": lambda shipment: c.CanaryPlan("ledger", FAST.canary_p0, FAST.canary_ratio,
                                                      "scripted: the control plane's default"),
         "apply_antibody": lambda ab, host: c.VaccinationResult(ab.antibody_id, host, True),
+        "mature_antibody": lambda ab, host: c.VaccinationResult(ab.antibody_id, host, True,
+                                                                "pull request opened"),
+        "promote_antibody": lambda ab, host: c.AntibodyRef(ab.antibody_id, ab.version, "ACTIVE"),
+        "revert_vaccination": lambda shipment: c.Shipment(
+            f"REV-{shipment.incident_id}", "revert", "kintsugi/revert", "pr-revert", True, True,
+            f"revert-of-{shipment.merge_sha}"),
+        "refine_antibody": lambda ab, shipment: c.AntibodyRef(ab.antibody_id, "1.1", "ACTIVE"),
         "motif_scan": lambda ab: ["ledger", "scout", "triage"],
         "onboard_step": lambda host, step: c.StepResult(step, step != "O5" or host != "broken"),
         "seal_sabotage": lambda spec: f"commitment-{spec}",

@@ -189,6 +189,7 @@ class CanaryResult:
 class AntibodyRef:
     antibody_id: str
     version: str
+    state: str = ""  # its lifecycle state when the activity returned it (Stage 7)
 
 
 @dataclass(frozen=True)
@@ -219,6 +220,7 @@ class VaccinationResult:
     host: str
     applied: bool
     reason: str = ""
+    shipment: Shipment | None = None  # merged on our fleet (a canary follows), or a PR only
 
 
 @dataclass(frozen=True)
