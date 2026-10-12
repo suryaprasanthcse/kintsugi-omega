@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QRFGYWYKMK1Z2N2NNWW047",
+  "session_id": "2490859c-8f72-47b0-9e63-f2f242b7d420",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-12T09:53:11.7359675Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/cli.py",
+    "kintsugi/control/preflight.py",
+    "tests/control/test_preflight.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "25664e00faac",
+  "checkpoint_transcript_start": 481,
+  "transcript_lines_at_start": 481,
+  "compact_transcript_start": 67,
+  "token_usage": {
+    "input_tokens": 22,
+    "cache_creation_tokens": 18587,
+    "cache_read_tokens": 2740859,
+    "output_tokens": 13205,
+    "api_call_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-12T09:53:11.6763605Z",
+    "agent_lines": 284,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 284,
+    "total_lines_changed": 284,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
