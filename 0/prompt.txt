@@ -1,0 +1,35 @@
+<pasted_content id="6138">
+My laptop was asleep during the commute, so the background watcher socket dropped. Keep `kintsugi-omega` 100% clean (`git status -s` must stay empty) and do these three things in one pass before the 17:50 IST quota reset:
+
+1. Verify CI on `a0986a1`: Run `gh run view 38235870511 --repo suryaprasanthcse/kintsugi-omega --json headSha,status,conclusion` to confirm `omega-ci` passed on `a0986a1`.
+2. Custody Commands & Stage 8 -> 13 Handoff: Refresh the memory file, print the exact copy-paste Architect custody commands I should run in my own terminal right now, and output the `# KINTSUGI-Ω Stage 8 → 13 Handoff` block for the 17:50 IST fresh session.
+3. Write `C:\myspace\hacckathons\DEMO_VIDEO_SCRIPT.md` (strictly outside the repo):
+   The #neatHack submission window opens tonight at 7:00 PM IST (closing 11:55 PM IST). We must quote-tweet the @neatlogs 7:00 PM launch post on X with our Demo Video tagging @neatlogs, @EntireHQ, and @arithecfo (they are engaging with the first 50 quote-tweets), and bonus points are awarded for clearly explaining the Problem Statement and how the Solution works.
+   Include in `DEMO_VIDEO_SCRIPT.md`:
+   - A 2-minute (120-second) timestamped Demo Video script with exact spoken narration AND the exact terminal commands / GitHub PRs (#7–#10) / files to display on screen:
+     * 0:00–0:25 | The Problem Statement: Why standard AI coding agents fail in production (silent regressions, unverified fixes, linear O(N) LLM cost per repeated bug, and untrustworthy self-reported logs).
+     * 0:25–0:55 | How KINTSUGI-Ω Works: Live @neatlogs telemetry ingestion (Senses), @EntireHQ AST blast-radius graph + Notary checkpoint provenance, multi-agent crew (Sentinel, Pathologist, Surgeons, Auditor, Immunologist), and deterministic G0–G7 verification gates.
+     * 0:55–1:30 | Live Rehearsal Evidence (Stages 6 & 7): Primary repair ($0.665) vs. cross-host antibody maturation (AB-1@1.0 -> AB-1@1.1 at $0.089 — 7x cheaper unit economics for @arithecfo), $12.00 historical backfill, and the L3 Scout canary auto-revert via Notary session (PRs #7, #8, #9, #10).
+     * 1:30–2:00 | Stage 8 Cryptographic Proof Plane: Exact `kintsugi audit` and `kintsugi t0 check` commands to run live on camera demonstrating C1–C14 verification, mutation tamper-catching, and the append-only `ledger` branch.
+   - The exact copy-paste X Quote-Tweet text tagging @neatlogs, @EntireHQ, and @arithecfo ready for 7:00 PM IST.
+</pasted_content id="6138">
+
+---
+
+this image has their submission rules
+
+---
+
+I hit my usage limit while you were working, but it has reset now. Please continue from where you left off.
+
+---
+
+<pasted_content id="6138">
+Decision locked: NO-GO for W — prepare the final submission with our Stage 6–7 rehearsal evidence and Stage 8 proof plane (`kintsugi audit` C1–C14 + 33 tamper tests + practice sealing P-1).
+
+Execute the fast Stage 13 submission-packaging pass now so it finishes in under 8 minutes (do NOT re-run the 14-minute full suite; run only fast targeted checks if needed):
+1. Ensure `./published-bundles` (or the offline bundle path used by `uv run kintsugi audit --all --offline ./published-bundles` in `DEMO_VIDEO_SCRIPT.md`) exists and produces the clean pre-T0 audit output (C6/C11/C14 PASS, window-bound checks honest SKIP, exit code 2).
+2. Polish `README.md` and `docs/VERIFICATION.md` for #neatHack judges (@neatlogs, @EntireHQ, @arithecfo): front-load the Problem Statement, Architecture, Stage 6–7 rehearsal results (PRs #7–#10, $0.665 primary vs $0.089/$0.104 vaccinations = ~7x cheaper, $12.00 backfill, L3 Scout Notary auto-revert drill), Stage 8 `kintsugi audit` C1–C14 verification + mutation suite, and the honest disclosure table (Stages 1–8 complete & verified; autonomous window W and Stages 9–12 disclosed as descoped).
+3. Commit with `ENTIRE_TEST_TTY=0`, verify `files_touched` + single checkpoint trailer, push `main` + checkpoint refs, and confirm `omega-ci` is green.
+4. Print the final verification output of the exact 5 terminal commands in `DEMO_VIDEO_SCRIPT.md` so I can record my 2-minute video immediately.
+</pasted_content id="6138">
