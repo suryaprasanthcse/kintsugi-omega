@@ -1,0 +1,50 @@
+[
+ {
+  "antibody": "AB-1@1.0",
+  "found_by": "canary of AB-1@1.0 on scout",
+  "profile": "background",
+  "seed": 5000,
+  "task": "scout-train-000",
+  "verdict_when_found": "FAIL:DUPLICATE_CITATION"
+ },
+ {
+  "antibody": "AB-1@1.0",
+  "found_by": "canary of AB-1@1.0 on scout",
+  "profile": "background",
+  "seed": 5000,
+  "task": "scout-train-001",
+  "verdict_when_found": "FAIL:DUPLICATE_CITATION"
+ },
+ {
+  "antibody": "AB-1@1.0",
+  "found_by": "canary of AB-1@1.0 on scout",
+  "profile": "background",
+  "seed": 5001,
+  "task": "scout-train-017",
+  "verdict_when_found": "FAIL:DUPLICATE_CITATION"
+ },
+ {
+  "antibody": "AB-1@1.0",
+  "found_by": "canary of AB-1@1.0 on scout",
+  "profile": "background",
+  "seed": 5002,
+  "task": "scout-train-029",
+  "verdict_when_found": "FAIL:DUPLICATE_CITATION"
+ },
+ {
+  "antibody": "AB-1@1.0",
+  "found_by": "canary of AB-1@1.0 on scout",
+  "profile": "background",
+  "seed": 5003,
+  "task": "scout-train-035",
+  "verdict_when_found": "FAIL:DUPLICATE_CITATION"
+ },
+ {
+  "antibody": "AB-1@1.0",
+  "found_by": "canary of AB-1@1.0 on scout",
+  "profile": "background",
+  "seed": 5003,
+  "task": "scout-train-037",
+  "verdict_when_found": "FAIL:DUPLICATE_CITATION"
+ }
+]
