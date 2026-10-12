@@ -529,7 +529,8 @@ def test_run_audit_over_a_window(repo: Path, signer: Signer, tmp_path: Path) -> 
     assert status["C13"] is Status.FAIL  # the fixture repository lists no sealed holdout
     assert report.human_commits == 0
     assert report.exit_code == audit.EXIT_FAIL
-    assert sha in audit.window_commits(repo, audit.Window.from_json(window), now)
+    later = now + timedelta(minutes=1)
+    assert sha in audit.window_commits(repo, audit.Window.from_json(window), later)
     git(repo, "tag", "-d", anchor.tag)
     forged = sign_anchor(anchor.tag, 1, "f" * 64, signer)
     git(repo, "tag", "-a", forged.tag, "-m", forged.message(), "ledger")

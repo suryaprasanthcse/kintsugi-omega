@@ -38,6 +38,7 @@ from kintsugi.crew.coordinator import Coordinator
 from kintsugi.crew.immunologist import Immunologist, SynthesisError, render_recipe
 from kintsugi.crew.notary import Notary, NotaryRequest
 from kintsugi.crew.pathologist import Pathologist
+from kintsugi.crew.saboteur import SabotageRefused, Saboteur
 from kintsugi.crew.sentinel import Sentinel
 from kintsugi.gates import canary
 from kintsugi.gates.checkout import rev
@@ -89,6 +90,21 @@ class Anchoring:
     out_dir: Path
 
 
+@dataclass
+class SabotageLane:
+    """Stage 8: the Saboteur's activities. ``identity`` is the age secret that opens the sealed
+    specs; only this lane holds it. ``plans`` are specs not sealed yet (sealed before T0 by
+    default). ``publish`` commits a commitment record through a notary (inside W);
+    ``deliver(request, host)`` runs the delivery notary in a worktree of the host and ships it
+    through the upstream lane, returning a reference."""
+
+    saboteur: Saboteur
+    identity: str
+    deliver: Callable[[NotaryRequest, str], str]
+    plans: Mapping[str, tuple[dict[str, Any], str | None]] = field(default_factory=dict)
+    publish: Callable[[NotaryRequest], str] | None = None
+
+
 class Shipper:
     """``ship`` (``kintsugi.control.ship``): issue → PR with the receipt → G7 → merge."""
 
@@ -130,6 +146,7 @@ class OmegaCrew:
         ledger: FileLedger | BranchLedger | None = None,
         immunity: Immunity | None = None,  # None: Stage 6 behaviour (primary responses only)
         anchoring: Anchoring | None = None,
+        sabotage: SabotageLane | None = None,
     ) -> None:
         self.ctx = ctx
         self.runner = runner
@@ -141,6 +158,7 @@ class OmegaCrew:
             ctx.state / "ledger.jsonl", genesis_hash("rehearsal", b"\0" * 32)
         )
         self.anchoring = anchoring
+        self.sabotage = sabotage
         self.auditor = Auditor(ctx)
         self.coordinator = Coordinator(ctx)
         if immunity is not None and immunity.immunologist.ledger is None:
@@ -385,6 +403,42 @@ class OmegaCrew:
 
     def do_ledger_append(self, step: StepContext, entry: dict[str, Any]) -> str:
         return self.ledger.append(entry)
+
+    def _lane(self) -> SabotageLane:
+        if self.sabotage is None:
+            raise NotImplementedError("no sabotage lane is configured (Stage 8, §7.2)")
+        return self.sabotage
+
+    def do_seal_sabotage(self, step: StepContext, spec_id: str) -> str:
+        """Seal (or find the pre-T0 seal), record it in the ledger, publish it; returns c."""
+        lane = self._lane()
+        record = lane.saboteur.record(spec_id)
+        if record is None:
+            if spec_id not in lane.plans:
+                raise SabotageRefused(f"{spec_id}: neither sealed nor planned")
+            record = lane.saboteur.seal(*lane.plans[spec_id])
+        mine = [e for e in self.ledger.entries() if e.get("sabotage") == spec_id]
+        sealed_before = [e for e in mine if e.get("event") == "sealed"]
+        if not sealed_before:
+            self.ledger.append({"type": "sabotage", "event": "sealed", "sabotage": spec_id,
+                                "c": record["c"], "not_before": record["not_before"]})  # fmt: skip
+            if lane.publish is not None:
+                lane.publish(lane.saboteur.commitment_request(record))
+        return str(record["c"])
+
+    def do_deliver_sabotage(self, step: StepContext, spec_id: str) -> None:
+        """Deliver after ``not_before`` (the workflow schedules it); the prompt is the spec's
+        framing and the patch only (A-52), checked for leaks before it leaves."""
+        lane = self._lane()
+        spec, _seal, patch = lane.saboteur.open(spec_id, lane.identity)
+        not_before = datetime.fromisoformat(str(spec["schedule"]["not_before"]).replace("Z",
+                                            "+00:00"))  # fmt: skip
+        if datetime.now(UTC) < not_before:
+            raise SabotageRefused(f"{spec_id}: not before {spec['schedule']['not_before']}")
+        if patch is None:
+            raise NotImplementedError(f"{spec['class']}: only patch deliveries are wired")
+        lane.deliver(lane.saboteur.delivery_request(spec, patch), str(spec["target"]["host"]))
+        self.ledger.append({"type": "sabotage", "event": "delivered", "sabotage": spec_id})
 
     def do_anchor_ledger(self, step: StepContext, hour: int) -> str:
         """AuditAnchor's hourly step: sign the head, write the post text; returns the tag."""
