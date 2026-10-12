@@ -1,0 +1,12 @@
+# How KINTSUGI-Omega's gates check this repository (a disposable Scout copy).
+version: 1
+hosts:
+  scout:
+    host_yaml: host.yaml
+    package_root: "."
+    tests: tests
+    lint: [scout]
+    typecheck: [scout]
+    holdout: scout/evals/holdout/tasks.jsonl.age
+    stress_profile: profiles/stress.yaml
+    live_services: []
