@@ -5,7 +5,10 @@
   "branch": "main",
   "checkpoints_count": 1,
   "files_touched": [
+    "docs/EXECUTION_PLAN.md",
     "kintsugi/crew/factory.py",
+    "kintsugi/crew/saboteur.py",
+    "tests/crew/test_saboteur.py",
     "tests/proof/test_audit.py"
   ],
   "sessions": [
@@ -18,10 +21,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 10,
-    "cache_creation_tokens": 10281,
-    "cache_read_tokens": 1586336,
-    "output_tokens": 4719,
-    "api_call_count": 5
+    "input_tokens": 2,
+    "cache_creation_tokens": 843,
+    "cache_read_tokens": 322158,
+    "output_tokens": 1099,
+    "api_call_count": 1
   }
 }
