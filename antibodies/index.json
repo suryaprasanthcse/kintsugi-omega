@@ -1,0 +1,12 @@
+{
+ "antibodies": {
+  "AB-1": {
+   "description": "Retry-scoped accumulator reset: a refactor moved the progress/idempotency accumulator inside the closure that the retry wrapper re-runs, so each retry attempt rebuilds it, loses track of completed work and repeats side effects such as duplicate entries.",
+   "state": "ACTIVE",
+   "version": "1.1"
+  }
+ },
+ "signatures": {
+  "sha256:b9fe39c5383c557f442a1e72aaba6dbc5b6cbef432728f85bf777635bc8ac29f": "AB-1@1.1"
+ }
+}

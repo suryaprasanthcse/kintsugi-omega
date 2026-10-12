@@ -1,0 +1,85 @@
+{
+ "checkpoints": {
+  "intent": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "originating": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "repair": "01M4PPD6W7H2NE1Y5NEH5YXQ9G"
+ },
+ "ci_runs": [
+  "https://github.com/suryaprasanthcse/kintsugi-omega/actions/runs/38186481441/job/114609781055"
+ ],
+ "commits": {
+  "before": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "merge": null,
+  "originating": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "repair": "e50387e722cfcd30b965512707cf899c625bee6d"
+ },
+ "cost_usd": 0.6654,
+ "g4": {
+  "b": 39,
+  "c": 0,
+  "ci_after": [
+   0.968981,
+   1.0
+  ],
+  "ci_before": [
+   0.586902,
+   0.752241
+  ],
+  "cost_after": 0.003192,
+  "cost_before": 0.003845,
+  "cost_delta": -0.169918,
+  "cost_ub": -0.132657,
+  "delta_pass": 0.325,
+  "n_pairs": 120,
+  "p": 1.8189894035458565e-12,
+  "p95_after": 0.4538,
+  "p95_before": 0.781,
+  "p95_delta": -0.41895,
+  "p95_ub": -0.321372,
+  "pass_after": 1.0,
+  "pass_before": 0.675,
+  "seeds": [
+   1,
+   2,
+   3
+  ]
+ },
+ "host": "ledger-practice",
+ "motif_validation": {
+  "after": null,
+  "before": {
+   "Enc": "reconcile",
+   "F": "book_pending_lines",
+   "R": "retry_with_backoff",
+   "S": "PostingSession"
+  },
+  "matches_after_fix": false,
+  "matches_before_fix": true,
+  "template": "state-reset-on-retry"
+ },
+ "origin_incident": "INC-R235459-0001",
+ "prs": [
+  "https://github.com/suryaprasanthcse/kintsugi-omega/pull/5"
+ ],
+ "receptor_precision": {
+  "false_positives": [
+   "local:crm-practice-baseline-s1:CT-011",
+   "local:crm-practice-baseline-s1:CT-041",
+   "local:crm-practice-baseline-s1:CT-046",
+   "local:crm-practice-baseline-s1:CT-053",
+   "local:crm-practice-baseline-s2:CT-028",
+   "local:crm-practice-baseline-s2:CT-044"
+  ],
+  "flagged": 181,
+  "precision": 0.9668508287292817,
+  "scanned": 335,
+  "true_positives": 175
+ },
+ "symptom": "All 4 traces in the dominant cluster (TR-003, TR-013, TR-015, TR-021, host ledger-practice) fail identically with FAIL:DUPLICATE_ENTRY, error_class DuplicateEntry, reported at the CHAIN grader.verdict span. In every trace the span sequence is the same: a single fx_rate call followed by two consecutive books:/lines calls, with books:/lines as the failing tool. The second books:/lines write is the point at which the duplicate-entry condition appears; no retry, fault injection, or alternate path is visible before it. Detection omega:R-007:ledger-practice fires on all traces. Reproduction is 100% consistent across the cluster (4/4 traces, one host, one signature sha256:b9fe39c5383c) with no variation in ordering, tool, or verdict.",
+ "traces": [
+  "local:reh-20261011-235459-s1:TR-015",
+  "local:reh-20261011-235459-s1:TR-003",
+  "local:reh-20261011-235459-s1:TR-013",
+  "local:reh-20261011-235459-s1:TR-021"
+ ]
+}

@@ -1,0 +1,98 @@
+id: AB-1
+version: '1.0'
+state: QUARANTINED
+signature:
+  hash: sha256:b9fe39c5383c557f442a1e72aaba6dbc5b6cbef432728f85bf777635bc8ac29f
+  fields:
+    detections:
+    - omega:R-007:ledger-practice
+    error_class: DuplicateEntry
+    failing_span:
+    - CHAIN
+    - grader.verdict
+    preceding:
+    - fx_rate
+    - books:/lines
+    - books:/lines
+    tool: books:/lines
+    label: Duplicate books:/lines write after fx_rate lookup
+receptor:
+  detection_id: null
+  type: regex
+  rule: ^"?FAIL:DUPLICATE_
+  precision_preview: 0.9668508287292817
+motif:
+  nodes:
+    R:
+      kind: function
+      pred:
+      - is_retry_wrapper
+    Enc:
+      kind: function
+      pred: []
+    F:
+      kind: function
+      pred: []
+    S:
+      kind: class
+      pred:
+      - has_mutable_accumulator
+  edges:
+  - - Enc
+    - R
+    - CALLS
+  - - Enc
+    - F
+    - CONTAINS
+  - - F
+    - S
+    - CONSTRUCTS
+  negative: []
+preconditions: []
+recipe: In {Enc}, move the construction of the {S} accumulator (including any "reuse
+  caller-supplied {S} or create a new one" fallback) out of the retried scope {F}
+  and into {Enc}'s body, before the call to {R}. That way exactly one {S} instance
+  is created per call to {Enc} and is shared by every retry attempt. {F} should only
+  do one resumable pass driven by what {S} still reports as pending, and it should
+  return that same {S}. Keep {intent}, including any docstrings or renames the originating
+  change added. Never let a retry attempt by {R} create a new {S} or repeat a side
+  effect (a write, post, or booking) that an earlier attempt already recorded in {S}.
+contract:
+  repro: 3/3
+  holdout:
+    test: mcnemar_exact
+    alpha: 0.05
+    holm: true
+    origin:
+      b: 39
+      c: 0
+      p: 1.8189894035458565e-12
+      pass_before: 0.675
+      pass_after: 1.0
+  cost_delta_ub: 0.05
+  p95_delta_ub: 0.1
+  canary:
+    p0: host_baseline
+    p1: 2*p0
+    alpha: 0.05
+    beta: 0.1
+    origin_p0: 0.05
+evidence:
+  origin_incident: INC-R235459-0001
+  host: ledger-practice
+  template: state-reset-on-retry
+  binding:
+    R: retry_with_backoff
+    Enc: reconcile
+    F: book_pending_lines
+    S: PostingSession
+economics:
+  primary_usd: 0.6654
+  secondary_usd_mean: null
+lineage:
+  versions:
+  - '1.0'
+  quarantines: 1
+  hosts_protected:
+  - crm-practice
+  - ledger-practice

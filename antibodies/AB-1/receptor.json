@@ -1,0 +1,17 @@
+{
+ "config": {
+  "case_sensitive": true,
+  "output_pattern": "^\"?FAIL:DUPLICATE_"
+ },
+ "description": "Retry-scoped accumulator reset: a refactor moved the progress/idempotency accumulator inside the closure that the retry wrapper re-runs, so each retry attempt rebuilds it, loses track of completed work and repeats side effects such as duplicate entries. (KINTSUGI-Ω antibody AB-1 receptor)",
+ "displayName": "KINTSUGI AB-1 receptor",
+ "groupId": "00000000-0000-0000-0000-000000000000",
+ "isActive": true,
+ "runOn": {
+  "frequency": "span_name",
+  "span_names": [
+   "grader.verdict"
+  ]
+ },
+ "type": "regex"
+}

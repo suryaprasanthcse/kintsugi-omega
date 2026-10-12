@@ -1,0 +1,34 @@
+motif:
+  nodes:
+    R:
+      kind: function
+      pred:
+      - is_retry_wrapper
+    Enc:
+      kind: function
+      pred: []
+    F:
+      kind: function
+      pred: []
+    S:
+      kind: class
+      pred:
+      - has_mutable_accumulator
+    T:
+      kind: function
+      pred:
+      - is_side_effecting
+  edges:
+  - - Enc
+    - R
+    - CALLS
+  - - Enc
+    - F
+    - CONTAINS
+  - - F
+    - S
+    - CONSTRUCTS
+  - - F
+    - T
+    - CALLS*
+  negative: []

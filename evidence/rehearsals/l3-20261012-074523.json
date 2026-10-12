@@ -1,0 +1,350 @@
+{
+ "antibody": {
+  "hosts_protected": [
+   "crm-practice",
+   "ledger-practice"
+  ],
+  "motif_edges": [
+   [
+    "Enc",
+    "R",
+    "CALLS"
+   ],
+   [
+    "Enc",
+    "F",
+    "CONTAINS"
+   ],
+   [
+    "F",
+    "S",
+    "CONSTRUCTS"
+   ],
+   [
+    "F",
+    "T",
+    "CALLS*"
+   ]
+  ],
+  "preconditions": [
+   "a side-effecting callee inside the retried scope"
+  ],
+  "quarantines": 1,
+  "receptor": {
+   "detection_id": null,
+   "precision_preview": 0.9668508287292817,
+   "rule": "^\"?FAIL:DUPLICATE_",
+   "type": "regex"
+  },
+  "ref": "AB-1@1.1",
+  "state": "ACTIVE",
+  "versions": [
+   "1.0",
+   "1.1"
+  ]
+ },
+ "autoimmunity": [
+  {
+   "canary": {
+    "llr": 3.118413871054339,
+    "n": 38
+   },
+   "host": "scout",
+   "quarantined": 1,
+   "refined": "AB-1@1.1",
+   "reverse_canary": {
+    "accepted": true,
+    "llr": -2.2760264019179157,
+    "n": 70
+   },
+   "revert": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/9",
+   "version": "1.0"
+  }
+ ],
+ "backfill": {
+  "antibody": "AB-1@1.0",
+  "hits": 181,
+  "impact_usd": 12.0,
+  "method": "omega-retro-scan (A-29: /detections/{id}/backfills needs the detection created through the API; the scan reads the same verdict spans Omega recorded)",
+  "scanned": 335,
+  "silent": 6,
+  "silent_by_host": {
+   "crm-practice": 6
+  }
+ },
+ "costs": {
+  "cases": {
+   "INC-R235459-0001": 0.665376,
+   "VAC-AB-1-crm-practice": 0.08905,
+   "VAC-AB-1-scout": 0.104426
+  },
+  "origin_primary_usd": 0.665376,
+  "vaccinations_usd": {
+   "VAC-AB-1-crm-practice": 0.08905,
+   "VAC-AB-1-scout": 0.104426
+  }
+ },
+ "duration_s": 962.4,
+ "kind": "stage7-l3-rehearsal (disclosed drill: the Scout vaccination is injected)",
+ "ledger_entries": 10,
+ "lineage_events": [
+  {
+   "event": "synthesized",
+   "from": null,
+   "host": null,
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "scan",
+   "from": null,
+   "host": null,
+   "matched": [
+    "crm-practice",
+    "scout"
+   ],
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "induced-trigger",
+   "from": null,
+   "host": "crm-practice",
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "protected",
+   "from": null,
+   "host": "crm-practice",
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "state",
+   "from": "CANDIDATE",
+   "host": "crm-practice",
+   "matched": null,
+   "silent": null,
+   "to": "MATURED",
+   "version": "1.0",
+   "why": "matured on crm-practice"
+  },
+  {
+   "event": "receptor-precision",
+   "from": null,
+   "host": null,
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "state",
+   "from": "MATURED",
+   "host": null,
+   "matched": null,
+   "silent": null,
+   "to": "ACTIVE",
+   "version": "1.0",
+   "why": "receptor precision 1.00 on 335 recorded runs"
+  },
+  {
+   "event": "backfill",
+   "from": null,
+   "host": null,
+   "matched": null,
+   "silent": 6,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "induced-trigger",
+   "from": null,
+   "host": "crm-practice",
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "induced-trigger",
+   "from": null,
+   "host": "scout",
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "protected",
+   "from": null,
+   "host": "scout",
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "state",
+   "from": "ACTIVE",
+   "host": "scout",
+   "matched": null,
+   "silent": null,
+   "to": "QUARANTINED",
+   "version": "1.0",
+   "why": "The canary's SPRT rejected AB-1@1.0 on scout at n=38 (LLR 3.118)."
+  },
+  {
+   "event": "unprotected",
+   "from": null,
+   "host": "scout",
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": "The canary's SPRT rejected AB-1@1.0 on scout at n=38 (LLR 3.118)."
+  },
+  {
+   "event": "quarantine-notices",
+   "from": null,
+   "host": null,
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.0",
+   "why": null
+  },
+  {
+   "event": "refined",
+   "from": "1.0",
+   "host": null,
+   "matched": null,
+   "silent": null,
+   "to": null,
+   "version": "1.1",
+   "why": null
+  },
+  {
+   "event": "state",
+   "from": "QUARANTINED",
+   "host": "crm-practice",
+   "matched": null,
+   "silent": null,
+   "to": "ACTIVE",
+   "version": "1.1",
+   "why": "re-matured: AB-1@1.1 still binds crm-practice; the recipe is unchanged since 1.0"
+  },
+  {
+   "event": "scan",
+   "from": null,
+   "host": null,
+   "matched": [],
+   "silent": null,
+   "to": null,
+   "version": "1.1",
+   "why": null
+  }
+ ],
+ "maturation": {
+  "detail": {
+   "host": "crm-practice",
+   "reason": "G0–G6 pass; pull request opened",
+   "state": "ACTIVE",
+   "version": "1.0"
+  },
+  "name": "mature",
+  "ok": true
+ },
+ "refinements": [
+  {
+   "auditor_check": "re-matched: positives kept, negatives excluded",
+   "learned_precondition": [
+    "a side-effecting callee inside the retried scope"
+   ],
+   "negatives": [
+    "scout"
+   ],
+   "positives": [
+    "ledger-practice@pre-fix",
+    "ledger@pre-fix",
+    "crm-practice"
+   ],
+   "rationale": "The selected precondition \"a side-effecting callee inside the retried scope\" (side_effect_in_scope) holds on crm-practice, ledger-practice@pre-fix, and ledger@pre-fix — the three hosts the antibody protects — and is false only on scout, the host where it caused harm, so it keeps every true match while excluding the false one. The other three candidates (accumulator_has_cursor, enclosing_takes_state, scope_returns_state) each read false on ledger@pre-fix, so adopting any of them would drop a host that must remain protected. Because side_effect_in_scope is the only predicate true across all protected hosts and false on scout, it is the one precondition that cleanly separates the kept matches from the harmful one.",
+   "revert_pr": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/9",
+   "selected": [
+    "side_effect_in_scope"
+   ],
+   "table": {
+    "accumulator_has_cursor": {
+     "crm-practice": true,
+     "ledger-practice@pre-fix": true,
+     "ledger@pre-fix": false,
+     "scout": false
+    },
+    "enclosing_takes_state": {
+     "crm-practice": true,
+     "ledger-practice@pre-fix": true,
+     "ledger@pre-fix": false,
+     "scout": false
+    },
+    "scope_returns_state": {
+     "crm-practice": true,
+     "ledger-practice@pre-fix": true,
+     "ledger@pre-fix": false,
+     "scout": false
+    },
+    "side_effect_in_scope": {
+     "crm-practice": true,
+     "ledger-practice@pre-fix": true,
+     "ledger@pre-fix": true,
+     "scout": false
+    }
+   },
+   "trace_to_test": "scout/evals/regressions/ab_1_scout_canary.json",
+   "trigger": "canary SPRT reject on scout at n=38",
+   "version": "1.1"
+  }
+ ],
+ "run": "l3-20261012-074523",
+ "supervisor": {
+  "closed": {},
+  "events": 0,
+  "open": 0,
+  "operator_paused": null,
+  "paused_antibodies": [],
+  "pending": 0,
+  "runs": 1,
+  "waiting": 0
+ },
+ "wave": [
+  {
+   "applied": true,
+   "host": "crm-practice",
+   "pr": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/7",
+   "reason": "G0–G6 pass; pull request opened"
+  },
+  {
+   "applied": true,
+   "host": "scout",
+   "pr": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/8",
+   "reason": "L3 drill: injected, merged"
+  }
+ ]
+}

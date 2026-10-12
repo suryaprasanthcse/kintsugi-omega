@@ -1,0 +1,19 @@
+repro: 3/3
+holdout:
+  test: mcnemar_exact
+  alpha: 0.05
+  holm: true
+  origin:
+    b: 39
+    c: 0
+    p: 1.8189894035458565e-12
+    pass_before: 0.675
+    pass_after: 1.0
+cost_delta_ub: 0.05
+p95_delta_ub: 0.1
+canary:
+  p0: host_baseline
+  p1: 2*p0
+  alpha: 0.05
+  beta: 0.1
+  origin_p0: 0.05

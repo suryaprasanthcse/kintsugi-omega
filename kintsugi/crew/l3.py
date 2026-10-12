@@ -27,6 +27,7 @@ outside every repository, shipping only through ``rehearsal/<run>/*`` branches (
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import difflib
 import shutil
 import time
@@ -281,6 +282,8 @@ def drill_applier(notary: Notary, reverter: Reverter, log: Callable[[str], None]
             )
         case, card = imm.prepare(ab, host, trigger)
         target = crew.ctx.target(host)
+        with contextlib.suppress(worktree.WorktreeError):  # an activity retry: pin, then remove
+            worktree.discard(worktree.open_existing(target.repo, card.incident_id, card.hypothesis))
         wt = worktree.create(target.repo, card.incident_id, card.hypothesis, base=card.base_sha)
         delivered = notary.commit(
             wt.path,
