@@ -1,0 +1,27 @@
+# CRM practice: a disposable, disclosed rehearsal host for KINTSUGI-Omega (Stage 7), standing in
+# for a Repair Clinic host. It is never deployed and never part of the fleet: a rehearsal copies
+# it into a scratch repository and treats it as a foreign repository (pull requests only).
+[project]
+name = "crm-practice"
+version = "0.1.0"
+description = "A practice contact-sync agent for KINTSUGI-Omega's Stage 7 rehearsal."
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["practice_crm", "hostkit"]
+
+[tool.pyright]
+include = ["practice_crm"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
