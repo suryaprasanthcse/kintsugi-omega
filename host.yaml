@@ -1,0 +1,26 @@
+# Scout — research with citations (spec §5.9.2).
+id: scout
+package: scout
+description: Answers research questions from a frozen corpus with page-level citations.
+model: claude-haiku-5-5
+slo:
+  pass_rate: 0.85
+economics:
+  tier: Team
+  price_usd_month: 299
+  value_per_failed_task_usd: 2.00
+  tasks_per_hour: 20
+  llm_budget_usd_month: 30.00
+eval:
+  splits: {train: 40, holdout: 20}
+  grader: answer contains the gold answer; complete citation recall, precision >= 0.5; duplicate citations fail
+# The retried scope in fetch_all_pages has no side effects: its per-attempt ScratchBuffer is
+# the disclosed look-alike of a state-reset-on-retry bug (spec §5.9.2, §6.7).
+tools:
+  web_search: {side_effect: false}
+  fetch_document: {side_effect: false, external: docs}
+  verify_citations: {side_effect: false}
+  compose_answer: {side_effect: false, model: true}
+services:
+  docs: scout.services.doc_store:handle
+offline_model: scout.evals.offline_model:respond

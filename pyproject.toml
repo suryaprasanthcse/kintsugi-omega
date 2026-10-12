@@ -1,0 +1,35 @@
+[project]
+name = "kintsugi-host-scout"
+version = "0.1.0"
+description = "Scout: a research agent that answers with citations (KINTSUGI-Ω host, spec §5.9.2)."
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Surya Prasanth R", email = "suryaprasanthcse@gmail.com" }]
+dependencies = ["kintsugi-hostkit"]
+
+[tool.uv.sources]
+kintsugi-hostkit = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scout"]
+
+# The fleet's lint and type-check settings (the monorepo's root configuration), so G1 judges
+# this copy exactly as it judges hosts/scout.
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "C4", "E", "F", "I", "PIE", "PT", "RUF", "SIM", "TID", "UP", "W"]
+allowed-confusables = ["×", "‖", "–", "—", "−", "′", "″"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["scout", "hostkit"]
+
+[tool.pyright]
+include = ["scout"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
