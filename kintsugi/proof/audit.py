@@ -56,6 +56,7 @@ TITLES = {
     "C14": "self-repair scope",
 }
 WINDOW_FILE = ".kintsugi/window.json"
+REVEAL_SUFFIX = ".reveal.json"  # sabotage-log/<id>.reveal.json = {spec, salt} (§7.2 step 6)
 SELF_REPAIR_ROLE = "self-repair"
 COST_TOLERANCE = 0.01
 EXIT_OK, EXIT_FAIL, EXIT_SKIPPED = 0, 1, 2
@@ -651,14 +652,21 @@ def load_anchors(repo: Path, offline: Path | None) -> list[Anchor]:
 
 
 def window_commits(repo: Path, window: Window, end: datetime) -> list[str]:
-    """Commits on the protected branch (and pinned attempts, plan §2a L1) after T0's SHA whose
-    commit time is inside W, oldest first."""
-    heads = [h for h in [_first_ref(repo, [f"origin/{window.branch}", window.branch])] if h]
+    """Commits on the protected branch (and pinned attempts, plan §2a L1) after the T0 commit
+    (the first that added the window record; else ``base``) whose commit time is inside W,
+    oldest first."""
+    branch = _first_ref(repo, [f"origin/{window.branch}", window.branch])
+    heads = [branch] if branch else []
     heads += _git(repo, "for-each-ref", "refs/kintsugi/attempts/",
                   "--format=%(refname)").stdout.split()  # fmt: skip
     if not heads:
         return []
-    out = _git(repo, "log", "--reverse", "--format=%H %ct", *heads, f"^{window.base}").stdout
+    base = window.base
+    if branch:
+        added = _git(repo, "log", "--diff-filter=A", "--format=%H", branch, "--",
+                     WINDOW_FILE).stdout.split()  # fmt: skip
+        base = added[-1] if added else base
+    out = _git(repo, "log", "--reverse", "--format=%H %ct", *heads, f"^{base}").stdout
     lo, hi = window.start.timestamp(), end.timestamp()
     return [sha for sha, ct in (line.split() for line in out.splitlines() if line.strip())
             if lo <= int(ct) <= hi]  # fmt: skip
@@ -781,9 +789,10 @@ def _run_c6(
     only: str | None,
 ) -> CheckResult:  # fmt: skip
     root = offline if offline is not None else repo
+    log = sorted((root / "sabotage-log").glob("*.json"))
     commitments = [json.loads(p.read_text(encoding="utf-8"))
-                   for p in sorted((root / "sabotage-log").glob("*.json"))]  # fmt: skip
-    reveals = {str(r["spec"]["id"]): r for p in sorted((root / "sabotage-reveals").glob("*.json"))
+                   for p in log if not p.name.endswith(REVEAL_SUFFIX)]  # fmt: skip
+    reveals = {str(r["spec"]["id"]): r for p in log if p.name.endswith(REVEAL_SUFFIX)
                if (r := json.loads(p.read_text(encoding="utf-8"))).get("spec")}  # fmt: skip
     if only:
         commitments = [c for c in commitments if c.get("id") == only]

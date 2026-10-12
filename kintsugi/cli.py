@@ -53,6 +53,11 @@ def _build_parser() -> argparse.ArgumentParser:
         default=Path.home() / ".kintsugi" / "keys" / "holdout-rehearsal.agekey",
     )  # fmt: skip
     t0_check.add_argument("--json", action="store_true")
+    t0_gen = t0_sub.add_parser("genesis", help="at T0: window record + ledger genesis (A-67)")
+    t0_gen.add_argument("--github", default="suryaprasanthcse/kintsugi-omega")
+    t0_gen.add_argument("--ruleset", type=int, action="append", required=True,
+                        help="id of a ruleset active on main (repeatable)")  # fmt: skip
+    t0_gen.add_argument("--t0", help="RFC 3339 UTC (default: now)")
 
     sub.add_parser("demo", help="run the recorded demo scenario")
 
@@ -232,6 +237,19 @@ def _t0_check(args: argparse.Namespace) -> int:
     from kintsugi.fleet.fabric import load_dotenv
 
     repo = _repo()
+    if args.t0_command == "genesis":
+        from kintsugi.control.genesis import GenesisError, write_genesis
+
+        try:
+            made = write_genesis(repo, github_repo=args.github, rulesets=args.ruleset, t0=args.t0)
+        except GenesisError as error:
+            print(f"t0 genesis refused: {error}")
+            return EXIT_FAIL
+        print(
+            f"T0 {made.window.t0}  h_0 {made.genesis}\nseq 1 (genesis) {made.entry_hash}\n"
+            f"next: commit {made.path.name} (the T0 commit), then push main and ledger"
+        )
+        return EXIT_OK
     gh_api = None
     with contextlib.suppress(ShipError):
         gh = GhCli(args.github, token=load_dotenv(repo / ".env").get("GITHUB_TOKEN"))
