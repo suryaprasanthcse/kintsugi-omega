@@ -1,0 +1,16 @@
+# A disclosed stress profile for dispute experiments, G7's fresh-seed G2 and the antibody's
+# induced trigger: the geo API rate-limits often enough that most batches meet a 429 after a
+# contact is created.
+name: crm-practice-stress
+disclosed: true
+seed: 7
+rules:
+  - service: geo
+    path: /region
+    fault: status
+    status: 429
+    rate: 0.30
+  - service: "*"
+    fault: latency
+    rate: 1.0
+    latency_ms: [2, 30]
