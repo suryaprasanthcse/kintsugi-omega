@@ -149,7 +149,38 @@ def registry(
         "is_retry_wrapper": retry_wrapper,
         "has_mutable_accumulator": accumulator,
         "is_side_effecting": motif.is_side_effecting,
+        "has_resume_cursor": has_resume_cursor,
     }
+
+
+def has_resume_cursor(graph: nx.DiGraph, node: str) -> bool:
+    """The class keeps an integer cursor: a ``self.<x> = <int>`` it later advances (``+=``)."""
+    source = graph.nodes[node].get("source")
+    if not isinstance(source, str):
+        return False
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return False
+    counters = {
+        target.attr
+        for n in ast.walk(tree)
+        if isinstance(n, ast.Assign)
+        and isinstance(n.value, ast.Constant)
+        and type(n.value.value) is int
+        for target in n.targets
+        if isinstance(target, ast.Attribute)
+        and isinstance(target.value, ast.Name)
+        and target.value.id == "self"
+    }
+    return any(
+        isinstance(n, ast.AugAssign)
+        and isinstance(n.target, ast.Attribute)
+        and isinstance(n.target.value, ast.Name)
+        and n.target.value.id == "self"
+        and n.target.attr in counters
+        for n in ast.walk(tree)
+    )
 
 
 # ---- a host's graph -------------------------------------------------------------------------
