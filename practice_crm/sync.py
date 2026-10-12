@@ -63,8 +63,9 @@ class SyncSession:
 def sync_contacts(batch: Batch, session: SyncSession | None = None) -> SyncSession:
     """Create every pending contact of ``batch``; a rate limit retries the attempt."""
 
+    current = session if session is not None else SyncSession(batch)
+
     def attempt() -> SyncSession:
-        current = session or SyncSession(batch)
         for contact in current.pending():
             current.push(contact, enrich(contact.domain))
         return current
