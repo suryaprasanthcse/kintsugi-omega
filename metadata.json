@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4Q9VY70WW5NJ4HPJ6XMW5TB",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/control/revert.py",
+    "kintsugi/control/ship.py",
+    "kintsugi/crew/notary.py",
+    "kintsugi/crew/prompts/SHA256SUMS",
+    "kintsugi/crew/prompts/notary.md",
+    "tests/control/test_revert.py",
+    "tests/control/test_ship.py",
+    "tests/helpers/notary.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 38,
+    "cache_creation_tokens": 42449,
+    "cache_read_tokens": 9128105,
+    "output_tokens": 24283,
+    "api_call_count": 19
+  }
+}
