@@ -1,0 +1,19 @@
+# G7 for every pull request into this repository: Omega's reusable gate workflow re-runs
+# G1–G4 with a fresh seed.
+name: g7
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  g7:
+    uses: suryaprasanthcse/kintsugi-omega/.github/workflows/g7-gates.yml@main
+    with:
+      host: crm-practice
+      mode: incident
+      base: ${{ github.event.pull_request.base.sha }}
+      head: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit

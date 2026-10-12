@@ -1,0 +1,30 @@
+# CRM practice (Stage 7 rehearsal host): the disclosed stand-in for a Repair Clinic host until
+# Stage 10 onboards real ones (spec §6.5 step 13: "Clinic-A's retried scope posts records to a
+# CRM API, which is side-effecting"). It syncs batches of contacts to a CRM, enriching each one
+# through a rate-limited geo API. Its sync carries a latent state-reset-on-retry defect by
+# design (disclosed); Omega treats it as a foreign repository: pull requests only, never merged.
+id: crm-practice
+package: practice_crm
+description: Syncs contact batches to a CRM, each contact exactly once, with its region.
+model: claude-haiku-5-5
+slo:
+  pass_rate: 0.90
+  p95_s: 5
+economics:
+  tier: Team
+  price_usd_month: 299
+  value_per_failed_task_usd: 2.00
+  tasks_per_hour: 30
+  llm_budget_usd_month: 30.00
+  service_costs_usd: {geo: 0.0001, crm: 0.0003}
+eval:
+  splits: {train: 60, holdout: 40}
+  grader: every contact created exactly once, with the region its domain maps to
+tools:
+  enrich: {side_effect: false, external: geo}
+  create_contact: {side_effect: true}
+  list_contacts: {side_effect: false}
+services:
+  geo: practice_crm.services.geo_api:handle
+  crm: practice_crm.services.crm_api:handle
+offline_model: practice_crm.evals.offline_model:respond

@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from kintsugi.memory import graph, motif
+from tests.helpers.graphs import source_tree
 
 from .scratch import make_repo
 
@@ -31,9 +32,12 @@ def test_python_relations_match_the_motif_engine() -> None:
     assert {"READS_FIELD", "WRITES_FIELD", "ACCESSES", "IMPLEMENTS"}.isdisjoint(allowed)
 
 
-@pytest.mark.parametrize("name", ["ledger_before", "ledger_after", "scout"])
+@pytest.mark.parametrize(
+    "name", ["ledger_before", "ledger_after", "scout", "crm_practice", "ledger_practice_before"]
+)
 def test_snapshot_matches_golden(name: str, tmp_path: Path) -> None:
-    repo = make_repo(tmp_path / name, FIXTURES / name)  # the directory name fixes the repo_key
+    # The directory name fixes the repo_key.
+    repo = make_repo(tmp_path / name, source_tree(name, tmp_path / "src" / name))
     live = graph.normalise_snapshot(
         graph._run(["snapshot", "--format", "ndjson", "--profile", "full", "--worktree"], repo)
     )

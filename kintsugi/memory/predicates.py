@@ -195,7 +195,72 @@ def host_graph(
         start, end = int(record["start_line"]), int(record["end_line"])
         return {"source": textwrap.dedent("\n".join(lines[start - 1 : end]))}
 
-    return part.to_code_graph(attrs=attrs, side_effect_tools=tools)
+    code = part.to_code_graph(attrs=attrs, side_effect_tools=tools, transitive_calls=False)
+    infer_method_calls(code)
+    motif.add_transitive_calls(code)
+    return code
+
+
+_TYPE_RELATIONS = frozenset({"CONSTRUCTS", "USES_TYPE", "RETURNS_TYPE", "PARAM_TYPE"})
+_SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)
+
+
+def _own_nodes(body: list[ast.stmt]) -> list[ast.AST]:
+    """Every node of a function body except those of nested functions, lambdas and classes:
+    a nested closure's calls belong to the closure (its own graph node)."""
+    found: list[ast.AST] = []
+    stack: list[ast.AST] = [stmt for stmt in body if not isinstance(stmt, _SCOPES)]
+    while stack:
+        node = stack.pop()
+        found.append(node)
+        stack.extend(c for c in ast.iter_child_nodes(node) if not isinstance(c, _SCOPES))
+    return found
+
+
+def infer_method_calls(graph: nx.DiGraph) -> int:
+    """Add the method calls entire-graph leaves unresolved because the receiver's type is only
+    implied (``current = session or SyncSession(batch)``, then ``current.push(...)``).
+
+    A function that constructs or names class ``S`` (CONSTRUCTS, USES_TYPE, RETURNS_TYPE,
+    PARAM_TYPE) and whose own source calls ``<anything>.m(...)``, where ``S`` defines a method
+    ``m``, gets ``CALLS`` to ``S.m``, marked ``inferred_calls`` on the edge. Returns the count."""
+    methods: dict[str, dict[str, str]] = {}  # class qualified name → method name → node
+    for node, data in graph.nodes(data=True):
+        name = str(data.get("qualified_name", ""))
+        if data.get("kind") == "method" and "." in name:
+            owner, _, method = name.rpartition(".")
+            methods.setdefault(owner, {})[method] = node
+    added = 0
+    for node, data in list(graph.nodes(data=True)):
+        source = data.get("source")
+        if data.get("kind") not in ("function", "method") or not isinstance(source, str):
+            continue
+        try:
+            tree = ast.parse(source)
+        except SyntaxError:
+            continue
+        own = next(iter(tree.body), None)
+        body = own.body if isinstance(own, ast.FunctionDef | ast.AsyncFunctionDef) else []
+        called = {
+            n.func.attr
+            for n in _own_nodes(body)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+        }
+        for _, cls, edge in list(graph.out_edges(node, data=True)):
+            if not edge["rels"] & _TYPE_RELATIONS:
+                continue
+            owner = str(graph.nodes[cls].get("qualified_name", ""))
+            for method in sorted(called & set(methods.get(owner, {}))):
+                target = methods[owner][method]
+                if graph.has_edge(node, target) and "CALLS" in graph[node][target]["rels"]:
+                    continue
+                if graph.has_edge(node, target):
+                    graph[node][target]["rels"].add("CALLS")
+                else:
+                    graph.add_edge(node, target, rels={"CALLS"})
+                graph[node][target]["inferred_calls"] = True
+                added += 1
+    return added
 
 
 def names(graph: nx.DiGraph, embedding: Mapping[str, str]) -> dict[str, str]:

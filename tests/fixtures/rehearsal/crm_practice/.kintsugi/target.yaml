@@ -1,0 +1,12 @@
+# How KINTSUGI-Omega's gates check this repository (protected: no Surgeon may change it).
+version: 1
+hosts:
+  crm-practice:
+    host_yaml: host.yaml
+    package_root: "."
+    tests: tests
+    lint: [practice_crm]
+    typecheck: [practice_crm]
+    holdout: practice_crm/evals/holdout/tasks.jsonl.age
+    stress_profile: profiles/stress.yaml
+    live_services: [crm]  # the agent's own CRM: replays recompute it, never serve it

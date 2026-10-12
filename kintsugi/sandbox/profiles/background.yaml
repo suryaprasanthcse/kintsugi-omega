@@ -23,3 +23,11 @@ rules:
     fault: latency
     rate: 1.0
     latency_ms: [2, 30]
+  # Amendment A-61: the CRM practice host's geo API (the Clinic stand-in's enrichment) sees
+  # rare 429s (2%), so its latent defect leaves silent past occurrences for a backfill to find.
+  # Appended last: the earlier rules keep their indices, so their draws are unchanged.
+  - service: geo
+    path: /region
+    fault: status
+    status: 429
+    rate: 0.02
