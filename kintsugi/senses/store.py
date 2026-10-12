@@ -319,6 +319,30 @@ class SenseStore:
         row = self._connection().execute("SELECT COUNT(*) FROM queue WHERE taken_at IS NULL")
         return int(row.fetchone()[0])
 
+    # ----------------------------------------------------------------------- archive
+
+    def archive(self, dest: Path) -> dict[str, int]:
+        """Move the store's hit history aside before a real Sentinel run (or T0).
+
+        Rehearsals leave hits whose dispositions name stand-in incidents (``INC-REH-…``); a real
+        Sentinel must not inherit them, and I7 must not count them. The whole database is copied
+        to ``dest`` with SQLite's online backup (the evidence stays), then the live store drops
+        its claimed hits and its queue. Watermarks and webhook event ids stay, so the poller does
+        not re-sweep the archived history and a replayed old delivery is still a duplicate."""
+        dest = Path(dest)
+        if dest.exists():
+            raise FileExistsError(f"{dest} exists: archives are never overwritten")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        target = sqlite3.connect(str(dest))
+        try:
+            self._connection().backup(target)
+        finally:
+            target.close()
+        with self._tx() as db:
+            hits = db.execute("DELETE FROM seen_hits").rowcount
+            queued = db.execute("DELETE FROM queue").rowcount
+        return {"hits": int(hits), "queued": int(queued)}
+
 
 def _seen(row: sqlite3.Row) -> SeenHit:
     return SeenHit(row["hit_key"], row["hit_id"], row["detection_id"], row["trace_id"],

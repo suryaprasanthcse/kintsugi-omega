@@ -1,0 +1,31 @@
+# How KINTSUGI-Omega's gates check the fleet in this repository (protected: no Surgeon, recipe
+# application or vaccination may change it). See kintsugi/gates/target.py.
+version: 1
+hosts:
+  ledger:
+    host_yaml: hosts/ledger/host.yaml
+    package_root: hosts/ledger
+    tests: hosts/ledger/tests
+    lint: [hosts/ledger/ledger]
+    typecheck: [hosts/ledger/ledger]
+    holdout: hosts/ledger/ledger/evals/holdout/tasks.jsonl.age
+    stress_profile: kintsugi/sandbox/profiles/stress.yaml
+    live_services: []  # the journal is the agent's in-process LedgerDB, rebuilt per task
+  scout:
+    host_yaml: hosts/scout/host.yaml
+    package_root: hosts/scout
+    tests: hosts/scout/tests
+    lint: [hosts/scout/scout]
+    typecheck: [hosts/scout/scout]
+    holdout: hosts/scout/scout/evals/holdout/tasks.jsonl.age
+    stress_profile: kintsugi/sandbox/profiles/stress.yaml
+    live_services: []  # the document store is a frozen corpus: replaying it is exact
+  triage:
+    host_yaml: hosts/triage/host.yaml
+    package_root: hosts/triage
+    tests: hosts/triage/tests
+    lint: [hosts/triage/triage]
+    typecheck: [hosts/triage/triage]
+    holdout: hosts/triage/triage/evals/holdout/tasks.jsonl.age
+    stress_profile: null
+    live_services: [github]  # the mock GitHub holds the labels the grader reads (A-50)
