@@ -228,6 +228,9 @@ class Reverter:
         merged = gh.pr_merge(number, cfg.merge_method)
         if merged is None:
             return {**out, "reason": "the merge was refused"}
+        # the merge commit exists on the remote only: fetch it for the (reverse) canary
+        merged_ref = f"refs/kintsugi/merged/{branch}"
+        _git(repo, "fetch", "-q", cfg.remote, f"+refs/heads/{base_ref}:{merged_ref}")
         return {**out, "merge_sha": merged}
 
     def _gates(self, target: Target, sha: str, cases: Sequence[tuple[int, str]]) -> dict[str, Any]:

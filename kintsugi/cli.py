@@ -124,6 +124,15 @@ def _build_parser() -> argparse.ArgumentParser:
     rehearse.add_argument("--crew-model", choices=["claude-cli", "offline"], default="claude-cli")
     rehearse.add_argument("--model", action="append", default=[], help="role=model override")
     rehearse.add_argument("--out", type=Path, default=None, help="evidence JSON (aggregates)")
+    l3 = crew_sub.add_parser(
+        "l3", help="Stage 7 rehearsal: antibody synthesis, maturation, vaccination, L3 drill"
+    )
+    l3.add_argument("--run", default=None, help="run name (default: l3-<UTC time>)")
+    l3.add_argument("--root", type=Path, default=Path.home() / ".kintsugi" / "rehearsals")
+    l3.add_argument("--holdout-identity", type=Path, required=True)
+    l3.add_argument("--github", default=None, help="owner/name: pull requests and comments")
+    l3.add_argument("--crew-model", choices=["claude-cli", "offline"], default="claude-cli")
+    l3.add_argument("--out", type=Path, default=None, help="evidence JSON (aggregates)")
 
     gates = sub.add_parser("gates", help="verification gates (spec §5.11)")
     gates_sub = gates.add_subparsers(dest="gates_command", required=True)
@@ -202,6 +211,33 @@ def _crew_rehearse(args: argparse.Namespace) -> int:
     )
     print(f"evidence written to {out}")
     return EXIT_OK if summary["outcome"]["state"] == "RESOLVED" else EXIT_FAIL
+
+
+def _crew_l3(args: argparse.Namespace) -> int:
+    import json
+    from datetime import UTC, datetime
+
+    from kintsugi.crew.l3 import L3Rehearsal, run
+    from kintsugi.fleet.fabric import load_dotenv
+
+    name = args.run or "l3-" + datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+    token = load_dotenv(_repo() / ".env").get("GITHUB_TOKEN") if args.github else None
+    cfg = L3Rehearsal(
+        run=name,
+        root=args.root / name,
+        identity=args.holdout_identity,
+        github=args.github,
+        token=token,
+        crew_model=args.crew_model,
+        log=lambda line: print(line.encode("ascii", "replace").decode(), flush=True),
+    )
+    summary = run(cfg)
+    out = args.out or _repo() / "evidence" / "rehearsals" / f"{name}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(summary, indent=1, sort_keys=True, default=str, ensure_ascii=False)
+    out.write_text(text + "\n", encoding="utf-8", newline="\n")
+    print(f"evidence written to {out}")
+    return EXIT_OK if summary["antibody"]["state"] == "ACTIVE" else EXIT_FAIL
 
 
 def _gates_g7(args: argparse.Namespace) -> int:
@@ -502,7 +538,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "gates":
         return _gates_g7(args)
     if args.command == "crew":
-        return _crew_rehearse(args)
+        return _crew_l3(args) if args.crew_command == "l3" else _crew_rehearse(args)
     if args.command == "fleet" and args.fleet_command == "baseline":
         return _fleet_baseline(args)
     if args.command == "fleet":
