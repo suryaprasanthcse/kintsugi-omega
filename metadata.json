@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QQNCCW9QYN9AFSNCBK4CSA",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/cli.py",
+    "kintsugi/proof/anchor.py",
+    "kintsugi/proof/audit.py",
+    "tests/proof/test_audit.py",
+    "tests/test_cli.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 94,
+    "cache_creation_tokens": 169214,
+    "cache_read_tokens": 6930796,
+    "output_tokens": 61145,
+    "api_call_count": 47
+  }
+}

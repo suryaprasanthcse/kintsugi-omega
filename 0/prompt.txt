@@ -1,0 +1,261 @@
+<pasted_content id="6138">
+# KINTSUGI-Ω Stage 7 → 8 Handoff
+
+| Field | Value |
+|---|---|
+| Written | 2026-10-12, 14:45 IST |
+| Architect | Surya Prasanth R (@suryaprasanthcse): sole author and committer of every commit |
+| Repository | https://github.com/suryaprasanthcse/kintsugi-omega (public) · local C:\myspace\hacckathons\kintsugi-omega |
+| Status | Stages 1–7 approved. Stage 8 not started. |
+| Deadline | Submission closes 23:55 IST Oct 12. W must end by 19:55 IST; T0 ≤ 19:55 − W. W and T0 are decided at the Stage 8 go/no-go (D1). |
+| Strategy | C:\myspace\hacckathons\STAGE_8_13_EXECUTION_STRATEGY.md (outside the repo). Read §0–§4 before starting. |
+| Quota at 14:40 IST | Pro 5-hour window 61% used, resets 17:50 IST. Weekly 47%, resets Oct 13 19:30 IST. Headless crew calls in rehearsals share this quota. |
+
+## 1. Frozen state
+
+- HEAD: main = origin/main = e3c1bf3. The tree is clean. Checkpoint refs are in sync (out_of_sync=()).
+- CI: omega-ci run 38224320360 on e3c1bf3. All 4 jobs green: lint·typecheck·test, host·ledger, host·scout, host·triage.
+- Local suite on e3c1bf3: 787 passed, 30 skipped (13:53). The 30 skips are contract tests.
+- Every commit: author = committer = Surya Prasanth R <suryaprasanthcse@gmail.com>, no Co-authored-by, an Entire-Checkpoint trailer, and a pushed ref.
+
+Stage 7 commits (files_touched verified after each):
+
+| SHA | Subject | Entire-Checkpoint | files_touched |
+|---|---|---|---|
+| c640a4d | senses: fleet repair targets, archive rehearsal hits (A-59, A-60) | 01M4Q85BK096J59SAENF0J1CT2 | 6/6 |
+| 48077b9 | gates: canary against each host's own baseline | 01M4Q8RTMP99JGND03V5B4N656 | 9/9 |
+| 19d0a33 | memory: predicates on real source, Antibody Library | 01M4Q8X150EK7Q7TVA5DVPJZZ4 | 3/3 |
+| b0c6fbd | fleet: CRM practice host, positive graphs (A-61) | 01M4Q98WVNCDR4GGA4S8TD2PJ7 | 26/28 (2 golden ndjson, tool-written, A-1) |
+| bf8745d | memory: contrastive precondition learning | 01M4Q9C1B8AAQEKN472PSH76AK | 3/3 |
+| 7f6619f | control: auto-revert through a notary session (L3) | 01M4Q9VY70WW5NJ4HPJ6XMW5TB | 8/8 |
+| 6229ac3 | crew: the Immunologist | 01M4QADWB8TMM6MKKBN5SJ7J5S | 7/7 |
+| 633c06b | control: antibody lifecycle in the workflows | 01M4QFT8JPSPNV7MM27RG28H77 | 5/5 (committed first after an involuntary turn end) |
+| e2a134c | crew: real antibody activities | 01M4QGEEN0M9D5R380F6DHD1XM | 8/8 |
+| bb951db | crew: L3 rehearsal runner (disclosed drill) | 01M4QGQ8D57NB0R932MZE4PZ5H | 3/3 |
+| 010bdb6 | fix: trigger cassette from the pathogen's own failures; Scout copy lint | 01M4QH4KAAPCJYB3PA6F0616W3 | 2/2 |
+| a4df7f9 | docs: amendments A-62 to A-66 | 01M4QH53YKY7A3FKA8VMRF5BJB | 1/1 |
+| 9caab82 | fix: per-workflow fleet scan idempotency | 01M4QJARC4RV2WPGVW9G697EEC | 3/3 |
+| 467cbad | antibodies: AB-1@1.1 from the L3 rehearsal | 01M4QJPARSV6RVN5DZB4V2YQ4Z | 2/13 (11 tool-written: antibodies/AB-1/*, index.json, evidence JSON; A-1) |
+| e3c1bf3 | fix: Immunologist writes the recipe prior; record Stage 7 | 01M4QKMPEHYH0S21C0E4AYF50W | 3/3 |
+
+Stage 7 evidence: L3 rehearsal l3-20261012-074523 (evidence/rehearsals/l3-20261012-074523.json; antibodies/AB-1)
+- AB-1@1.0 synthesised from INC-R235459-0001 (winner e50387e). The motif matches before the fix and not after; the recipe was drafted by claude-opus-5-5.
+- Matured on crm-practice:
+  - G0–G6 passed (G4 b=6 c=0 p=0.0156); PR #7 opened as PR-only.
+  - Receptor precision 1.00 over 335 recorded runs → ACTIVE.
+- Backfill: 6 silent past occurrences, $12.
+- Disclosed L3 drill on Scout:
+  - The literal recipe was injected. The Auditor refused it (G2 0/3); it was merged anyway as PR #8.
+  - The canary SPRT rejected at n=38 (LLR 3.118).
+  - Revert PR #9 was committed through a notary (checkpoint 01M4QHYXS4HVEK486YRWE86TH8). The reverse canary accepted at n=70.
+  - pause_antibody went through the supervisor. QUARANTINED, with the receptor kept. "On hold" notice posted on PR #7.
+  - Trace-to-test: PR #10 with 6 seed-addressed cases.
+- Contrastive learning:
+  - Positives: ledger-practice@pre-fix, ledger@pre-fix, crm-practice. Negative: scout.
+  - Selected precondition: "a side-effecting callee inside the retried scope". Opus wrote the rationale; the Auditor's re-match held.
+  - AB-1@1.1 re-matured → ACTIVE. PR #7 got "Resumed". The 1.1 re-scan excludes Scout.
+- Cost: primary $0.665 vs vaccinations $0.089 and $0.104 (about 7× cheaper).
+- Runs 1 (l3-20261012-073800) and 3 (-080554) found defects, all fixed. Run 3 aborted when the API's usage-policy classifier refused the drill session ([bio], a false positive on Scout's corpus text). It was not worked around.
+
+## 2. Live state outside the repo
+
+- GitHub:
+  - PR #7 (crm maturation) and issue #6 stay OPEN by design (a foreign host gets a PR only).
+  - PRs #8, #9, #10 are merged into rehearsal/l3-20261012-074523/scout/main.
+  - PR #11 (run 3) and Stage 6's issue #4 are closed with explanations.
+  - Ruleset kintsugi-rehearsal-main (id 24898487) protects only the 3 listed Stage 6 rehearsal branches. main is NOT protected yet (T0 step). The Stage 7 drill branches are unprotected (A-66).
+- Rehearsal dirs (%USERPROFILE%\.kintsugi\rehearsals):
+  - Keep reh-20261011-235459 (origin case and repo), reh-20261011-232114 and l3-20261012-074523 (evidence).
+  - Deletable: reh-…-224903, -225031, -225239, l3-…-073800, l3-…-080554.
+- .state/senses: rehearsal history archived to .state/senses/archive/senses-stage4-rehearsal-20261012.sqlite. The live store keeps only watermarks and event ids (A-60).
+- Keys and tools:
+  - Rehearsal holdout identity: C:\Users\surya\.kintsugi\keys\holdout-rehearsal.agekey. The G7 secret HOLDOUT_AGE_IDENTITY = the rehearsal identity until T0 (A-26).
+  - gh at C:\Program Files\GitHub CLI. cloudflared at C:\Program Files (x86)\cloudflared\cloudflared.exe.
+  - .env holds the neatlogs tokens and GITHUB_TOKEN. Never print them.
+- Still open: A-38 (neatlogs alerting silent), A-39 (3–4% trace loss), the ingress webhook pointing at a dead quick-tunnel URL. Re-point with `kintsugi senses provision --public-url` once the tunnel runs.
+
+## 3. Amendment ledger
+
+Rulings:
+- D1 W/T0 decided at the Stage 8 go/no-go
+- D2 WSL2 + Docker + gVisor runtime
+- D3 monorepo
+- D4 sole identity Surya
+- D5 append-only ledger branch
+- D6 SQLite-WAL + Temporal
+- D7 ANTHROPIC_API_KEY capped at $20/day
+- D8 parallel lanes only with clean, verified commits
+- A-23 offline-first hosts
+
+A-1…A-58 (Stages 1–6), summarised:
+
+| Range | Subject |
+|---|---|
+| A-1 | Edit/Write lines are agent lines; tool-written files are human_added |
+| A-2 | JCS digest |
+| A-3 | Passphrase nonces and honeytokens |
+| A-4 | T0 key Architect-held |
+| A-5–A-9 | State machine, schemas, motif kinds |
+| A-10–A-22 | Graph adapters, gateway, snapshot 1.1, redactions; A-16 commits refuse changes not explained by Edit/Write; A-17 Kintsugi-Prompt; ref sync; model tiers |
+| A-24–A-27 | Chaos, sandbox, fleet, holdout custody |
+| A-28–A-39 | Senses; A-29 OAuth-only preview/replay; A-37 commit every edited file and verify files_touched; A-38/A-39 open |
+| A-40–A-46 | Control plane |
+| A-47–A-58 | Crew and gates. A-51 merge commits and explicit ruleset branches; A-52 delivery framing; A-53 G7 symptom criterion; A-55 decision rule; A-56 information flow; A-57 practice targets, S-17 never written in clear; A-58 fd102e6 gap |
+
+Stage 7:
+- A-59 CLI 2.1.296 runs claude-opus-5-5 natively (supersedes A-54).
+- A-60 .kintsugi/target.yaml for ledger/scout/triage, the fleet stress profile, SenseStore.archive.
+- A-61 the CRM practice host as the Clinic-A stand-in; background geo 2% rule appended; goldens crm_practice and ledger_practice_before; inferred method calls.
+- A-62 the Immunologist's matrix row; vaccination case files; recipe slots.
+- A-63 induced trigger: 30% 429s on the retried scope's services, 20 tasks × seeds 1–2, compared to the same seed without it; the G0 cassette is drawn from the pathogen's family.
+- A-64 receptor precision, backfill and canary H0 (Wilson upper bound) are Omega-side.
+- A-65 trace-to-test is seed-addressed cases under the eval_augment scope; reverts, eval-augment and drill deliveries are notary sessions.
+- A-66 L3 is a disclosed drill; a minor version carries its maturation evidence over.
+
+Next amendment: A-67.
+
+## 4. APIs for Stage 8
+
+Proof primitives (Stages 1–2):
+- proof/sealed.py: commitment, seal, verify_reveal, check_spec_shape, class_family, commitment_record, reveal_record, new_identity, encrypt_sealed, decrypt_sealed.
+- proof/ledger.py: genesis_hash(t0, pubkey), entry_hash, verify → VerifyReport, Ledger (from_jsonl, append, to_jsonl, entries).
+- proof/bundle.py: ProofBundle, bundle_sha256, write_bundle, read_bundle, attachment_manifest, verify_attachments.
+- proof/commit.py: orchestrator_commit, verify_commit → LinkageReport (C2–C5), check_c4, check_c5, why_agrees, first_user_prompt, strip_nonce.
+- proof/redaction.py: scan_refs, assert_pushable(repo, refs), honeytoken_hits (C6 positive control).
+- proof/attest.py: Ed25519Signer, SessionAttestation, verify_attestation, parse_trailers.
+- proof/schemas.py: E1–E6. proof/passphrase.py: new_nonce, new_honeytoken.
+
+Stubs Stage 8 fills:
+- OmegaCrew lacks do_seal_sabotage, do_deliver_sabotage, do_anchor_ledger. The SabotageCampaign and AuditAnchor workflows exist (Stage 5).
+- `kintsugi audit` CLI flags exist (code 2 = skipped).
+- The Makefile judge and audit targets exist.
+- FileLedger (crew/factory.py) is the file ledger to migrate to the ledger branch (D5).
+
+Stage 7 APIs:
+- memory/library.py: AntibodyLibrary.
+  - Methods: ids, load, ref("AB-1@1.0"), index, lineage, evidence, receptor_body, retrieve, save, transition, record, protect, unprotect.
+  - lineage.json events: synthesized, scan, induced-trigger, protected, state (from/to/why), receptor-precision, backfill, quarantine-notices, refined, plus refinements[]. This is C11's input.
+- gates/canary.py: baseline_p0, sprt_for, sample(record=), records, failing_runs, decide, summary (the SPRT path for bundles).
+- crew/notary.py: Notary.commit(worktree, NotaryRequest(operation, reference, incident, purpose, diff, subject, body, scopes, expected_tree), package_root=) → NotaryOutcome(sha, checkpoint_id, prompt_sha, session_id, cost_usd, paths, nonce).
+  - Pinned template notary.md. Use it for every orchestrator-decided commit, sabotage-log included.
+- control/revert.py: Reverter (revert, base_head, ship_commit), RevertConfig, revert_tree, regression_check.
+- control/ship.py: ShipConfig.pr_only and default_branch; GhCli.issue_close, pr_comment, pr_list_open.
+- crew/immunologist.py: Immunologist, History/Record, receptor_rule, receptor_body, score_receptor.
+- crew/factory.py: Immunity(...) → OmegaCrew(immunity=) with real antibody activities.
+- control/activities.py: ActivitySpec.per_workflow; activities canary_plan, mature_antibody, promote_antibody, revert_vaccination, refine_antibody.
+- workflows: patched markers canary-host-p0, antibody-lifecycle, l3-vaccination-canary, pause-forwards-to-wave. VaccinationWave.autoimmunity query. FleetSupervisor.resume_antibody.
+- casefile: immunologist row and antibodies column. protected_paths.yaml: eval_augment scope.
+- crew/l3.py and `kintsugi crew l3`.
+
+## 5. Turn-1 verification (lightweight: CI already verified e3c1bf3)
+
+~~~bash
+cd /c/myspace/hacckathons/kintsugi-omega && export ENTIRE_TEST_TTY=0 PATH="$PATH:/c/Program Files/GitHub CLI" && git fetch -q origin main && git status -sb && test "$(git rev-parse --short HEAD)" = e3c1bf3 && test "$(git rev-parse --short origin/main)" = e3c1bf3 && echo "HEAD OK" && gh run view 38224320360 --repo suryaprasanthcse/kintsugi-omega --json headSha,conclusion --jq '"\(.headSha[0:7]) \(.conclusion)"' && entire version | head -1 && entire graph version --json && claude --version && claude auth status | grep -E '"loggedIn"|subscriptionType' && uv run python -I -c "import temporalio; print('temporalio', temporalio.__version__)" && uv run python -I -c "from kintsugi.memory import entire; print(entire.sync_checkpoint_refs('.'))" && uv run python -I -c "from kintsugi.crew import templates; print('pins', templates.check_pins())"
+~~~
+
+Expected:
+- ## main...origin/main, HEAD OK, "e3c1bf3 success".
+- Entire CLI 0.11.4; v0.4.0; 2.1.296; loggedIn true, pro; temporalio 1.34.0; out_of_sync=(); pins [].
+
+Do NOT run local ruff, pyright or pytest at Turn 1: omega-ci verified this exact SHA. Then call get_usage and apply the quota thresholds in §7.
+
+## 6. Stage 8 scope: critical path to the go/no-go (target stop for new edits 17:30 IST)
+
+P0, go/no-go blockers, in this order:
+1. kintsugi/proof/audit.py plus the existing CLI: C1–C14, exit codes 0/1/2, --json, --offline.
+   - Offline checks: C1, C2–C5 (reuse verify_commit, check_c4, check_c5), C6 (verify_reveal plus honeytoken_hits), C11 (library lineage), C13 (holdout manifest against the T0 record), C14 (self_repair scope).
+   - Online checks, which exit 2 without access: C7 (Actions API), C8 (neatlogs traces), C9 (hits against the ledger), C10 (cost actuals), C12 (rulesets API).
+2. Mutation suite: each check passes on a clean fixture and fails on a tampered one.
+   - Ledger and signatures: reordered ledger, missing trailer, forged signature, missing nonce, prompt mismatch, honeytoken positive control.
+   - Cross-system: missing G7 run, unknown trace, unmatched hit, cost Δ over 1%, lineage gap, ruleset gap, changed holdout hash, touched self-repair path.
+3. The ledger on the unprotected append-only `ledger` branch (D5).
+   - Migrate FileLedger. Anchors are tags anchor-YYYYMMDD-HH carrying h_i and an Ed25519 signature.
+   - The anchor post text is produced by Omega and posted by the Architect.
+   - Record the entry and anchor format as A-67 before the first real entry.
+4. kintsugi/crew/saboteur.py:
+   - Appendix B catalog enums; deterministic realism rules; Haiku rubric ≥ 0.7 with a deterministic fallback.
+   - Seal with sealed.py; age-encrypted storage outside the repo; sabotage-log/<id>.json commitments committed through a Notary.
+   - Delivery prompt with A-52 framing, never containing the mechanism, ground truth or honeytoken. Fill seal_sabotage, deliver_sabotage, anchor_ledger.
+   - Dry-run sealing on a practice spec only. The real S-17/18/19 are sealed after the go/no-go, just before T0. S-17 is never written in clear into the fleet (A-57).
+5. `kintsugi t0 check`: a read-only §6.1 preflight. It prints the remaining Architect actions: T0 key, pubkey commit and post, holdout re-seal (A-26) and secret rotation, rulesets on main, genesis, background chaos on, WSL runtime with keep-awake, tunnel and webhook.
+
+P1, only if P0 is green before 16:45:
+- Per-incident proof bundles from case files (evidence/<INC>/bundle.json plus attachments).
+- `make judge` over published-bundles/.
+
+P2, not before T0: KMS signer, Arena compile path, CloudTrail.
+
+Go/no-go rule at 17:30 (present it; the Architect decides under D1):
+- GO, W = 60 min (T0 18:50–18:55): every offline check is caught by its mutation test, the online checks are honest 0 or 2, the sealing dry run works, and t0 check lists only Architect actions.
+- GO, W = 45 min (T0 ≤ 19:10): the same, but runtime gaps need more than 30 min.
+- NO-GO for W: any of C1–C6 not catching its mutation. Submit the Stage 6–7 rehearsal evidence audited by the working checks, and disclose.
+
+Also ask the Architect to decide:
+- Crew billing during W: the D7 API key, recommended if it exists; otherwise Pro quota with all interactive sessions idle.
+- Sealing before T0 (recommended).
+- The disclosed descoping of Stages 9–12 (strategy §5).
+
+## 7. Execution protocol (binding)
+
+Batching:
+- Batch independent Read/Grep/Glob and read-only Bash calls in ONE message.
+- Edits for one commit to DIFFERENT files may be batched. Never batch two edits to the same file, and never batch an edit with a commit.
+- Graph first (`entire graph search --repo . --profile full --query "…"`), then line ranges. Never read the spec or the plan whole.
+
+Background:
+- Run rehearsals, the full suite and CI with run_in_background, plus ONE Monitor or until-wait whose filter covers every terminal state: DONE|Traceback|Error:|FAILED|passed in|failed in. Never `until grep error`: pyright prints "0 errors".
+- While a job runs: read, design, or write outside the repo only.
+- Never commit while a background job writes into the working tree, and never start one with uncommitted edits.
+
+Commits (A-16, A-37):
+- Every tracked change goes through Edit or Write. Shell rewrites (sed, ruff --fix, ruff format) only on files Edit/Write also touched in the same commit.
+- Before the first edit of commit N+1, commit N with EVERY edited file, so `git status -s` is empty.
+- Commit with ENTIRE_TEST_TTY=0. Verify after every commit:
+~~~bash
+ID=$(git log -1 --format='%(trailers:key=Entire-Checkpoint,valueonly)'); git show-ref | grep -c "$ID"; uv run python -I -c "from kintsugi.memory import entire; import subprocess; t=set(entire.read_checkpoint('.', '$ID').metadata.get('files_touched') or []); d=set(subprocess.run(['git','show','--name-only','--format=','HEAD'],capture_output=True,text=True).stdout.split()); print('missing from files_touched:', sorted(d-t))"
+~~~
+- Acceptable "missing" entries: only declared tool-written files (A-1). Anything else: stop and fix.
+- After an involuntary turn end, the FIRST action of the next turn is to commit exactly the pending files.
+
+Lanes (D8):
+- One Claude session writes to the repo.
+- Rehearsals and the runtime write outside it; their artifacts enter only as declared copies (A-1).
+- The Architect's custody actions run in his own terminal. No subagents for writing.
+
+Tests (anti-redundancy):
+- Per commit: targeted tests only. Test modules of touched packages plus dependents found with `entire graph impact --repo . --symbol X`. Add tests/control when control/ changes; add real-eval crew/gates tests only when crew/, gates/ or fleet/ change.
+- Per stage: run the full suite (about 14 min) EXACTLY ONCE, in the background, on the final code HEAD that will be pushed. Later commits may only touch *.md that no test reads, or declared evidence.
+- After `git push`: watch omega-ci once with `gh run watch <id> --exit-status` in the background. NEVER re-run the full suite locally after the push.
+- Never re-run a passing gate or rehearsal to "confirm". Record every run, failures included, in docs/VERIFICATION.md.
+
+Push:
+- Secret-scan ONLY the refs being pushed: `redaction.assert_pushable('.', new_refs)`.
+- Never chain a ref sync after a failed scan with ';'.
+- `scan_refs('.')` over ALL refs reports 14 known false positives: the OpenSSH header literal in a Stage 1 test assertion, in refs public since Oct 11.
+
+Quota (get_usage at start, before every rehearsal, at every commit):
+- < 70%: proceed.
+- 70–85%: finish the current commit; start no rehearsal (crew calls share the quota).
+- ≥ 85%: commit, stop editing, write a resume note in memory, wait for the reset (17:50 IST, then about 22:50 IST).
+- Weekly ≥ 85%: escalate before any live rehearsal.
+
+Context: one stage per session. At stage end: refresh the memory file, emit the Stage 8 → 13 handoff, leave a clean tree, push, confirm CI is green.
+
+## 8. Effort tier
+
+- Session default: High.
+- Ultracode for: audit check semantics and the mutation design; the sealing and commitment format; the ledger-branch and anchor format and the genesis; the go/no-go analysis; root-causing any live failure.
+- Medium for: docs/VERIFICATION.md, amendments, the handoff, memory, git/push/CI housekeeping.
+
+## 9. Binding rules (unchanged)
+
+- D4 identity: never Co-authored-by.
+- Strict A-37 with files_touched verified after every commit.
+- Edit/Write for committed files. ENTIRE_TEST_TTY=0. Subprocesses only via kintsugi/sandbox/proc.py. Never print secrets.
+- Never write an S-17/18/19 mechanism in clear into the fleet (A-57).
+- Graph-first. Load the claude-api skill before Claude API code.
+- Workflow determinism, with changes behind workflow.patched.
+- Do not work around API usage-policy refusals; record them.
+
+Stage 7 (e3c1bf3) is approved. Run the Turn-1 verification, check get_usage, and proceed with Stage 8 on the critical path above. Stop new edits at 17:30 IST or 85% quota, then present the go/no-go.
+</pasted_content id="6138">
