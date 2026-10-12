@@ -44,6 +44,16 @@ def _build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--offline", metavar="BUNDLE_DIR", help="verify published bundles only")
     audit.add_argument("--json", action="store_true", help="machine-readable output")
 
+    t0 = sub.add_parser("t0", help="T0 preconditions (spec §6.1)")
+    t0_sub = t0.add_subparsers(dest="t0_command", required=True)
+    t0_check = t0_sub.add_parser("check", help="read-only preflight: what remains, and whose")
+    t0_check.add_argument("--github", default="suryaprasanthcse/kintsugi-omega")
+    t0_check.add_argument(
+        "--rehearsal-identity", type=Path,
+        default=Path.home() / ".kintsugi" / "keys" / "holdout-rehearsal.agekey",
+    )  # fmt: skip
+    t0_check.add_argument("--json", action="store_true")
+
     sub.add_parser("demo", help="run the recorded demo scenario")
 
     fleet = sub.add_parser("fleet", help="the host fleet: baselines, start, stop")
@@ -214,6 +224,22 @@ def _audit(args: argparse.Namespace) -> int:
     report = audit.run_audit(repo, offline=offline, selection=selection, online=online)
     print(json.dumps(report.as_json(), indent=2) if args.json else report.render())
     return report.exit_code
+
+
+def _t0_check(args: argparse.Namespace) -> int:
+    from kintsugi.control import preflight
+    from kintsugi.control.ship import GhCli, ShipError
+    from kintsugi.fleet.fabric import load_dotenv
+
+    repo = _repo()
+    gh_api = None
+    with contextlib.suppress(ShipError):
+        gh = GhCli(args.github, token=load_dotenv(repo / ".env").get("GITHUB_TOKEN"))
+        gh_api = lambda path: gh.api("GET", path)  # noqa: E731
+    items = preflight.check(repo, github_repo=args.github, gh_api=gh_api,
+                            rehearsal_identity=args.rehearsal_identity)  # fmt: skip
+    print(preflight.as_json(items) if args.json else preflight.render(items))
+    return EXIT_OK if all(i.done for i in items) else EXIT_FAIL
 
 
 def _crew_rehearse(args: argparse.Namespace) -> int:
@@ -580,6 +606,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _fleet_up(args) if args.fleet_command == "up" else _fleet_down()
     if args.command == "audit":
         return _audit(args)
+    if args.command == "t0":
+        return _t0_check(args)
 
     stage = _PENDING[args.command]
     print(f"kintsugi {args.command}: not built yet — arrives in {stage}. No checks were run.")
