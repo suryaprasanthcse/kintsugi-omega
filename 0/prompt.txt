@@ -1,0 +1,65 @@
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>RUN l3-20261012-074523</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>[l3-20261012-074523] AB-1@1.0 CANDIDATE: binding {'R': 'retry_with_backoff', 'Enc': 'reconcile', 'F': 'book_pending_lines', 'S': 'PostingSession'}</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>maturation of AB-1@1.0 (CrossHostMaturation)</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>maturation: StepResult(name='mature', ok=True, detail={'host': 'crm-practice', 'reason': 'G0?G6 pass; pull request opened', 'state': 'ACTIVE', 'version': '1.0'})
+backfill: 6 silent past occurrences, $12.0
+vaccination wave with AB-1@1.0</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>[drill] induced trigger on scout: produced_failure=True {'FAIL:RATE_LIMITED': 6}</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>[drill] Auditor on the injected vaccination: passed=False (G2: cassette passes 0/3; G4: skipped: a cheaper gate failed)</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b38co7wtx</task-id>
+<tool-use-id>toolu_013nQHB29VyfKFP4LpZKphYx</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\a74e4ba3-be21-467c-825f-9bf6bf6160d1\tasks\b38co7wtx.output</output-file>
+<status>completed</status>
+<summary>Background command "Re-run the live L3 rehearsal" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bxu8body2</task-id>
+<summary>Monitor event: "L3 rehearsal (run 2) milestones and errors"</summary>
+<event>DONE AB-1@1.1 ACTIVE</event>
+</task-notification>
