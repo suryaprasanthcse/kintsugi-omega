@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -313,6 +313,33 @@ def test_refinement_learns_the_side_effect_precondition(world: dict[str, Any]) -
     again = imm.promote("AB-1", "crm-practice", why="re-matured: v1.1 binds crm-practice")
     assert again.state is AntibodyState.ACTIVE
     assert again.lineage.versions == ["1.0", "1.1"]
+
+
+def test_a_recurrence_is_a_secondary_response_with_the_recipe_as_prior(
+    world: dict[str, Any],
+) -> None:
+    from kintsugi.control import contracts as c
+    from kintsugi.control.activities import StepContext
+    from kintsugi.crew.factory import Immunity, OmegaCrew
+
+    imm, ctx = world["imm"], world["ctx"]
+    crew = OmegaCrew(ctx, runner=lambda: cast(Any, None), immunity=Immunity(imm))
+    step = StepContext("match_antibody", "key", 1, lambda *args: None)
+    fields = imm.library.load("AB-1").signature.fields
+    for incident in ("INC-R1-0002", "INC-R1-0003"):
+        ctx.case(incident).put("signature", "phi", {"phi": "sha256:phi-1", "fields": fields},
+                               by="pathologist")  # fmt: skip
+    # The same pathogen recurs on a host that carries the motif: recipe-first (§3.5.2).
+    match = crew.do_match_antibody(step, c.Signature("INC-R1-0002", "crm-practice",
+                                                      "sha256:phi-1", ("t9",)))  # fmt: skip
+    assert match is not None
+    assert (match.antibody_id, match.version) == ("AB-1", "1.1")
+    prior = ctx.case("INC-R1-0002").reader("coordinator").get("prior", "antibody")
+    assert "SyncSession" in prior["recipe"]
+    assert "{S}" not in prior["recipe"]
+    # φ matches but the host's code lacks the (refined) motif: a primary response (§5.8.3 step 3).
+    assert crew.do_match_antibody(step, c.Signature("INC-R1-0003", "scout", "sha256:phi-1",
+                                                    ())) is None  # fmt: skip
 
 
 def test_receptor_scores_count_unexplained_flags_as_false_positives() -> None:

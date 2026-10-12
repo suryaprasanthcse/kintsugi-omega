@@ -99,7 +99,9 @@ WRITES: Mapping[str, frozenset[str]] = {
     "auditor": frozenset({"verdicts", "feedback"}),
     "governor": frozenset({"budget"}),
     "shipper": frozenset({"verdicts"}),
-    "immunologist": frozenset({"traces", "summary", "intent", "cards", "budget", "antibodies"}),
+    "immunologist": frozenset(
+        {"traces", "summary", "intent", "cards", "budget", "prior", "antibodies"}
+    ),  # "prior": a secondary response's recipe, rendered on the host's binding
 }
 
 

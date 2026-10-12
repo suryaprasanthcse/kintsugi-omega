@@ -3,6 +3,106 @@
 Each stage's verification targets (from `docs/EXECUTION_PLAN.md` §4) with the result and the
 evidence that reproduces it. Numbers are copied from committed artifacts or from the named test.
 
+## Stage 7 — Canary, antibodies, motif engine, vaccination, quarantine (L3)
+
+Recorded 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, the headless
+Claude Code CLI **2.1.296** (the Opus roles on `claude-opus-5-5` natively, A-59), temporalio
+1.34.0 (Temporal CLI 1.9.1 dev server in the rehearsals) and GitHub. Deviations: amendments A-59
+to A-66.
+
+### The L3 rehearsal (`kintsugi crew l3`, disposable hosts, disclosed drill, A-61, A-66)
+
+AB-1 is synthesised from the Stage 6 incident that resolved (`INC-R235459-0001`, winner
+`e50387e`), matured on the CRM practice host (the Clinic stand-in), and sent through a
+`VaccinationWave` under a `FleetSupervisor`. On Scout the drill injects the recipe's literal
+application past the gates; everything after that merge is Omega's own response. Every run:
+
+| Run | What happened | Outcome |
+|---|---|---|
+| `l3-20261012-073800` | AB-1@1.0 synthesised on the real graphs. Maturation failed on both hosts: the CRM vaccination's G0 cassette mixed duplicate failures with retry-exhaustion runs (cassette misses after any fix: G2 0/3), and the standalone Scout copy ran ruff with default rules (G1). The natural recipe session on Scout also failed G2 (its 28-line hoist-and-resume made requests the trigger never recorded). | CANDIDATE; fixed in `010bdb6` |
+| `l3-20261012-074523` | **Complete** (below). One defect: the wave re-vaccinated the CRM host it had just matured on (a fleet scan cached across workflows; harmless here, PR #7 reused). | AB-1@1.1 ACTIVE; fixed in `9caab82` |
+| `l3-20261012-080554` | Matured and backfilled as run 2, then the API refused the drill's delivery session (a usage-policy classifier flag on Scout's corpus text, after the edit was applied); the activity retry met the stale worktree. Not worked around. | aborted; retry fixed in `467cbad`; PR #11 closed |
+
+`l3-20261012-074523` (`evidence/rehearsals/l3-20261012-074523.json`, `antibodies/AB-1`), 962 s:
+
+1. **Synthesis** (§6.5 step 12): motif `state-reset-on-retry` binds `R=retry_with_backoff,
+   Enc=reconcile, F=book_pending_lines, S=PostingSession` on the origin's graph before the fix
+   and not after it. Recipe drafted by `claude-opus-5-5` with `{S} {F} {R} {Enc} {intent}` slots.
+   Receptor `^"?FAIL:DUPLICATE_` on `grader.verdict` (precision preview 0.967: the CRM host's
+   duplicates were still unexplained).
+2. **Maturation** (step 13) on `crm-practice`: the induced trigger (30% 429s on `geo`) failed
+   12 runs (7 `DUPLICATE_CONTACT`, 5 `RATE_LIMITED`), the G0 cassette failed 3/3; a Sonnet
+   Surgeon applied the recipe in 3 lines (checkpoint `01M4QH8JS6VN66N9CJ4GPTZ413`); the blind
+   Auditor passed **G0–G6** (G4: b=6, c=0, p=0.0156, pass 0.95 → 1.00, cost UB −0.8%, p95 UB
+   −0.2%); [PR #7](https://github.com/suryaprasanthcse/kintsugi-omega/pull/7) opened, never
+   merged. CANDIDATE → MATURED → ACTIVE on receptor precision **1.00 over 335 recorded runs**.
+3. **Backfill**: **6 silent past occurrences** on the CRM host's baseline runs, $12.00 impact
+   (Omega-side retro scan, A-64).
+4. **Wave** (step 14): the scan matched Scout; Scout fails the induced trigger too (6
+   `RATE_LIMITED`: each retry restarts at page one), so the rule admits it (A-63).
+5. **Drill**: a notary session delivered the literal recipe (`ScratchBuffer` hoisted, the loop
+   unchanged). The Auditor **refused it** (G2 0/3); the drill merged it anyway as
+   [PR #8](https://github.com/suryaprasanthcse/kintsugi-omega/pull/8).
+6. **L3, unscripted** (§6.7): Scout's canary against Scout's own H0 (p0 0.031) **rejected at
+   n=38, LLR 3.118**; the Reverter's notary committed exactly `git revert -m 1` (checkpoint
+   `01M4QHYXS4HVEK486YRWE86TH8`), expedited G1 and G2 (6 canary failures replayed, all pass),
+   [PR #9](https://github.com/suryaprasanthcse/kintsugi-omega/pull/9) merged; the **reverse
+   canary accepted at n=70** (LLR −2.276); `pause_antibody` reached the wave through the
+   supervisor; AB-1 → **QUARANTINED** with its receptor kept; PR #7 received the "On hold"
+   notice; trace-to-test committed 6 seed-addressed cases
+   ([PR #10](https://github.com/suryaprasanthcse/kintsugi-omega/pull/10), checkpoint
+   `01M4QJ1G61A0DQ5S3HT8WTW8MX`); contrastive learning over `ledger-practice@pre-fix`,
+   `ledger@pre-fix` and `crm-practice` against Scout selected **"a side-effecting callee inside
+   the retried scope"** (the other three candidates each fail on `ledger@pre-fix`), Opus wrote
+   the rationale, the Auditor's re-match held; **AB-1@1.1** re-matured on the CRM host →
+   ACTIVE, PR #7 told it resumed, and the wave's 1.1 re-scan **excluded Scout**.
+
+### Targets
+
+| Target | Result | Evidence |
+|---|---|---|
+| Motif validation: matches before the fix, not after, precision ≥ 0.9 | Before ✓, after ✗ on the origin's real graphs; the 1.0 scan's matches (CRM, Scout) both fail the induced trigger, so the admission precision is 2/2; 1.1 keeps 3/3 positives and excludes Scout | `evidence.json` `motif_validation`; `tests/memory/test_motif_positives.py`, `test_contrastive.py`, `test_antibody_library_ab1.py` |
+| Induced-trigger rule | CRM: 12 induced failures, G0 3/3; Scout: 6 (`RATE_LIMITED`); a host without a failure is never vaccinated | lineage `induced-trigger` events; `tests/crew/test_immunologist.py` |
+| Receptor precision ≥ 0.9 | 1.00 on 335 recorded runs (Omega-side, A-29/A-64) | lineage `receptor-precision`; `test_scan_backfill_and_promotion` |
+| A backfill completes | 6 silent occurrences, $12.00 | `evidence.json` `backfill` |
+| L3: canary reject → revert PR → reverse canary → `pause_antibody` → PR notices → QUARANTINED, receptor active | All, in that order (n=38 reject; PR #9; n=70 accept; PR #7 comments) | `evidence.json` `autoimmunity`; `test_an_autoimmune_vaccination_is_reverted_quarantined_refined_and_the_wave_resumes`, `test_a_paused_antibody_reaches_its_running_wave_through_the_supervisor` |
+| Contrastive learner separates 3 positives from Scout; 1.1 excludes Scout | Yes; selected `side_effect_in_scope` | `refinements[0]` in `antibodies/AB-1/lineage.json` |
+| Consistent lineage | Versions 1.0 → 1.1, one quarantine, every state move CANDIDATE → MATURED → ACTIVE → QUARANTINED → ACTIVE logged with its reason; 1.0 stays resolvable | `test_ab1_is_active_at_1_1_with_its_history` |
+| Secondary responses far cheaper than primary | Primary (diagnosis, three Surgeons, gates) $0.665; vaccinations $0.089 (CRM) and $0.104 (Scout drill): about 7× cheaper | `evidence.json` `costs` |
+| Canary H0 per host | Wilson 95% upper bound of the recorded train failure rate: ledger 0.0158, scout 0.031, triage 0.0972 | `tests/gates/test_canary.py` |
+
+### Invariants and proof
+
+- **I1**: the injected drill merge is the only change that bypassed G0–G6, on an unprotected
+  rehearsal branch, disclosed (A-66) and recorded with the Auditor's refusal; every other
+  change (the CRM vaccination, the revert, the eval-augment) passed its gates.
+- **C4**: every rehearsal commit is attested and checkpointed: Surgeon, notary revert, notary
+  eval-augment and the drill delivery; a revert whose tree differs from git's is refused
+  (`test_a_notary_that_changes_anything_else_is_refused`).
+- **I5**: trace-to-test uses train tasks only; the `eval_augment` scope forbids code, tests,
+  graders and the holdout (`test_eval_augment_adds_regression_data_only`).
+- **§5.7 matrix**: the Immunologist cannot read Surgeon reasoning
+  (`test_the_immunologist_never_reads_surgeon_reasoning`).
+- Suite on `467cbad`: `ruff`, `ruff format --check`, `pyright` and the prompt pins clean;
+  `pytest -q` **786 passed, 30 skipped** in 14:05 (the 30 are contract tests; this stage's
+  graph goldens and AB-1's behaviour were verified live). The secondary-response test added
+  afterwards caught a real defect (the Immunologist could not write the recipe prior) and
+  passes with its fix.
+
+### Known limits carried forward
+
+- L3 is a disclosed drill: in this fleet the gates refuse the wrong vaccination (A-66).
+- The CRM practice host stands in for Clinic-A until Stage 10 onboards real Clinic/OSS hosts.
+- The incident-path secondary response (`match_antibody` → the recipe as the Coordinator's
+  prior) is covered by a unit test, not yet by a live rehearsal.
+- AB-1's receptor is drafted (`receptor.json`), not created in the neatlogs project; its
+  precision and backfill are Omega-side (A-29, A-64). The semantic retrieval is deterministic
+  over signature fields, not neatlogs' semantic search.
+- Scout's own weakness (retries that restart at page one exhaust the budget) is a separate
+  pathogen class, not yet opened as an incident.
+- Rehearsal drill branches run no G7 and no ruleset (the G7 path was proven in Stage 6).
+- Issue #6 and PR #7 stay open: a foreign host's vaccination is a pull request only.
+
 ## Stage 6 — Crew, primary incident loop, gates G0–G7, ship (L0, L1, L4)
 
 Recorded 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, the headless
