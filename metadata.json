@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QRAX1GE0ZCZ9R13SC2AZ0T",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/EXECUTION_PLAN.md",
+    "kintsugi/crew/factory.py",
+    "kintsugi/proof/ledger_branch.py",
+    "tests/proof/test_ledger_branch.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34,
+    "cache_creation_tokens": 25359,
+    "cache_read_tokens": 3884555,
+    "output_tokens": 16497,
+    "api_call_count": 17
+  }
+}
