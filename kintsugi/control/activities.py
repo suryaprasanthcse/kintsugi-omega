@@ -72,6 +72,10 @@ class ActivitySpec:
     non_retryable: tuple[str, ...]
     task_queue: str
     key: Callable[..., tuple[Any, ...]]
+    # The answer depends on when it is asked, not only on the arguments (a fleet scan: hosts
+    # get protected between a maturation and a wave), so one run's retries may reuse it but
+    # another workflow must not: the key carries the calling workflow's id.
+    per_workflow: bool = False
 
     def retry_policy(self) -> RetryPolicy:
         return RetryPolicy(
@@ -82,8 +86,11 @@ class ActivitySpec:
             non_retryable_error_types=list(self.non_retryable),
         )
 
-    def idempotency_key(self, *args: Any) -> str:
-        return f"{self.name}:{_digest(self.key(*args))}"
+    def idempotency_key(self, *args: Any, workflow_id: str | None = None) -> str:
+        parts = self.key(*args)
+        if self.per_workflow:
+            parts = (*parts, workflow_id or "")
+        return f"{self.name}:{_digest(parts)}"
 
 
 def _digest(parts: tuple[Any, ...]) -> str:
@@ -180,7 +187,7 @@ _TABLE: tuple[ActivitySpec, ...] = (
     ActivitySpec("apply_antibody", 45 * M, 60 * S, 2, ("ProtectedPathViolation",), SURGEON,
                  lambda ab, host: (ab.antibody_id, ab.version, host)),
     ActivitySpec("motif_scan", 10 * M, None, 3, (), CREW,
-                 lambda ab: (ab.antibody_id, ab.version, "scan")),
+                 lambda ab: (ab.antibody_id, ab.version, "scan"), per_workflow=True),
     ActivitySpec("onboard_step", 30 * M, 60 * S, 3, (), CREW,
                  lambda host, step: (host, step)),
     ActivitySpec("seal_sabotage", 5 * M, None, 3, (), CREW,
@@ -316,11 +323,11 @@ class OmegaActivities:
 
     async def _run(self, name: str, result_type: Any, *args: Any) -> Any:
         spec = SPECS[name]
-        key = spec.idempotency_key(*args)
+        info = activity.info()
+        key = spec.idempotency_key(*args, workflow_id=info.workflow_id)
         recorded = self.ledger.get(key)
         if recorded is not None:
             return decode(recorded, result_type)
-        info = activity.info()
         ctx = StepContext(name, key, info.attempt, activity.heartbeat)
         try:
             if spec.heartbeat is None:

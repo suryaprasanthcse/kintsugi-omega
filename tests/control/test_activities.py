@@ -83,6 +83,16 @@ def test_idempotency_keys_follow_the_spec_table() -> None:
     assert a.SPECS["reproduce"].idempotency_key(SIG) != a.SPECS["reproduce"].idempotency_key(
         reentered
     )
+    # A fleet scan's answer changes as hosts get protected: the maturation's scan must not be
+    # served to the wave (found by the Stage 7 rehearsal l3-20261012-074523).
+    scan, ab = a.SPECS["motif_scan"], c.AntibodyRef("AB-1", "1.0")
+    assert scan.idempotency_key(ab, workflow_id="mature-AB-1") == scan.idempotency_key(
+        ab, workflow_id="mature-AB-1"
+    )
+    assert scan.idempotency_key(ab, workflow_id="mature-AB-1") != scan.idempotency_key(
+        ab, workflow_id="vaccinate-AB-1"
+    )
+    assert a.SPECS["surgeon"].idempotency_key(CARD, workflow_id="x") == spec.idempotency_key(CARD)
 
 
 def test_a_replayed_step_returns_its_recorded_result_without_redoing_it() -> None:

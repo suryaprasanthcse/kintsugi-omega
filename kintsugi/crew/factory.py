@@ -409,6 +409,9 @@ class OmegaCrew:
             return c.VaccinationResult(ab.antibody_id, host, False, "no such antibody")
         if found.state is not AntibodyState.ACTIVE:  # a paused or quarantined recipe stops
             return c.VaccinationResult(ab.antibody_id, host, False, f"{found.ref} is {found.state}")
+        current = self.immunity.library.load(found.id)  # protection is current, not pinned
+        if host in current.lineage.hosts_protected:
+            return c.VaccinationResult(ab.antibody_id, host, False, f"already carries {found.id}")
         applier = self.immunity.appliers.get(host)
         if applier is not None:
             return applier(self, step, found, host)
