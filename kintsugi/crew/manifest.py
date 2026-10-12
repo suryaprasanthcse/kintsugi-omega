@@ -25,6 +25,7 @@ BUDGETS: dict[str, int] = {
     "coordinator": 24_000,
     "surgeon": 40_000,
     "auditor": 24_000,
+    "immunologist": 24_000,
 }
 TRUNCATED = "\n[... truncated to fit the context budget ...]\n"
 

@@ -27,6 +27,7 @@ The matrix columns, as artifact classes:
 ``verdicts``        full gate evidence, decisions, dispute protocols, L4 re-verification
 ``feedback``        aggregate gate feedback (what Surgeons may see)
 ``prior``           a Fixes investigation or an antibody recipe
+``antibodies``      what the Immunologist synthesised, applied or quarantined for this case
 ==================  =========================================================================
 """
 
@@ -63,6 +64,7 @@ KINDS: Mapping[str, str] = {
     "reverify": "verdicts",
     "feedback": "feedback",
     "prior": "prior",
+    "antibody": "antibodies",
 }
 
 # Spec §5.7 information-flow matrix (rows: roles; values: readable artifact classes). The
@@ -70,6 +72,12 @@ KINDS: Mapping[str, str] = {
 # governor reads the incident opening for its VaR estimate (§4.6.2), never code or verdicts.
 _COORDINATOR = {"summary", "intent", "budget", "cards", "verdicts", "feedback", "prior"}
 _AUDITOR = {"traces", "summary", "source", "intent", "cards", "diffs", "verdicts"}
+# §5.7: the Immunologist sees failing traces, source, intent, diffs, verdicts and the budget
+# (plus the cards and priors those reference), never holdout tasks or Surgeon reasoning. It
+# assembles a vaccination's case file itself, because a secondary response has no Pathologist,
+# Archivist or Coordinator pass: the trigger cassette, the card from the recipe, the plan.
+_IMMUNOLOGIST = {"traces", "summary", "source", "intent", "cards", "diffs", "verdicts", "budget",
+                 "prior", "antibodies"}  # fmt: skip
 READS: Mapping[str, frozenset[str]] = {
     "sentinel": frozenset({"hits"}),
     "pathologist": frozenset({"hits", "traces", "summary"}),
@@ -79,6 +87,7 @@ READS: Mapping[str, frozenset[str]] = {
     "auditor": frozenset(_AUDITOR),
     "governor": frozenset({"budget", "summary", "hits"}),
     "shipper": frozenset({"summary", "intent", "budget", "cards", "diffs", "verdicts"}),
+    "immunologist": frozenset(_IMMUNOLOGIST),
 }
 
 WRITES: Mapping[str, frozenset[str]] = {
@@ -90,6 +99,7 @@ WRITES: Mapping[str, frozenset[str]] = {
     "auditor": frozenset({"verdicts", "feedback"}),
     "governor": frozenset({"budget"}),
     "shipper": frozenset({"verdicts"}),
+    "immunologist": frozenset({"traces", "summary", "intent", "cards", "budget", "antibodies"}),
 }
 
 
