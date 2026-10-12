@@ -1,0 +1,66 @@
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>RUN l3-20261012-073800
+[l3-20261012-073800] preparing the CRM practice host and a Scout copy</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>[l3-20261012-073800] published rehearsal/l3-20261012-073800/crm/main</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>[l3-20261012-073800] published rehearsal/l3-20261012-073800/scout/main
+[l3-20261012-073800] recording history (Stage 6 observations, CRM and Scout baselines)</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>[l3-20261012-073800] synthesising the antibody from INC-R235459-0001</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>[l3-20261012-073800] AB-1@1.0 CANDIDATE: binding {'R': 'retry_with_backoff', 'Enc': 'reconcile', 'F': 'book_pending_lines', 'S': 'PostingSession'}</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>maturation of AB-1@1.0 (CrossHostMaturation)</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b76w562re</task-id>
+<tool-use-id>toolu_01DFGYJhPprpNs4cduf3Nsjv</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\a74e4ba3-be21-467c-825f-9bf6bf6160d1\tasks\b76w562re.output</output-file>
+<status>completed</status>
+<summary>Background command "Run the live L3 rehearsal in the background" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>maturation: StepResult(name='mature', ok=False, detail={'reason': 'no second host matured', 'tried': {'crm-practice': 'gates: G2: cassette passes 0/3; G4: skipped: a cheaper gate failed', 'scout': 'gates: G1: `python.exe -m ruff check` exited 1; G2: cassette passes 0/3; G4: skipped: a cheaper gate failed'}})
+DONE AB-1@1.0 CANDIDATE</event>
+</task-notification>
