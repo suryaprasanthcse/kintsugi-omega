@@ -111,6 +111,8 @@ KINTSUGI-Ω is built and operated with AI tooling, disclosed here for #neatHack:
 - **Entire** (with the `entire-graph` plugin) records every AI session as a checkpoint and maps the code graph.
 - **cfo.ai** models the unit economics and the business plan.
 
+Licensed under the [MIT License](LICENSE).
+
 AI involvement is tracked per commit, not hidden. Each AI-made commit carries an `Entire-Checkpoint:` trailer that links it to the full session transcript (`entire checkpoint explain <id>`, `entire why <file>:<line>`). Autonomous repairs also carry signed `Kintsugi-*` trailers.
 
 #neatHack
