@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QS4028Z1NPCGW09SMPM8YC",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/EXECUTION_PLAN.md",
+    "kintsugi/crew/saboteur.py",
+    "tests/crew/test_saboteur.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 20,
+    "cache_creation_tokens": 22114,
+    "cache_read_tokens": 3034013,
+    "output_tokens": 18555,
+    "api_call_count": 10
+  }
+}
