@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QRWAK0WAB9DYXFDDCABS2W",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/cli.py",
+    "kintsugi/control/genesis.py",
+    "kintsugi/proof/audit.py",
+    "tests/control/test_genesis.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 25356,
+    "cache_read_tokens": 3593993,
+    "output_tokens": 14994,
+    "api_call_count": 13
+  }
+}

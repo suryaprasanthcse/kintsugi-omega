@@ -1,0 +1,13 @@
+<pasted_content id="6138">
+Proceed with Option (b) now — raise the quota stop threshold from 85% to 95% so we do not let the remaining 18% quota expire unused before the 17:50 IST reset.
+
+Architect decisions locked:
+1. Stages 9–12 disclosed descoping: APPROVED per `STAGE_8_13_EXECUTION_STRATEGY.md` §5.
+2. Sealing before T0: APPROVED (practice dry-run now; real S-17/18/19 sealed right before T0).
+3. Crew billing during W: We will run W right after the 17:50 IST quota reset when the 5-hour Pro window resets to 100% fresh (with all interactive sessions completely idle), plus D7 key if configured.
+
+Execute the remaining Stage 8 critical path in tight, atomic commits so no turn risks an uncommitted cutoff:
+1. Implement and commit the `t0 genesis` / `.kintsugi/window.json` command and `kintsugi/crew/saboteur.py` (Appendix B catalog enums, deterministic realism rules + fallback rubric so zero headless LLM quota is burned during unit tests, `sealed.py` age encryption, Notary commitments to `sabotage-log/<id>.json`, A-52 delivery framing, and `seal_sabotage` / `deliver_sabotage` / `anchor_ledger` wiring) + dry-run sealing on a practice spec. Commit immediately and verify `files_touched`.
+2. Once committed, if quota is <= 94%, run the once-per-stage full pytest suite in the background, write the Stage 8 section of `docs/VERIFICATION.md`, push `main` + checkpoint refs, and verify `omega-ci`.
+3. Output the exact copy-paste terminal commands I should run in my own terminal before 17:50 IST to complete the Architect custody prep (generating the T0 key, re-sealing the holdout identity, starting WSL runtime + keep-awake, and cloudflared tunnel), noting which steps must wait until after your Stage 8 push lands.
+</pasted_content id="6138">
