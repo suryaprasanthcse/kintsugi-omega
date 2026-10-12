@@ -1,0 +1,7 @@
+<task-notification>
+<task-id>b0p6j914b</task-id>
+<tool-use-id>toolu_01PzwjqxEUstsrsZgEuguhYF</tool-use-id>
+<output-file>C:\Users\surya\AppData\Local\Temp\claude\C--myspace-hacckathons-kintsugi-omega\a74e4ba3-be21-467c-825f-9bf6bf6160d1\tasks\b0p6j914b.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for incident-loop test output" completed (exit code 0)</summary>
+</task-notification>
