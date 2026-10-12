@@ -20,6 +20,7 @@ from typing import Any, Protocol
 from kintsugi.control import contracts as c
 from kintsugi.crew.casefile import CaseFile
 from kintsugi.crew.llm import Model
+from kintsugi.gates.canary import BASELINES
 from kintsugi.gates.target import Target
 from kintsugi.senses.detections import Binding
 from kintsugi.senses.signature import FailureObservation, from_trace
@@ -111,6 +112,16 @@ class IncidentIndex:
             )
             return incident
 
+    def register(self, incident: str, host: str, receptor: str) -> str:
+        """An incident whose id is not sequential (a vaccination ``VAC-…``, an L3 revert):
+        recorded so its steps can find their host. Idempotent."""
+        with self._lock, self._db() as db:
+            db.execute(
+                "INSERT OR IGNORE INTO incidents VALUES (?, ?, ?, ?, NULL)",
+                (incident, host, receptor, time.time()),
+            )
+        return incident
+
     def host_of(self, incident: str) -> str | None:
         with self._db() as db:
             row = db.execute("SELECT host FROM incidents WHERE id = ?", (incident,)).fetchone()
@@ -131,6 +142,7 @@ class CrewContext:
     models: Mapping[str, str] = field(default_factory=dict)  # role → model id override
     clock: Callable[[], float] = time.time
     g4_seeds: tuple[int, ...] = (1, 2, 3)  # holdout × seeds = the paired sample (§5.12)
+    baselines: Path = BASELINES  # recorded host baselines: the canary's H0 (gates.canary)
 
     def case(self, incident: str) -> CaseFile:
         return CaseFile(self.state / "cases", incident)

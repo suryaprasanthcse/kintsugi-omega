@@ -118,6 +118,8 @@ def crew_for(s: Scenario) -> ScriptedCrew:
         "fixes_resolve": lambda sig, shipment: None,
         "ledger_append": lambda entry: "ledger-hash",
         "canary_sample": canary,
+        "canary_plan": lambda shipment: c.CanaryPlan("ledger", FAST.canary_p0, FAST.canary_ratio,
+                                                     "scripted: the control plane's default"),
         "apply_antibody": lambda ab, host: c.VaccinationResult(ab.antibody_id, host, True),
         "motif_scan": lambda ab: ["ledger", "scout", "triage"],
         "onboard_step": lambda host, step: c.StepResult(step, step != "O5" or host != "broken"),

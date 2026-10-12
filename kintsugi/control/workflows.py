@@ -39,6 +39,7 @@ with workflow.unsafe.imports_passed_through():
 S = IncidentState
 SEEN_HIT_MEMORY = 5000  # hit keys remembered across continue_as_new (the store dedupes for good)
 L4_REVERIFY_WINNER = "l4-reverify-winner"  # Stage 6: drift before shipping re-checks the winner
+CANARY_HOST_P0 = "canary-host-p0"  # Stage 7: the canary's H0 comes from the host's baseline
 
 
 async def act(name: str, *args: Any, config: c.ControlConfig, result_type: Any = None) -> Any:
@@ -271,7 +272,11 @@ class Incident:
 class Canary:
     @workflow.run
     async def run(self, shipment: c.Shipment, config: c.ControlConfig) -> c.CanaryResult:
-        sprt = SPRT.regression(config.canary_p0, ratio=config.canary_ratio)
+        p0, ratio = config.canary_p0, config.canary_ratio
+        if workflow.patched(CANARY_HOST_P0):  # Stage 7: H0 is the host's own baseline (§5.12)
+            plan = await act("canary_plan", shipment, config=config, result_type=c.CanaryPlan)
+            p0, ratio = plan.p0, plan.ratio
+        sprt = SPRT.regression(p0, ratio=ratio)
         llr, samples = 0.0, 0
         for batch in range(config.canary_max_batches):
             if batch:

@@ -180,6 +180,22 @@ def test_the_canary_runs_the_sprt_with_durable_timers() -> None:
     assert skipped >= timedelta(seconds=FAST.canary_interval_s)  # a timer, skipped not slept
 
 
+def test_the_canary_tests_against_the_hosts_own_baseline() -> None:
+    # Stage 7 (canary-host-p0): H0 is the shipment's host's baseline, not a fleet constant.
+    async def scenario() -> c.CanaryResult:
+        crew = crew_for(Scenario())
+        crew.answers["canary_plan"] = lambda shipment: c.CanaryPlan("scout", 0.031, 2.0, "test")
+        ship = c.Shipment("VAC-AB-1-scout", "AB-1@1.0", "b", "pr", True, True, "m")
+        async with temporal(crew) as (_env, client):
+            return await client.execute_workflow(Canary.run, args=[ship, FAST], id="can-p0",
+                                                 task_queue=CREW)  # fmt: skip
+
+    result = run(scenario())
+    assert result.accepted
+    assert result.samples == SPRT.regression(0.031).runs_to_accept_without_failures()
+    assert result.samples != SPRT.regression(FAST.canary_p0).runs_to_accept_without_failures()
+
+
 # --------------------------------------------------------------------------- supervisor
 
 

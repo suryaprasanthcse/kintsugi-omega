@@ -34,8 +34,7 @@ from kintsugi.crew.context import CrewContext
 from kintsugi.crew.coordinator import Coordinator
 from kintsugi.crew.pathologist import Pathologist
 from kintsugi.crew.sentinel import Sentinel
-from kintsugi.gates.checkout import clean_checkout
-from kintsugi.gates.evals import run_tasks
+from kintsugi.gates import canary
 from kintsugi.memory.graph import GraphError
 from kintsugi.proof.ledger import Ledger, genesis_hash
 from kintsugi.sandbox import worktree
@@ -262,20 +261,24 @@ class OmegaCrew:
             return c.Shipment(out.incident_id, out.hypothesis, out.branch, None, False, False)
         return self.shipper.ship(out)
 
-    def do_canary_sample(self, step: StepContext, shipment: c.Shipment, batch: int) -> list[bool]:
-        """One live-traffic batch on the merged code: which tasks failed."""
-        import importlib
+    def do_canary_plan(self, step: StepContext, shipment: c.Shipment) -> c.CanaryPlan:
+        """H0 for this canary: the shipment's host's baseline failure rate (``gates.canary``)."""
+        host = self._shipment_host(shipment)
+        baseline = canary.baseline_p0(host, baselines=self.ctx.baselines)
+        return c.CanaryPlan(host, baseline.p0, canary.RATIO, baseline.source)
 
-        host = self.ctx.incidents.host_of(shipment.incident_id) or self._host_of_case(shipment)
-        target = self.ctx.target(host)
-        target.make_importable()
-        pool = importlib.import_module(f"{target.host.package}.evals.generate").tasks("train")
-        start = (batch * CANARY_TASKS) % max(1, len(pool))
-        tasks = (pool[start:] + pool[:start])[:CANARY_TASKS]
+    def do_canary_sample(self, step: StepContext, shipment: c.Shipment, batch: int) -> list[bool]:
+        """One live-traffic batch on the merged code: which tasks failed (recorded per batch)."""
+        target = self.ctx.target(self._shipment_host(shipment))
         sha = shipment.merge_sha or shipment.branch
-        with clean_checkout(target.repo, sha) as checkout:
-            runs = run_tasks(target, checkout, tasks, seed=5000 + batch, phase="canary").runs
+        runs = canary.sample(
+            target, sha, batch, n=CANARY_TASKS, record=self.canary_record(shipment)
+        )
         return [not run.passed for run in runs]
+
+    def canary_record(self, shipment: c.Shipment) -> Path:
+        sha = (shipment.merge_sha or shipment.branch).replace("/", "_")
+        return self.ctx.state / "canary" / shipment.incident_id / sha[:40]
 
     # ---- ledger-shaped steps -----------------------------------------------------------------
 
@@ -344,7 +347,10 @@ class OmegaCrew:
         card = self.ctx.case(out.incident_id).reader("auditor").get("card", out.hypothesis)
         return str(card["host"])
 
-    def _host_of_case(self, shipment: c.Shipment) -> str:
+    def _shipment_host(self, shipment: c.Shipment) -> str:
+        host = self.ctx.incidents.host_of(shipment.incident_id)
+        if host is not None:
+            return host
         card = (
             self.ctx.case(shipment.incident_id).reader("auditor").get("card", shipment.hypothesis)
         )

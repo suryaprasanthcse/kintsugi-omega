@@ -167,6 +167,16 @@ class Shipment:
 
 
 @dataclass(frozen=True)
+class CanaryPlan:
+    """H0's failure rate for the shipment's host and where it came from (§5.12)."""
+
+    host: str
+    p0: float
+    ratio: float = 2.0
+    source: str = ""
+
+
+@dataclass(frozen=True)
 class CanaryResult:
     accepted: bool
     rejected: bool

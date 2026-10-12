@@ -165,6 +165,9 @@ _TABLE: tuple[ActivitySpec, ...] = (
                  lambda sig, shipment: (sig.incident_id, shipment.pr_url, "resolve")),
     ActivitySpec("canary_sample", 10 * M, 60 * S, 3, (), SENSES,
                  lambda shipment, batch: (shipment.merge_sha or shipment.branch, batch)),
+    ActivitySpec("canary_plan", 2 * M, None, 3, (), CREW,
+                 lambda shipment: (shipment.incident_id, shipment.merge_sha or shipment.branch,
+                                   "plan")),
     ActivitySpec("apply_antibody", 45 * M, 60 * S, 2, ("ProtectedPathViolation",), SURGEON,
                  lambda ab, host: (ab.antibody_id, ab.version, host)),
     ActivitySpec("motif_scan", 10 * M, None, 3, (), CREW,
@@ -443,6 +446,10 @@ class OmegaActivities:
     @activity.defn(name="canary_sample")
     async def canary_sample(self, shipment: c.Shipment, batch: int) -> list[bool]:
         return await self._run("canary_sample", list[bool], shipment, batch)
+
+    @activity.defn(name="canary_plan")
+    async def canary_plan(self, shipment: c.Shipment) -> c.CanaryPlan:
+        return await self._run("canary_plan", c.CanaryPlan, shipment)
 
     @activity.defn(name="apply_antibody")
     async def apply_antibody(self, ab: c.AntibodyRef, host: str) -> c.VaccinationResult:
