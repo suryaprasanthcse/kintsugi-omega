@@ -1,0 +1,338 @@
+<pasted_content id="a4e6">
+# KINTSUGI-Ω Stage 6 → 7 Handoff
+
+| Field | Value |
+|---|---|
+| Written | 2026-10-12, morning IST |
+| Architect | Surya Prasanth R (@suryaprasanthcse), sole author and committer of every commit |
+| Repository | https://github.com/suryaprasanthcse/kintsugi-omega (public) · local `C:\myspace\hacckathons\kintsugi-omega` |
+| Stage status | Stages 1–5 approved. **Stage 6 complete, awaiting your approval.** Stage 7 not started. |
+| Deadline | Submission closes **23:55 IST, Oct 12, 2026**. T0 ≤ 19:55 IST Oct 12 − W; W and T0 are set at the Stage 8 go/no-go (D1). |
+
+## 1. Frozen state
+
+- **HEAD:** `main` = `origin/main` = **`99477f7`**. The tree is clean and there are no other local branches.
+- **Every commit:** author = committer = `Surya Prasanth R <suryaprasanthcse@gmail.com>`, no `Co-authored-by:` line, an `Entire-Checkpoint:` trailer, and a pushed ref.
+- **Ref sync:** `entire.sync_checkpoint_refs('.')` → `out_of_sync=()`.
+
+**Stage 6 commits.** Verified with `read_checkpoint(...).metadata['files_touched']`.
+
+| SHA | Subject | Entire-Checkpoint | files_touched |
+|---|---|---|---|
+| a45e629 | crew: hashed templates, context manifests, model port, case file | 01M4P2EGY1DH4Q9K8A4WEB126D | 14/14 |
+| f3ced55 | senses: failure signature, drift watcher, held dispositions | 01M4P2V258H51Z5R8EMKSKRM4W | 5/5 |
+| b64f1f4 | gates: G0–G6, checkouts, anti-gaming, pre-commit hook (+ practice fixture) | 01M4P3YBMHSFQF7DN7YZD2CXSN | 39/39 |
+| e6d2690 | crew: Sentinel, Pathologist, Archivist | 01M4P4JDMCW1KRADXMGD9J7V8B | 7/7 |
+| fd102e6 | crew: Coordinator, blind Auditor, Surgeon runner | 01M4PEC6NRXTW5EJZ99QDZ06NR | **6/7** (A-58) |
+| 94a3123 | crew: control-plane binding, L4 winner re-verification | 01M4PFWRBGWVJNJAN3FQSWDJZR | 8/8 |
+| ceeaab1 | control: ship + E.4 receipt, g7-gates.yml | 01M4PJ5A6F8TPR7KF5VHATX4WF | 9/9 |
+| 4237fc9 | crew: rehearsal runner, evidence summary, G7 symptom criterion | 01M4PM9G8AVNWZS7JC328GBSHW | 13/13 |
+| 7d1ec66 | fix: read G7 by its own check, unique incidents, CI flakes, A-47…A-58 | 01M4PP7B2NF8FQMSN0W13C2F1W | 8/8 |
+| 99477f7 | docs: Stage 6 rehearsals, spike N9, verification | 01M4PZH7QYMCZJPADZKKJXV8K2 | 2/4 (evidence JSON is tool-written, A-1) |
+
+**Two `files_touched` exceptions.**
+- **`fd102e6` (A-58):** the usage-limit pause ended a turn with edits still uncommitted. Under A-37's carry-forward rule, the next commit was attributed only to the carried files, so `tests/control/test_workflows.py` is missing from its checkpoint.
+- **`99477f7` (A-1):** the two `evidence/rehearsals/*.json` files were written by the rehearsal runner, not by Edit/Write, so they are tool-generated (same precedent as Stage 3's health cards).
+- **All other commits:** strict A-37 holds. Each commit includes every file edited since the previous one, and `git status -s` was empty after each.
+
+**Tests**
+- Full suite: `uv run pytest -q` → **735 passed, 28 skipped**, about 13 minutes. It ran before `7d1ec66` and again before `99477f7`.
+- The 28 skips are contract tests. Three new Stage 6 contract tests were verified live: G3 with `entire graph verify`, the Archivist's verified intent record, and the end-to-end Archivist path.
+
+**CI (`omega-ci`)**
+
+| Commit | Run | Result |
+|---|---|---|
+| `94a3123` | 38178933947 | green |
+| `ceeaab1` | 38181573088 | red: two CI-only flakes |
+| `4237fc9` | 38183949467 | red: one of those flakes |
+| `7d1ec66` | 38186044027 | **green** (flakes fixed) |
+| `99477f7` | 38196514812 | **all 4 jobs green** |
+
+The two flakes were a stale `.pyc` from a same-size edit within one second, and a query landing mid-`continue_as_new`.
+
+**G7 (`g7-gates.yml`, incident mode)**
+- **Run 38186481441, PR #5: green.** G1 ✓; G2 found no `DuplicateEntry` on the head at 3 fresh seeds (4 on the base); G3 0 flips; G4 b=28, c=0, p=3.7×10⁻⁹.
+- The secret `HOLDOUT_AGE_IDENTITY` (the rehearsal identity) was set 2026-10-11 17:42Z.
+
+**N9 ruleset `kintsugi-rehearsal-main` (id 24898487)**
+- Status: active, no bypass actors.
+- Rules: deletion, non_fast_forward, pull_request (0 approvals), and the required status check `g7 / G7 · ledger-practice`.
+- It protects only these explicitly listed branches:
+  - `rehearsal/reh-20261011-225239/main`
+  - `rehearsal/reh-20261011-232114/main`
+  - `rehearsal/reh-20261011-235459/main`
+- **`main` is not protected yet** (Stage 13).
+- Direct pushes to a protected base were refused in every run.
+- PR #5 merge commit `76f19d1`: authored by Surya, committed and signed by GitHub, merged by `suryaprasanthcse`. Its second parent is the attested Surgeon commit `e50387e`.
+
+**Rehearsal cleanup**
+- **Run directories:** `%USERPROFILE%\.kintsugi\rehearsals\` holds `reh-20261011-224903`, `-225031`, `-225239`, `-232114` and `-235459`.
+  - Keep **`-235459`**: its resolved case file and winner feed Stage 7's antibody synthesis.
+  - Keep **`-232114`**: it holds the two-round live history.
+  - The other three can be deleted.
+- **Remote branches:** `rehearsal/*/main` and `rehearsal/*/kintsugi/*` for three runs remain as evidence.
+- **Pull requests:** #2 and #3 are closed with explanations; #5 is merged.
+- **Issues:** #1 is closed. **#4 is still open**, because "Fixes #n" only auto-closes on the default branch. `ship.py` should close the issue itself in Stage 7.
+- **Local stores:**
+  - `.state/senses/senses.sqlite` was untouched; the rehearsal used its own store.
+  - Its Stage 4 stand-in dispositions `INC-REH-0001…0003` still need to be archived before any real Sentinel run or T0.
+  - A-47's migration (adding `held`) runs automatically on its first open.
+
+**Environment**
+- Headless Claude Code CLI is **2.1.296**. A headless probe confirmed it runs **`claude-opus-5-5`** natively, which lifts A-54. Stage 7 should record this as **A-59**.
+- Windows `uv`/`npm` caches are pre-warmed (your report).
+- WSL2 Ubuntu has **`uv 0.13.0`** with a populated cache (verified).
+- Temporal server binaries in WSL are pre-warmed for all Blueprint §11 packages (your report; I couldn't locate them under `~/.cache`). Stages 7–13 should work on low-bandwidth 4G without large downloads.
+- Unchanged:
+  - `gh` is at `C:\Program Files\GitHub CLI`.
+  - `cloudflared` is at `C:\Program Files (x86)\cloudflared\cloudflared.exe`.
+  - The rehearsal holdout identity is `C:\Users\surya\.kintsugi\keys\holdout-rehearsal.agekey`.
+  - `.env` holds the neatlogs tokens and `GITHUB_TOKEN`.
+
+## 2. Amendment ledger
+
+**Rulings in force**
+
+| Ruling | Decision |
+|---|---|
+| D1 | W and T0 are decided at the Stage 8 go/no-go |
+| D2 | Runtime and the 24-hour run live in WSL2 with Docker + gVisor |
+| D3 | Monorepo |
+| D4 | Sole identity: Surya; never a bot or co-author trailer |
+| D5 | Append-only `ledger` branch |
+| D6 | Both the SQLite-WAL state machine and Temporal |
+| D7 | `ANTHROPIC_API_KEY` capped at $20/day |
+| D8 | Parallel lanes only with clean, verified commits |
+| A-23 | Hosts run offline-first; Bedrock is `NOT_AUTHORIZED` |
+
+**A-1…A-46 (Stages 1–5), summarised**
+
+| Range | Stage | Subject |
+|---|---|---|
+| A-1 | 1 | Edit/Write lines are agent lines; tool-generated files are `human_added` |
+| A-2 | 1 | Attestation digest is a JCS array |
+| A-3 | 1 | Passphrase nonces and honeytokens |
+| A-4 | 1 | T0 key is Architect-held |
+| A-5, A-6 | 1 | I3-closure transitions; RETIRED reachable |
+| A-7 | 1 | Schemas require real hashes |
+| A-8, A-9 | 1 | Motif kinds; helper modules |
+| A-10, A-11 | 2 | Graph context/callers/callees via search and neighbors; `entire doctor` never invoked |
+| A-12 | 2 | Gateway hardening |
+| A-13, A-14 | 2 | Snapshot schema 1.1; checkpoint content hash |
+| A-15 | 2 | Custom redactions |
+| **A-16** | 2 | `orchestrator_commit` refuses changes not explained by Write/Edit |
+| A-17, A-18 | 2 | `Kintsugi-Prompt` = sha256 of the first prompt; headless flags |
+| A-19 | 2 | Ref sync judged by remote state |
+| A-20, A-22 | 2–3 | Model-tier spikes |
+| A-21 | 2 | Trailer paragraphs merged |
+| A-24…A-27 | 3 | Chaos profile, WSL sandbox, fleet layout and holdout custody, host-test caveats |
+| A-28 | 4 | One trace per task |
+| A-29 | 4 | Public API credentials; OAuth-only operations |
+| A-30 | 4 | Pinned 50-op contract |
+| A-31 | 4 | Receptors as built |
+| A-32, A-33 | 4 | Hit key; watermark poller |
+| A-34, A-35 | 4 | Ingress security; tag schema |
+| A-36 | 4 | Disclosed FX-outage rehearsal |
+| **A-37** | 4 | Multi-commit turns: commit every edited file, tree clean after each commit, verify `files_touched` |
+| A-38, A-39 | 4 | **Open:** neatlogs alerting silent; 3–4% trace loss |
+| A-40…A-46 | 5 | Temporal runtime, activity contracts, incident semantics, FleetSupervisor, reduced mode, Surgeon adoption, Watchdog/chaos |
+
+**Stage 6 amendments (full)**
+
+- **A-47 — held hits.** A hit below its paging threshold is `held` against `WATCH-<receptor>-<host>`, which counts as a dedupe record for I7/C9. Held hits are attached to the incident when the threshold is reached. Stage 4 stores migrate in place.
+- **A-48 — G3 command.** G3 runs `entire graph verify` with `pytest -rA`. The plugin always exits 0, so the `NEWLY FAILING (n)` verdict is parsed. With `-q` it degrades to an exit-code-only verdict. G7 computes the same delta from two `pytest -rA` runs.
+- **A-49 — L4.** A winner chosen while main moved is re-verified merged onto the new main in a scratch worktree; it is never rebased.
+  - G1 and G2 always re-run; G3 only for tests in the impact radius; G4 only when the graph radii intersect, otherwise reused with the reason recorded.
+  - This sits behind `workflow.patched("l4-reverify-winner")`. A failed re-check or a merge conflict fails the round.
+- **A-50 — `.kintsugi/target.yaml`.** It declares each target host, including `live_services`: services holding the host's own state are never recorded in or replayed from cassettes.
+- **A-51 — merges.** Merges keep the attested commit, so PRs merge with a merge commit (no linear-history rule). Ruleset conditions list branches explicitly, each added right after creation, because a required status check also blocks the push that creates a matching branch.
+- **A-52 — delivery framing.** A delivery prompt must not promise behaviour its patch contradicts. Haiku 5.5 refused the practice patch under "keep behavior identical" and applied it under the spec's §6.2 framing. Stage 8's Saboteur must plan for a model that reviews the patch.
+- **A-53 — G7 fresh-seed G2.** No occurrence of the incident's error class (`Kintsugi-Symptom`) on the head across 3 stress seeds, and no more other-class failures than the base. Strict 3/3 applies only without a symptom; the local cassette G2 stays 3/3.
+- **A-54 — Opus via the old CLI.** CLI 2.1.269 refused `claude-opus-5-5`, so Opus roles ran on `claude-opus-5` through per-role overrides. **Superseded by the CLI 2.1.296 upgrade (record as A-59).**
+- **A-55 — decision rule.**
+  - A G5 `concern` makes a hypothesis a last-round fallback only.
+  - Pareto dominance ignores noise (2 points of pass rate, 2% cost, 5% p95), so equivalent fixes go to a pre-registered experiment.
+  - The experiment's protocol hash is checked before it runs; its criterion is pass rate, then mean cost, then diff size.
+  - G4 runs base and candidate back to back per seed, with no cross-audit cache.
+- **A-56 — information flow.**
+  - The case file enforces the §5.7 matrix and logs refused reads.
+  - The governor may read the incident opening for VaR.
+  - Deterministic tools may load the cassette and repro record to execute them.
+  - No other role can read a Surgeon's self-report.
+  - A refused commit fails the hypothesis, not the incident (I3).
+  - No Surgeon session starts past the budget (G6).
+- **A-57 — rehearsal target.** The disposable, disclosed Ledger practice host lives in `tests/fixtures/rehearsal/ledger_practice` (on the approved `ledger_before` shape).
+  - Rehearsals ship only through `rehearsal/<run>/*` branches; the real S-17 patch is never written.
+  - The ledger is a file until Stage 8.
+  - The Archivist falls back to git-only localisation without the graph.
+- **A-58 — `fd102e6` gap.** `fd102e6` is missing one file from `files_touched` because an involuntary turn end left edits uncommitted.
+- **Next amendment: A-59** (the CLI upgrade lifting A-54).
+
+## 3. Architecture and APIs for Stages 7–9
+
+**`kintsugi/crew/`**
+
+**Shared context**
+- **`context.CrewContext`** carries `state`, `targets: {host: Target}`, `model`, `store`, `bindings`, `traces`, `holdout_identity`, `base_ref`, `incident_prefix`, `models` (role overrides), `g4_seeds`, `case(incident)` and `incidents` (an `IncidentIndex`).
+- Trace sources are `NeatlogsTraces(api)` and `LocalTraces(dir)` (with `.write`).
+
+**Factory**
+- **`factory.OmegaCrew(ctx, runner, shipper, fixes, tags, ledger)`** implements the Stage 5 `Crew` port; `handle()` dispatches `do_<activity>`.
+- **Stage 7 replaces these stubs:**
+  - `do_match_antibody` → None
+  - `do_synthesize_antibody` → placeholder `AB-<INC>@0.0`, recorded as pending
+  - `do_motif_scan` → []
+  - `do_apply_antibody` → not applied
+  - `do_revert` → False
+  - `do_quarantine_related` → 0
+  - `do_backfill_receptor` → None
+  - `do_fixes_resolve` → None
+- **`do_canary_sample` is real:** 10 train tasks per batch on the merge SHA, seed 5000+batch.
+- **`FileLedger(path, genesis)`** has `.append(entry) → hash` and `.entries()`.
+
+**Case file and model calls**
+- **`casefile.CaseFile`** has `put(kind, name, data, by=)`, `reader(role).get/names`, `tool_read`, `add_cost/spent/costs_by_role`, `log_call/calls`, `accesses`.
+  - `KINDS`, `READS` and `WRITES` encode the matrix.
+  - Stage 7 must add an `immunologist` row; the spec gives it traces, source, intent, diffs, verdicts and budget.
+- **`consult.consult(model, case, builder, template, schema=, fallback=, model_id=)`** is the only path to a model.
+- **`llm`:** `ClaudeCliModel(overrides)`, `ProxyModel(base_url, token)` (D7), `ScriptedModel`, `ROLE_MODELS`.
+- **`templates`:** `render`, `check_pins`, `pin_file`. New prompts must be added to `prompts/SHA256SUMS`.
+- **`manifest.ContextBuilder(role, incident)`** with `.add/.bind/.exclude`, under `BUDGETS`.
+
+**Roles**
+- **`sentinel.Sentinel(ctx).route(hit, open)`.**
+- **`pathologist.Pathologist(ctx)`:**
+  - `.triage(alert)` includes the store-attached hits.
+  - `.reproduce(sig)` writes `cassette/g0` and `repro/g0`.
+- **`archivist.Archivist(ctx).attribute(sig, repro)`:**
+  - Writes `intent_record/record` (verified quotes, checkpoint, `transcript_sha256`) and `cause/report` (suspects, impact sets, originating commit, mapping, regression, bisect, regions).
+  - Pure helpers: `blame`, `originating_commit`, `editing_turns`, `verify_quotes`, `heuristic_intent`, `recent_regions`.
+- **`coordinator.Coordinator(ctx, PlanInputs)`:**
+  - `.plan_budget` writes `plan/plan` with `plan_sha`.
+  - `.hypothesize`; card ids are unique per incident.
+  - `.coordinate` (`pareto_front`, `TOLERANCE`).
+  - `.dispute_experiment` (hash-checked protocol).
+  - `.budget_exhausted`.
+  - **Stage 7's secondary response passes the antibody recipe as `prior` (A-42).**
+- **`auditor.Auditor(ctx).audit(out)`:**
+  - Writes `verdict/<H>` (gates, `g4` aggregates, commit, `diff_lines`, `reverify`) and `feedback/<H>`.
+  - Audits are serialised per incident.
+  - **Stage 7's `apply_antibody` reuses it for G0–G6 on a vaccinated host.**
+- **`surgeon.ClaudeSurgeon(ctx, signer, run=, require_checkpoint=)`** is the `SessionRunner`.
+  - Helpers: `session_env`, `allowed_tools`, `render_prompt`.
+  - **Stage 7's Immunologist recipe application and Stage 8's notary sessions can reuse this pattern.**
+
+**Rehearsal and evidence**
+- **`rehearsal.Rehearsal`** with `run()`, `prepare`, `deliver`, `live_traffic`, `claim_hits`, `github_setup`, `ruleset_body`.
+- **`evidence.summarize`** produces the aggregate bundle, the seed of Stage 8's §7.4 proof bundle.
+
+**`kintsugi/gates/`**
+- **`target.Target` / `load_target(repo, host)`** with `code_env` (PYTHONPATH + no bytecode), `stress()`, `make_importable()`.
+  - The monorepo has **no `.kintsugi/target.yaml` yet**. Stage 7 must add one for ledger, scout and triage before the crew can repair or vaccinate fleet hosts.
+- **`evals.run_tasks(target, checkout, tasks, seed=, profile=, record=, cassette=)` → `EvalResult`**, with per-task verdict, latency and cost.
+- **Gates:**
+  - `g0.reproduce`
+  - `g1.build_static`
+  - `g2.reproduction_fixed`
+  - `g3.record_baseline` / `no_collateral` / `pytest_results` / `pytest_flips`
+  - `g4.held_out_efficacy` / `efficacy` / `verdict` / `check_no_leak`
+  - `g5.judge` / `decide` / `revert_share`
+  - `g6.within_budget`
+  - `g7.run_g7` / `repro_fresh` / `report`
+- **`antigaming.check`**, **`checkout.clean_checkout` / `merged_checkout` / `diff_text` / `changed_files` / `changed_lines`**, **`precommit.install/check`**, **`common.GateResult`**.
+- **Stage 7 adds `gates/canary.py`**: lift `do_canary_sample` and the SPRT p0 per host from baselines.
+
+**`kintsugi/control/ship.py`**
+- `GitHubShipper(ctx, ShipConfig, GhCli, ledger_head)` and `LocalShipper`.
+- `GhCli` methods: issue/PR/checks/merge plus `.api(method, path, body)` for rulesets.
+- `render_receipt` (validated against E4), `gate_lines`, `symptom_of`, `parse_repro_tasks`.
+- **Stage 7's `control/revert.py` reuses `GhCli` and the shipper** (revert PR → expedited gates → merge).
+- **Gap:** close the issue explicitly when the base isn't the default branch (issue #4 is open for this reason).
+
+**`kintsugi/senses/`**
+- **`signature`:** `FailureObservation`, `.phi`, `cluster`, `representatives`, `canonical_error`, `normalize`, `from_trace`, `from_chaos_log`, `tool_names`. Stage 7 matches antibodies by φ first (§3.4).
+- **`drift`:** `MainWatcher`, `reverify_plan` → `Reverify.record()`, `changed_entities`, `impact_endpoints`.
+- **`store`** adds `held` and `hits_for`; **`completeness`** counts `held`.
+
+**`kintsugi/control/workflows.py`**
+- `Incident` now carries the `L4_REVERIFY_WINNER` patch.
+- `Canary`, `CrossHostMaturation`, `VaccinationWave` (with `pause`/`resume`) and `FleetSupervisor.pause_antibody` already exist (Stage 5). Stage 7 fills their activities.
+
+**Stages 8–9 hooks**
+- `FileLedger` → `ledger` branch (D5).
+- `evidence.summarize` → §7.4 bundle.
+- `verify_commit` must treat GitHub merge commits through the PR record (A-51).
+- Notary sessions follow the `ClaudeSurgeon` pattern.
+- `Coordinator.PlanInputs` → cfo.ai actuals (Stage 9).
+
+## 4. Turn-1 verification and Stage 7 scope
+
+~~~bash
+cd /c/myspace/hacckathons/kintsugi-omega && export ENTIRE_TEST_TTY=0 PATH="$PATH:/c/Program Files/GitHub CLI" && git status -sb && test "$(git rev-parse --short HEAD)" = 99477f7 && echo "HEAD OK" && entire version && entire graph version --json && claude --version && claude auth status && uv run python -I -c "import temporalio; print('temporalio', temporalio.__version__)" && uv run python -I -c "from kintsugi.memory import entire; print(entire.sync_checkpoint_refs('.'))" && uv run python -I -c "from kintsugi.crew import templates; print('pins', templates.check_pins())" && uv run ruff check . && uv run ruff format --check . && uv run pyright && uv run pytest -q
+~~~
+
+**Expected**
+- `## main...origin/main`, `HEAD OK`.
+- Entire 0.11.4; graph v0.4.0; Claude Code **2.1.296**; `"loggedIn": true`; temporalio 1.34.0.
+- `out_of_sync=()` (1–2 "Finalize transcript" refs pushed is normal).
+- `pins []`; ruff, format and pyright clean.
+- **735 passed, 28 skipped** (about 13 minutes).
+
+**Stage 7 scope** (plan §4 Stage 7; spec §5.8, §6.5 steps 12–14, §6.7)
+
+**Files to build**
+- `kintsugi/gates/canary.py`
+- `kintsugi/control/revert.py` (`git revert -m 1` of the merge → PR → expedited gates → merge, run inside a templated headless **notary session** so C4 holds; plan §2a L3)
+- `kintsugi/memory/{predicates,library,contrastive}.py` (`motif.py` and `antibody.py` exist from Stage 1)
+- `kintsugi/crew/immunologist.py` (synthesis, receptor, maturation, vaccination, quarantine, refinement)
+- `antibodies/` library (monorepo, D3)
+- The trace-to-test eval-augment path
+- `.kintsugi/target.yaml` for ledger, scout and triage
+- An `immunologist` row in the case-file matrix and pinned prompts
+
+**Activities to make real in `OmegaCrew`**
+- `match_antibody`: exact φ → semantic → motif + preconditions, `state = ACTIVE`.
+- `synthesize_antibody`: receptor, motif v1.0/v1.1, recipe, contract, lineage. Build from the resolved rehearsal's winner `e50387e` and the before/after graphs.
+- `motif_scan`
+- `apply_antibody`: the induced-trigger rule first, then the recipe through a Surgeon-style session and the Auditor.
+- `backfill_receptor`
+- `revert`
+- `quarantine_related`
+- `fixes_resolve`
+
+**Workflows**
+- `Canary` (SPRT, real batches).
+- `CrossHostMaturation` → MATURED → ACTIVE.
+- `VaccinationWave` (pause/resume).
+- The Incident's secondary-response path (recipe as prior, A-42) and its L3 re-entry (`CANARY → REPAIRING`, ≤2).
+- `FleetSupervisor.pause_antibody`.
+
+**Verification gates**
+- Motif validation: matches before the fix, not after it, precision ≥ 0.9 on the healthy fleet.
+- The induced-trigger rule.
+- Receptor precision ≥ 0.9, measured by Omega on history: `/detections/preview` is OAuth-only and gated (A-29).
+- A backfill completes, via an Omega-side retro scan as the A-29 fallback.
+- **L3 rehearsal:** Scout canary rejects → revert PR → reverse canary → `pause_antibody` → comments on open PRs → QUARANTINED with the receptor still active.
+- The contrastive learner separates 3 positives from Scout; v1.1 excludes Scout; lineage stays consistent.
+- Secondary responses measured much cheaper than primary ones.
+- Cascade and proof items: L3, L0 steps 11–14, S5, C11, T9.
+
+**Binding rules (unchanged)**
+- D4 identity; strict A-37 with `files_touched` verified after every commit.
+- Edit/Write for committed files; `ENTIRE_TEST_TTY=0`; subprocesses only via `proc.py`; never print secrets.
+- Never write an S-17/18/19 mechanism into the fleet (A-57).
+- Graph-first; load the `claude-api` skill before Claude API code.
+- Workflow determinism, with changes behind `workflow.patched`.
+- **Pre-Stage-7 actions:** record A-59 (the CLI upgrade); drop the `--model …=claude-opus-5` overrides; archive `.state/senses` stand-ins before any real Sentinel run.
+
+**Still open from earlier stages**
+- **A-38:** neatlogs alerting has not fired since the first delivery.
+- **A-39:** 3–4% of task traces never become visible in neatlogs.
+- The ingress webhook points at a dead quick-tunnel URL.
+- `main` has no ruleset yet (Stage 13).
+
+---
+
+**Stage 6 (`99477f7`) is approved. Run the Turn-1 verification and proceed with Stage 7.**
+</pasted_content id="a4e6">
