@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QGEEN0M9D5R380F6DHD1XM",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".kintsugi/protected_paths.yaml",
+    "kintsugi/control/revert.py",
+    "kintsugi/control/ship.py",
+    "kintsugi/crew/context.py",
+    "kintsugi/crew/factory.py",
+    "kintsugi/crew/immunologist.py",
+    "tests/control/test_ship.py",
+    "tests/gates/test_protected_paths.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44,
+    "cache_creation_tokens": 32375,
+    "cache_read_tokens": 13787654,
+    "output_tokens": 25509,
+    "api_call_count": 22
+  }
+}
