@@ -63,6 +63,12 @@ class GitHub(Protocol):
 
     def pr_merge(self, number: int, method: str) -> str | None: ...
 
+    def issue_close(self, number: int, comment: str) -> None: ...
+
+    def pr_comment(self, number: int, body: str) -> None: ...
+
+    def pr_list_open(self, head_prefix: str) -> list[dict[str, Any]]: ...
+
 
 def gh_executable() -> str:
     found = proc.which("gh")
@@ -193,6 +199,24 @@ class GhCli:
         commit = data.get("mergeCommit") or {}
         return str(commit.get("oid")) if data.get("state") == "MERGED" and commit else None
 
+    def issue_close(self, number: int, comment: str) -> None:
+        """Close an issue a merge fixed. "Fixes #n" closes it only on the default branch, so
+        merges into other bases (rehearsal branches, release lines) close it explicitly."""
+        self._run(
+            "issue", "close", str(number), "--repo", self.repo, "--comment", comment, check=False
+        )
+
+    def pr_comment(self, number: int, body: str) -> None:
+        self._run("pr", "comment", str(number), "--repo", self.repo, "--body-file", "-",
+                  input_text=body)  # fmt: skip
+
+    def pr_list_open(self, head_prefix: str) -> list[dict[str, Any]]:
+        """Open pull requests whose head branch starts with ``head_prefix``."""
+        out = self._run("pr", "list", "--repo", self.repo, "--state", "open", "--limit", "100",
+                        "--json", "number,url,headRefName,title")  # fmt: skip
+        return [pr for pr in json.loads(out or "[]")
+                if str(pr.get("headRefName", "")).startswith(head_prefix)]  # fmt: skip
+
     def api(self, method: str, path: str, body: Mapping[str, Any] | None = None) -> Any:
         """``gh api`` (rulesets, branch protection evidence: spike N9)."""
         args = ["api", "--method", method, path]
@@ -315,6 +339,7 @@ class ShipConfig:
     g7_timeout_s: float = 3600.0
     poll_s: float = 20.0
     merge_method: str = "merge"  # A-51: keeps the attested commit
+    default_branch: str = "main"  # "Fixes #n" closes issues only on merges into this branch
 
 
 def _git(repo: Path, *args: str, timeout_s: float = 300.0) -> str:
@@ -415,6 +440,10 @@ class GitHubShipper:
                 cfg.remote,
                 f"+refs/heads/{base}:refs/kintsugi/shipped/{out.incident_id}",
             )
+            if base != cfg.default_branch:  # "Fixes #n" does not close it off the default branch
+                self.github.issue_close(
+                    issue, f"Fixed by {url} (merged into `{base}` as {merge[:12]})."
+                )
         return c.Shipment(
             out.incident_id, out.hypothesis, branch, url, True, merge is not None, merge
         )

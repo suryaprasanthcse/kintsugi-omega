@@ -72,6 +72,15 @@ class FakeGitHub:
         self.calls.append(("pr_merge", method))
         return "f" * 40
 
+    def issue_close(self, number: int, comment: str) -> None:
+        self.calls.append(("issue_close", (number, comment)))
+
+    def pr_comment(self, number: int, body: str) -> None:
+        self.calls.append(("pr_comment", (number, body)))
+
+    def pr_list_open(self, head_prefix: str) -> list[dict[str, Any]]:
+        return []
+
 
 @pytest.fixture(scope="module")
 def shipped(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
@@ -192,6 +201,10 @@ def test_ship_waits_for_g7_then_writes_the_receipt_and_merges(shipped: dict[str,
     assert "McNemar exact p = 1.2e-07" in body
     assert parse_repro_tasks(body) == ["TR-003", "TR-011"]
     assert "Kintsugi-Symptom: DuplicateEntry" in body  # what G7's fresh-seed G2 looks for
+    # "Fixes #7" only closes on the default branch: a rehearsal base closes it explicitly.
+    [(number, comment)] = [v for k, v in github.calls if k == "issue_close"]
+    assert number == 7
+    assert "https://github.com/o/r/pull/8" in comment
     remote = shipped["remote"]
     assert pr.git(remote, "rev-parse", f"refs/heads/{shipment.branch}") == shipped["fixed"]
     assert pr.git(remote, "rev-parse", f"refs/kintsugi/attempts/{INC}/H1/1") == shipped["buggy"]
