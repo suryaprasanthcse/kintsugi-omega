@@ -143,13 +143,7 @@ class Reverter:
         merge = shipment.merge_sha
         if merge is None:
             raise RevertError(f"{shipment.incident_id}: nothing was merged, nothing to revert")
-        base_ref = cfg.branch_prefix + cfg.base_branch
-        if self.github is not None:
-            _git(repo, "fetch", "-q", cfg.remote,
-                 f"+refs/heads/{base_ref}:refs/kintsugi/base/{record}")  # fmt: skip
-            base = _git(repo, "rev-parse", f"refs/kintsugi/base/{record}").strip()
-        else:
-            base = _git(repo, "rev-parse", base_ref).strip()
+        base = self.base_head(repo, record)
         expected = revert_tree(repo, base, merge)
         wt = worktree.create(repo, record, "revert", base=base)
         try:
@@ -180,13 +174,61 @@ class Reverter:
                   "cost_usd": notarised.cost_usd}  # fmt: skip
         if not passed:
             return RevertRecord(False, reason="expedited gates failed", **common)
+        g2 = gates["G2"]
+        body = (
+            f"## Kintsugi auto-revert\n\n{why}\n\n"
+            f"- Reverts `{merge}` (`git revert -m 1`), committed by an attested notary session "
+            f"(checkpoint `{notarised.checkpoint_id or 'n/a'}`).\n"
+            f"- Expedited gates: G1 {'✓' if gates['G1']['passed'] else '✗'}; G2 against the "
+            f"pre-vaccination behaviour: {g2['cases']} canary failures replayed, "
+            f"{'all pass' if g2['passed'] else 'still failing'}.\n"
+        )
+        shipped = self.ship_commit(repo, notarised.sha, wt.branch, f"Revert {title}", body)
+        common["gates"] = {**gates, **shipped.get("gates", {})}
+        return RevertRecord(bool(shipped["merge_sha"]), pr_url=shipped["pr_url"],
+                            merge_sha=shipped["merge_sha"], reason=shipped["reason"],
+                            **{k: v for k, v in common.items() if k != "branch"},
+                            branch=shipped["branch"])  # fmt: skip
+
+    def base_head(self, repo: Path, record: str) -> str:
+        """The base branch's current head (fetched from the remote when shipping through it)."""
+        cfg = self.config
+        base_ref = cfg.branch_prefix + cfg.base_branch
+        if self.github is None:
+            return _git(repo, "rev-parse", base_ref).strip()
+        _git(repo, "fetch", "-q", cfg.remote,
+             f"+refs/heads/{base_ref}:refs/kintsugi/base/{record}")  # fmt: skip
+        return _git(repo, "rev-parse", f"refs/kintsugi/base/{record}").strip()
+
+    def ship_commit(
+        self, repo: Path, sha: str, branch: str, title: str, body: str
+    ) -> dict[str, Any]:
+        """Land an orchestrator commit on the base: a local ``--no-ff`` merge offline, or a pull
+        request (G7 when required) merged with a merge commit (A-51)."""
+        cfg = self.config
+        base_ref = cfg.branch_prefix + cfg.base_branch
         if self.github is None:
             _git(repo, "checkout", "-q", base_ref)
-            _git(repo, "merge", "--no-ff", "-q", "-m", f"Merge {wt.branch}: Revert {title}",
-                 notarised.sha)  # fmt: skip
+            _git(repo, "merge", "--no-ff", "-q", "-m", f"Merge {branch}: {title}", sha)
             merged = _git(repo, "rev-parse", "HEAD").strip()
-            return RevertRecord(True, merge_sha=merged, pr_url=f"local://{branch}", **common)
-        return self._ship(repo, notarised.sha, branch, base_ref, title, why, gates, common)
+            return {"branch": branch, "pr_url": f"local://{branch}", "merge_sha": merged,
+                    "reason": "", "gates": {}}  # fmt: skip
+        remote_branch = cfg.branch_prefix + branch
+        gh = self.github
+        _git(repo, "push", cfg.remote, f"{sha}:refs/heads/{remote_branch}")
+        pr = gh.pr_find(remote_branch) or gh.pr_create(base_ref, remote_branch, title[:120], body)
+        number, url = int(pr["number"]), str(pr.get("url", ""))
+        out: dict[str, Any] = {"branch": remote_branch, "pr_url": url, "merge_sha": None,
+                               "reason": "", "gates": {}}  # fmt: skip
+        if cfg.require_g7:
+            ok, link = self._wait_g7(number)
+            out["gates"] = {"G7": {"passed": ok, "link": link}}
+            if not ok:
+                return {**out, "reason": "G7 failed"}
+        merged = gh.pr_merge(number, cfg.merge_method)
+        if merged is None:
+            return {**out, "reason": "the merge was refused"}
+        return {**out, "merge_sha": merged}
 
     def _gates(self, target: Target, sha: str, cases: Sequence[tuple[int, str]]) -> dict[str, Any]:
         with clean_checkout(target.repo, sha) as checkout:
@@ -195,41 +237,6 @@ class Reverter:
                                             "summary": g1_result.summary}}  # fmt: skip
             gates["G2"] = regression_check(target, checkout, cases)
         return gates
-
-    def _ship(
-        self,
-        repo: Path,
-        sha: str,
-        branch: str,
-        base_ref: str,
-        title: str,
-        why: str,
-        gates: Mapping[str, Any],
-        common: dict[str, Any],
-    ) -> RevertRecord:
-        cfg = self.config
-        gh = self.github
-        _git(repo, "push", cfg.remote, f"{sha}:refs/heads/{branch}")
-        g2 = gates["G2"]
-        body = (
-            f"## Kintsugi auto-revert\n\n{why}\n\n"
-            f"- Reverts `{common['reverted']}` (`git revert -m 1`), committed by an attested "
-            f"notary session (checkpoint `{common['checkpoint'] or 'n/a'}`).\n"
-            f"- Expedited gates: G1 {'✓' if gates['G1']['passed'] else '✗'}; G2 against the "
-            f"pre-vaccination behaviour: {g2['cases']} canary failures replayed, "
-            f"{'all pass' if g2['passed'] else 'still failing'}.\n"
-        )
-        pr = gh.pr_find(branch) or gh.pr_create(base_ref, branch, f"Revert {title}"[:120], body)
-        number, url = int(pr["number"]), str(pr.get("url", ""))
-        if cfg.require_g7:
-            ok, link = self._wait_g7(number)
-            common["gates"] = {**gates, "G7": {"passed": ok, "link": link}}
-            if not ok:
-                return RevertRecord(False, pr_url=url, reason="G7 failed", **common)
-        merged = gh.pr_merge(number, cfg.merge_method)
-        if merged is None:
-            return RevertRecord(False, pr_url=url, reason="the merge was refused", **common)
-        return RevertRecord(True, pr_url=url, merge_sha=merged, **common)
 
     def _wait_g7(self, number: int) -> tuple[bool, str]:
         deadline = time.monotonic() + self.config.g7_timeout_s

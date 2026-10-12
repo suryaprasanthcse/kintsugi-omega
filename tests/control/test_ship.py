@@ -210,6 +210,21 @@ def test_ship_waits_for_g7_then_writes_the_receipt_and_merges(shipped: dict[str,
     assert pr.git(remote, "rev-parse", f"refs/kintsugi/attempts/{INC}/H1/1") == shipped["buggy"]
 
 
+def test_a_foreign_repository_gets_a_pull_request_only(shipped: dict[str, Any]) -> None:
+    github = FakeGitHub([[{"name": "g7 / G7 · ledger-practice", "bucket": "pass", "link": "u"}]])
+    shipper = GitHubShipper(
+        shipped["ctx"],
+        ShipConfig("o/r", branch_prefix="rehearsal/r2/", pr_only=True),
+        github,
+        ledger_head=lambda: (5, "ab" * 32),
+        sleep=lambda s: None,
+    )
+    shipment = shipper.ship(_out(shipped))
+    assert shipment.pr_url == "https://github.com/o/r/pull/8"
+    assert not shipment.merged
+    assert not any(k in ("pr_merge", "issue_close") for k, _ in github.calls)
+
+
 def test_a_red_g7_blocks_the_merge(shipped: dict[str, Any]) -> None:
     red = [{"name": "g7 / G7 · ledger-practice", "bucket": "fail", "link": "u"}]
     github = FakeGitHub([red])

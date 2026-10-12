@@ -806,7 +806,14 @@ class Immunologist:
         return self.library.load(ab_id)
 
     def quarantine(
-        self, ab_id: str, host: str, *, why: str, github: Any = None, pr_prefix: str = ""
+        self,
+        ab_id: str,
+        host: str,
+        *,
+        why: str,
+        github: Any = None,
+        pr_prefix: str = "",
+        more_prefixes: Sequence[str] = (),
     ) -> dict[str, Any]:
         """QUARANTINED: the recipe stops, the receptor stays on, open vaccination PRs are told."""
         ab = self.library.load(ab_id)
@@ -825,9 +832,10 @@ class Immunologist:
                 f"On hold: {ab.ref} quarantined pending refinement. {why} Its receptor "
                 "stays active; recipe application is paused."
             )
-            for pr in github.pr_list_open(f"{pr_prefix}kintsugi/VAC-{ab_id}-"):
-                github.pr_comment(int(pr["number"]), notice)
-                commented.append(str(pr.get("url", pr["number"])))
+            for prefix in dict.fromkeys([pr_prefix, *more_prefixes]):
+                for pr in github.pr_list_open(f"{prefix}kintsugi/VAC-{ab_id}-"):
+                    github.pr_comment(int(pr["number"]), notice)
+                    commented.append(str(pr.get("url", pr["number"])))
         self.library.record(ab_id, {"event": "quarantine-notices", "prs": commented})
         self._log(
             {

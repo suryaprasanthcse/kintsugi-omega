@@ -122,6 +122,12 @@ class IncidentIndex:
             )
         return incident
 
+    def receptor_of(self, incident: str) -> str | None:
+        """What opened it: a receptor id, or ``antibody:AB-n@v`` for a vaccination."""
+        with self._db() as db:
+            row = db.execute("SELECT receptor FROM incidents WHERE id = ?", (incident,)).fetchone()
+        return str(row[0]) if row and row[0] is not None else None
+
     def host_of(self, incident: str) -> str | None:
         with self._db() as db:
             row = db.execute("SELECT host FROM incidents WHERE id = ?", (incident,)).fetchone()

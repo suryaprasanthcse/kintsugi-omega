@@ -17,7 +17,22 @@ def _hits(paths: list[str], scope: str) -> list[str]:
 
 def test_policy_loads_with_the_spec_diff_budget() -> None:
     assert POLICY.diff_budget_lines == 120
-    assert set(POLICY.scopes) == {"surgeon", "self_repair"}
+    assert set(POLICY.scopes) == {"surgeon", "self_repair", "eval_augment"}
+
+
+@pytest.mark.parametrize(
+    ("path", "protected"),
+    [
+        ("hosts/scout/scout/evals/regressions/ab_1_scout_canary.json", False),
+        ("scout/evals/regressions/x.json", False),
+        ("hosts/scout/scout/research.py", True),  # never code
+        ("hosts/scout/scout/evals/holdout/tasks.jsonl.age", True),  # never the holdout (I5)
+        ("hosts/scout/tests/regressions.json", True),
+        ("hosts/scout/scout/graders/cases.json", True),
+    ],
+)
+def test_eval_augment_adds_regression_data_only(path: str, protected: bool) -> None:
+    assert bool(_hits([path], "eval_augment")) is protected
     assert POLICY.over_budget(121)
     assert not POLICY.over_budget(120)
 

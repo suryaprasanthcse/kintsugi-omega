@@ -27,6 +27,25 @@ scopes:
       - "**/CLAUDE.md"
       - "**/AGENTS.md"
 
+  eval_augment:
+    description: >-
+      What the Immunologist's eval-augment commits (trace-to-test, spec §6.7 step 18) must not
+      touch: they add seed-addressed regression cases to a host's train regression suite under
+      `<package>/evals/regressions/`, and nothing else. No code, no tests, no graders, never the
+      holdout (invariant I5), no configuration.
+    patterns:
+      - "**/*.py"
+      - "**/tests/**"
+      - "**/graders/**"
+      - "**/holdout/**"
+      - "**/*.age"
+      - "**/.kintsugi/**"
+      - "**/.github/**"
+      - "**/.claude/**"
+      - "**/.entire/**"
+      - "**/CLAUDE.md"
+      - "**/AGENTS.md"
+
   self_repair:
     description: >-
       What Omega's repairs of itself must never touch, so Omega cannot weaken its own

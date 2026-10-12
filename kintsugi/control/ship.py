@@ -340,6 +340,7 @@ class ShipConfig:
     poll_s: float = 20.0
     merge_method: str = "merge"  # A-51: keeps the attested commit
     default_branch: str = "main"  # "Fixes #n" closes issues only on merges into this branch
+    pr_only: bool = False  # foreign repositories (Clinic, OSS): open the PR, never merge (§7.6)
 
 
 def _git(repo: Path, *args: str, timeout_s: float = 300.0) -> str:
@@ -412,6 +413,10 @@ class GitHubShipper:
             + gate_lines(tasks, symptom_class),
         )
         number, url = int(pr["number"]), str(pr.get("url", ""))
+        if cfg.pr_only:  # the maintainers' CI and review decide; Omega never merges here
+            case.put("decision", f"ship-{out.hypothesis}",
+                     {"issue": issue, "pr": url, "pr_only": True}, by="shipper")  # fmt: skip
+            return c.Shipment(out.incident_id, out.hypothesis, branch, url, False, False)
         g7_ok, ci_url = self._wait_g7(number)
         values = receipt_values(
             view,
