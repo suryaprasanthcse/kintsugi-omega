@@ -644,11 +644,18 @@ class Immunologist:
                     classes[induced[t]] = classes.get(induced[t], 0) + 1
                 if not failing:
                     continue
-                chosen = [x for x in tasks if x["id"] in set(failing[:5])]
+                # The G0 cassette prefers the pathogen's own verdict family: a run that only
+                # exhausted its retries makes, once repaired, requests the recording never saw
+                # (a cassette miss), so no fix could pass G2 on it. Without any such run (Scout:
+                # retry exhaustion only), the cassette holds what the trigger did produce.
+                family = re.compile(ab.receptor.rule)
+                own = [t for t in failing if family.search(f'"{induced[t]}"')]
+                ordered = own or failing
+                chosen = [x for x in tasks if x["id"] in set(ordered[:5])]
                 repro = g0.reproduce(
                     target, checkout, chosen, seed=seed, split="train", profile=profile
                 )
-                return Trigger(host, services, repro.ok, tuple(failing), classes, seed, repro)
+                return Trigger(host, services, repro.ok, tuple(ordered), classes, seed, repro)
         return Trigger(host, services, False, (), classes, None)
 
     # ---- vaccination --------------------------------------------------------------------------

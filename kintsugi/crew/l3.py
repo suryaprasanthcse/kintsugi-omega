@@ -85,6 +85,25 @@ hosts:
     stress_profile: profiles/stress.yaml
     live_services: []
 """
+SCOUT_CHECKS = """
+# The fleet's lint and type-check settings (the monorepo's root configuration), so G1 judges
+# this copy exactly as it judges hosts/scout.
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "C4", "E", "F", "I", "PIE", "PT", "RUF", "SIM", "TID", "UP", "W"]
+allowed-confusables = ["×", "‖", "–", "—", "−", "′", "″"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["scout", "hostkit"]
+
+[tool.pyright]
+include = ["scout"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+"""
 NESTED_BUFFER = "    def attempt() -> list[Passage]:\n        buffer = ScratchBuffer()\n"
 HOISTED_BUFFER = (
     "    buffer = ScratchBuffer()  # outside the retried scope (AB-1@1.0, applied literally)\n\n"
@@ -170,6 +189,8 @@ def prepare_scout(cfg: L3Rehearsal) -> Target:
     (repo / ".gitignore").write_text(
         "__pycache__/\n*.pyc\n.pytest_cache/\n", encoding="utf-8", newline="\n"
     )
+    with open(repo / "pyproject.toml", "a", encoding="utf-8", newline="\n") as handle:
+        handle.write(SCOUT_CHECKS)  # in the monorepo, the root configuration applies
     _init(repo, "practice: a disposable copy of the Scout host")
     return load_target(repo, "scout")
 
