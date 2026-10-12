@@ -1,0 +1,3 @@
+# KINTSUGI-Ω holdout manifest (spec §6.1): sha256 of each sealed holdout file.
+# canary crm-practice sha256:85378945a09f98a9973d798e487e068930f797c44a0f3fa63a9338dee99a369e
+5bc8db4b3593d7a346e5ca8d391cdbf4252750f93a8492ff9a7525b9ac69cf25  practice_crm/evals/holdout/tasks.jsonl.age
