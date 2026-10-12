@@ -1,0 +1,53 @@
+<task-notification>
+<task-id>bukf9wwkt</task-id>
+<summary>Monitor event: "L3 rehearsal (run 3) milestones and errors"</summary>
+<event>RUN l3-20261012-080554</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b7yecnnll</task-id>
+<summary>Monitor event: "L3 rehearsal progress lines and errors"</summary>
+<event>[Monitor expired after 30m with 7 events delivered. Re-arm it if you still need the watch.]</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bukf9wwkt</task-id>
+<summary>Monitor event: "L3 rehearsal (run 3) milestones and errors"</summary>
+<event>maturation: StepResult(name='mature', ok=True, detail={'host': 'crm-practice', 'reason': 'G0?G6 pass; pull request opened', 'state': 'ACTIVE', 'version': '1.0'})
+backfill: 6 silent past occurrences, $12.0</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bukf9wwkt</task-id>
+<summary>Monitor event: "L3 rehearsal (run 3) milestones and errors"</summary>
+<event>[drill] induced trigger on scout: produced_failure=True {'FAIL:RATE_LIMITED': 6}</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bukf9wwkt</task-id>
+<summary>Monitor event: "L3 rehearsal (run 3) milestones and errors"</summary>
+<event>Traceback (most recent call last):
+kintsugi.crew.notary.NotaryError: drill-deliver: the notary session failed: invalid_request</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bukf9wwkt</task-id>
+<summary>Monitor event: "L3 rehearsal (run 3) milestones and errors"</summary>
+<event>[drill] induced trigger on scout: produced_failure=True {'FAIL:RATE_LIMITED': 6}
+Traceback (most recent call last):
+kintsugi.sandbox.worktree.WorktreeError: C:\Users\surya\.kintsugi\rehearsals\l3-20261012-080554\repos\scout\wt\VAC-AB-1-scout\V10 already exists: adopt it or discard it first
+temporalio.exceptions.ApplicationError: WorktreeError: C:\Users\surya\.kintsugi\rehearsals\l3-20261012-080554\repos\scout\wt\VAC-AB-1-scout\V10 already exists: adopt it or discard it first
+temporalio.exceptions.ActivityError: Activity task failed
+Traceback (most recent call last):
+temporalio.client._exceptions.WorkflowFailureError: Workflow execution failed</event>
+</task-notification>
