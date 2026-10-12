@@ -21,7 +21,6 @@ EXIT_SKIPPED = 2
 
 # Command → the execution-plan stage that implements it.
 _PENDING: dict[str, str] = {
-    "audit": "Stage 8 (proof plane: kintsugi audit C1–C14)",
     "demo": "Stage 13 (dress rehearsal)",
     "fleet": "Stage 3 (fleet runtime) and Stage 5 (control plane)",
 }
@@ -179,6 +178,42 @@ def _keys_generate(private_key: Path, public_key: Path) -> int:
 
 def _repo() -> Path:
     return Path.cwd()
+
+
+def _audit(args: argparse.Namespace) -> int:
+    import json
+    import os
+
+    from kintsugi.fleet.fabric import load_dotenv
+    from kintsugi.proof import audit
+
+    repo = _repo()
+    if args.autonomy:
+        checks: tuple[str, ...] = ("C2", "C3", "C4", "C5", "C12")
+    elif args.all or not (args.incident or args.sabotage or args.antibody):
+        checks = audit.CHECKS
+    else:
+        checks = tuple(
+            ({"C1", "C7", "C8", "C10"} if args.incident else set())
+            | ({"C6"} if args.sabotage else set())
+            | ({"C11"} if args.antibody else set())
+        )
+        checks = tuple(c for c in audit.CHECKS if c in checks)
+    selection = audit.Selection(checks, args.incident, args.sabotage, args.antibody)
+    offline = Path(args.offline) if args.offline else None
+    online = audit.Online()
+    window = audit.load_window(repo, offline)
+    if offline is None and window is not None:
+        env = {**load_dotenv(repo / ".env"), **os.environ}
+        github = audit.github_ports(window, env.get("GITHUB_TOKEN"))
+        senses = audit.neatlogs_ports(env, repo / ".state" / "senses" / "senses.sqlite")
+        online = audit.Online(
+            github.pr_checks, github.ruleset_history,
+            senses.trace_started, senses.session_cost, senses.hits,
+        )  # fmt: skip
+    report = audit.run_audit(repo, offline=offline, selection=selection, online=online)
+    print(json.dumps(report.as_json(), indent=2) if args.json else report.render())
+    return report.exit_code
 
 
 def _crew_rehearse(args: argparse.Namespace) -> int:
@@ -543,6 +578,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _fleet_baseline(args)
     if args.command == "fleet":
         return _fleet_up(args) if args.fleet_command == "up" else _fleet_down()
+    if args.command == "audit":
+        return _audit(args)
 
     stage = _PENDING[args.command]
     print(f"kintsugi {args.command}: not built yet — arrives in {stage}. No checks were run.")

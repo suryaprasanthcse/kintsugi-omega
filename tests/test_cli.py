@@ -20,16 +20,24 @@ def test_version_prints_pinned_toolchain(capsys: pytest.CaptureFixture[str]) -> 
         assert version in out
 
 
-@pytest.mark.parametrize(
-    "argv",
-    [["audit", "--all", "--offline", "./published-bundles"], ["demo"]],
-)
-def test_unbuilt_commands_skip_honestly(
-    argv: list[str], capsys: pytest.CaptureFixture[str]
+def test_unbuilt_commands_skip_honestly(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["demo"]) == EXIT_SKIPPED
+    assert "No checks were run" in capsys.readouterr().out
+
+
+def test_audit_before_t0_skips_what_needs_the_window(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # Exit code 2 is the spec's "checks skipped" (§7.5): never report a pass that did not run.
-    assert main(argv) == EXIT_SKIPPED
-    assert "No checks were run" in capsys.readouterr().out
+    monkeypatch.chdir(REPO)
+    if (REPO / ".kintsugi" / "window.json").exists():
+        pytest.skip("T0 has happened: the window record exists")
+    assert main(["audit", "--all", "--offline", "./published-bundles", "--json"]) == EXIT_SKIPPED
+    import json
+
+    checks = {c["check"]: c["status"] for c in json.loads(capsys.readouterr().out)["checks"]}
+    assert checks["C1"] == checks["C2"] == checks["C7"] == "SKIP"
+    assert checks["C11"] == "PASS"
 
 
 def test_keys_generate_prints_only_the_public_half(
