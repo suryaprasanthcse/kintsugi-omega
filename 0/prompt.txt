@@ -1,0 +1,29 @@
+Incident VAC-AB-1-crm-practice, hypothesis V10. Session nonce: basu-babi-linu-ruvu-nuji-hona-puku-fora-vanu-sogi-mopu
+
+Hypothesis: Vaccinate crm-practice with AB-1@1.0
+Root cause: Retry-scope accumulator reset: a refactor moved a stateful idempotency or progress accumulator inside a retried closure, so each retry builds a fresh one and repeats side effects that already ran (duplicate writes).
+Approach: In sync_contacts, move the construction of the SyncSession accumulator out of the retried closure attempt and into sync_contacts's own body, before attempt is handed to retry_with_backoff. Do it as `x = x or SyncSession(...)`, so a caller-supplied SyncSession is still respected and one instance is shared by every retry attempt. Leave attempt as a single pass over the work the shared SyncSession still reports as pending, and keep any documentation the original change added, so that Which contacts of one batch are created, and where to resume. holds. Never let a retry by retry_with_backoff build a new SyncSession or re-run a side effect for an item that an earlier attempt already recorded: a retry may only resume the remaining work and must never duplicate a write.
+
+Intent constraints of the code you are changing (keep them; the quotes are the original
+author's words):
+(none)
+
+Files you may edit: practice_crm/sync.py
+Diff budget: at most 120 changed lines.
+
+Cause report excerpt:
+Symptom: Vaccination of `crm-practice` with AB-1@1.0: the induced trigger (429s in geo inside the retried scope) failed 7 tasks the same seed passes without it ({'FAIL:DUPLICATE_CONTACT': 7, 'FAIL:RATE_LIMITED': 5}).
+Root cause (Coordinator): Retry-scope accumulator reset: a refactor moved a stateful idempotency or progress accumulator inside a retried closure, so each retry builds a fresh one and repeats side effects that already ran (duplicate writes).
+
+Gate feedback from earlier rounds (aggregates only):
+(first round)
+
+How to work:
+1. Locate the code with `entire graph search --repo . --profile full --query "..."` and read
+   focused line ranges. Use `entire graph impact --repo . --symbol <name>` for callers.
+2. Make the smallest complete edit with the Edit tool, only in the files listed above.
+3. Never edit tests, evals, graders, holdout data, `.kintsugi/`, `.github/`, `.claude/`,
+   `.entire/`, `CLAUDE.md` or `AGENTS.md`. Never add network calls.
+4. Run the test suite with `python -m pytest -q` and fix what your change broke.
+5. Do not commit, push or create branches: the orchestrator signs and commits your work.
+6. Finish with a short report: what you changed and why.
