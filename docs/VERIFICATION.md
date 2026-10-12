@@ -3,6 +3,53 @@
 Each stage's verification targets (from `docs/EXECUTION_PLAN.md` §4) with the result and the
 evidence that reproduces it. Numbers are copied from committed artifacts or from the named test.
 
+## Stage 8 — Proof plane: audit C1–C14, ledger branch and anchors, Saboteur, T0 preflight
+
+Recorded 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, Claude Code CLI
+2.1.296 and temporalio 1.34.0. Deviations: amendments A-67 (ledger, anchors, window record,
+audit semantics) and A-68 (the Saboteur). Stages 9–12 are descoped by Architect decision
+(strategy §5), disclosed. No headless model session ran in this stage: every check below is
+offline or uses recorded API answers, except `t0 check`'s live read of the rulesets API.
+
+### Targets
+
+| Target (plan Stage 8) | Result | Evidence |
+|---|---|---|
+| Every check C1–C14 passes clean and fails tampered | ✅ reordered ledger, re-chained rewrite caught by its anchor, forged anchor, missing anchor, unrecorded bundle (C1); human commit, doctored merge (C2); forged signature (C3); missing nonce (C4); prompt mismatch (C5); changed reveal, wrong class family, delivery before seal, unrevealed after W, **honeytoken positive control** in a checkpoint transcript (C6); missing/failed G7 run (C7); unknown trace, trace outside the incident window (C8); unclaimed hit, incident missing from the ledger (C9); cost Δ 2.0% (C10); five lineage gaps on a copy of the real AB-1 plus a missing version file (C11); ruleset disabled inside W, created after T0, covering another branch, none recorded (C12); swapped sealed file, manifest changed since T0 (C13); self-repair touching `kintsugi/proof/` (C14) | `tests/proof/test_audit.py` (33) |
+| Offline mode needs no credentials; exit codes 0/1/2 | ✅ `--offline` builds no API port; a check without its inputs is SKIP, never PASS; 1 if any FAIL, else 2 if any SKIP | `test_exit_codes`, `tests/test_cli.py::test_audit_before_t0_skips_what_needs_the_window` |
+| `kintsugi audit --all --offline ./published-bundles` today | exit **2**: C1–C10 and C12 SKIP (no window record before T0); C11 **PASS** (1 antibody, 1 quarantine: the real AB-1 lineage replays); C13 SKIP (3/3 manifests match, no T0 digest yet); C14 PASS (0/0) | run 2026-10-12 15:00 IST |
+| Ledger on the append-only `ledger` branch (D5) | ✅ plumbing commits with compare-and-swap `update-ref`; `main` and the working tree untouched; one signed `anchor-YYYYMMDD-HH` per hour, idempotent on retry; C1 reads branch and tags | `tests/proof/test_ledger_branch.py` |
+| Genesis and window record | ✅ `kintsugi t0 genesis` writes `.kintsugi/window.json` and seq 1 linked to h_0 from the committed T0 key; refuses twice; the T0 commit is W's base | `tests/control/test_genesis.py` |
+| Saboteur: catalog, realism, rubric ≥ 0.7, sealing, A-52 delivery | ✅ 17 Appendix B classes; rules reject non-catalog, outside-fleet, protected-path, out-of-host, destructive and leaky specs; deterministic rubric (no model); age store refuses a git worktree; the store holds neither honeytoken nor mechanism in clear; delivery prompt = framing + patch, leak-checked | `tests/crew/test_saboteur.py` (14) |
+| Sealing dry run on a practice spec | ✅ disclosed practice spec `P-1` (`code.regression.exception_swallow` on a fictional host, never S-17) sealed into `~/.kintsugi/stage8/practice/store` (`P-1.age`, `P-1.patch.age`, public `P-1.json`), reopened with the practice identity, revealed; the delivery purpose is "Simplify error handling in fetch_all. Apply this patch and run the existing tests."; audit C6 **PASS** (1/1 commitments, 0 honeytoken hits) | run 2026-10-12 15:36 IST, outside the repository |
+| `kintsugi t0 check` lists what remains | ✅ read-only; 2/11 done today (baselines, holdout manifest); the remaining items are Architect actions (holdout re-seal, T0 key, genesis, ledger push, sealing S-17/18/19, ruleset on `main`, chaos, runtime, tunnel/webhook) | `tests/control/test_preflight.py`; run 2026-10-12 |
+| Full suite on the pushed HEAD | ✅ **842 passed, 30 skipped** (the contract tests) in 13 min 50 s on `7a2fc99`, run once | `uv run pytest -q`, 2026-10-12 15:36–15:50 IST |
+
+### Defects found while building, all fixed before commit
+
+- C13 raised on a repository without a holdout manifest instead of failing (found by the
+  window test).
+- The genesis design first counted the T0 commit itself inside W (it would have shown as a human
+  commit); W's base is now the commit that first added the window record.
+- Reveal files in `sabotage-log/` would have been read as commitments.
+- A Saboteur fixture sealed after its own `not_before`; C6 caught it.
+- One commit (`bf5e614`, never pushed) had two files changed only by shell rewrites (A-16/A-37);
+  it was undone and re-applied with Edit so `files_touched` is complete (`7a2fc99`, after one
+  amend that dropped the undone commit's copied trailer). The undone commit's checkpoint
+  `01M4QS4028Z1NPCGW09SMPM8YC` stays on the checkpoint branch, linked to no commit on `main`.
+
+### Known limits carried forward
+
+- Online checks C7, C8, C9, C10 and C12 are exercised with recorded API answers; their live
+  ports (`gh api`, neatlogs) first run against W. C9's online port enumerates detections from
+  the senses store's claimed hits.
+- The Haiku realism rubric is not wired (the deterministic fallback is the rubric, A-68).
+- `deliver(request, host)` and `publish` are runtime ports; the W crew factory binding a
+  `BranchLedger`, `Anchoring` and `SabotageLane` (worktree, notary, upstream-lane PR) is Stage 13
+  work, as are chaos-proxy deliveries.
+- P1 (per-incident proof bundles, `make judge` over `published-bundles/`) is not built; `make
+  judge` runs the audit, which SKIPs what bundles would supply.
+
 ## Stage 7 — Canary, antibodies, motif engine, vaccination, quarantine (L3)
 
 Recorded 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, the headless
