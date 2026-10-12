@@ -1,4 +1,4 @@
-# Spike results (Stages 2–5)
+# Spike results (Stages 2–6)
 
 Spikes run against the installed Entire 0.11.4, entire-graph v0.4.0 and Claude Code 2.1.269 on
 Windows 11, 2026-10-11. Each result is locked by a test: CI runs the golden-fixture tests;
@@ -79,3 +79,20 @@ tests/contract/test_spikes.py -k "drill or n7"` re-runs them.
 | L2 / Temporal | Does a `kill -9` of the Surgeon pool lead to attempt 2 with the right adoption rule? | ✅ Worker processes on the dev server; the worker's process tree is killed while attempt 1 runs; a new worker starts. The server's history shows attempt 2 starting with a `HEARTBEAT` timeout as its last failure. **Adopt**: attempt 1 had committed with its nonce; attempt 2 keeps that commit and starts no session. **Cleanup**: attempt 1 had only dirtied the worktree; attempt 2 kills the orphan, resets and cleans, and commits under a new nonce. **Through the Watchdog**: the chaos API kills the pool, the supervisor restarts it, attempt 2 adopts, and every task queue's pollers are fresh afterwards. 3 tests, about 54 s. | `tests/contract/test_control_drill.py` |
 | L2 / SQLite | Does reduced mode survive a `kill -9` of the whole stack? | ✅ Executor (with its session) and the single writer killed together; on restart the WAL-recovered log still folds to REPAIRING, the dead executor's lease is marked abandoned, and the restarted executor runs the step as attempt 2 (adopt and cleanup cases). | `test_reduced_mode_survives_kill9_of_the_whole_stack` |
 | Kill semantics | Does `proc.kill_tree` reach the session under a killed worker? | ⚠️ On Windows the whole tree dies. On Linux the worker and its process group die, but a grandchild that leads its own session (the Surgeon's session) survives as an orphan; attempt 2 kills it through the worktree lock before adopting or resetting, as §6.6 requires. | `kintsugi/control/surgeon_step.py` |
+
+## Stage 6 spikes and findings (crew, gates, ship)
+
+Run 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, the headless
+Claude Code CLI 2.1.269 (logged in via claude.ai), temporalio 1.34.0 with the Temporal CLI 1.9.1
+dev server, and GitHub Actions. Rehearsal evidence: `evidence/rehearsals/*.json`
+(aggregate-only); `uv run kintsugi crew rehearse --github suryaprasanthcse/kintsugi-omega
+--holdout-identity <rehearsal identity> --model <opus role>=claude-opus-5 …` re-runs it.
+
+| Spike | Question | Result | Evidence |
+|---|---|---|---|
+| N9 | Rulesets and merge identity | ✅ A ruleset (`kintsugi-rehearsal-main`, id 24898487) on the rehearsal base branches requires a pull request and the check `g7 / G7 · ledger-practice`, forbids force-pushes and deletion, with **no bypass actor**. A direct push to a protected base was refused (`GH013 … push declined due to repository rule violations`) in every run. PR #5 merged only after G7 passed. The merge commit `76f19d1` is authored by Surya Prasanth R, **committed and signed by GitHub** (`noreply@github.com`, verified), merged by `suryaprasanthcse`; its second parent is the attested Surgeon commit `e50387e` (author = committer = Surya), which therefore survives with its signature and checkpoint. ⚠️ Findings: (1) a required status check also blocks the push that **creates** a matching branch, so the ruleset lists branches explicitly, each added right after its creation; (2) rebase and squash merges rewrite commits, so Omega merges with merge commits and does not require linear history (A-51); (3) a skipped job sharing the required check's name made the check ambiguous, so the reusable workflow's fleet job has its own name. | `kintsugi/crew/rehearsal.py::github_setup`, PR #5, run 38186481441 |
+| A4 | neatlogs Fixes MCP (the Coordinator's prior) | ⏸ Not connected: the Fixes tools need an OAuth user token (A-29), which is not configured. The Coordinator runs without the prior (`fixes_prior` → none); the port is wired (`OmegaCrew(fixes=…)`, `triage_list` → `triage_get_investigation`). | `kintsugi/senses/fixes_mcp.py`, `kintsugi/crew/factory.py` |
+| G3 tool | Does `entire graph verify` adjudicate pytest? | ✅ With `pytest -rA` (or `-v`) it parses per-test ids and reports `NEWLY FAILING (n): …` and a verdict; ❌ with `-q` it degrades to an exit-code verdict. It always exits 0 (A-48). | `tests/gates/test_stage6_gates.py::test_g3_with_entire_graph_verify` |
+| Delivery | Will a model apply a regression framed as "no behaviour change"? | ❌ No: Claude Haiku 5.5 read the practice patch, explained that moving the session into the retried closure re-posts lines after a 429 and contradicts "keep behavior identical", and applied nothing. With the spec's own framing (§6.2 step 3) it applied the patch (A-52). | first rehearsal attempt (no commit, so no checkpoint) |
+| Crew models | Which models can the headless CLI run? | ⚠️ CLI 2.1.269 refuses `claude-opus-5-5` ("2.1.280 or newer is required"); `claude-sonnet-5-5` and `claude-haiku-5-5` work; the `opus` alias resolves to `claude-opus-5`. The Opus roles ran on `claude-opus-5` (A-54). | `calls.jsonl` per incident |
+| Live loop | Does the whole primary response run with real models? | ✅ Three live rehearsals (details in `docs/VERIFICATION.md`, Stage 6). The third resolved end to end in 9 minutes for $0.65 of metered model spend (notional on the subscription). | `evidence/rehearsals/reh-20261011-235459.json` |

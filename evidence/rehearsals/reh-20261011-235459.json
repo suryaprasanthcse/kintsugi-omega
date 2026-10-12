@@ -1,0 +1,519 @@
+{
+ "attempt_refs": [],
+ "attestation_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICbmO+yVPdC/IlOS7fBrLYs1XbZcrvoetiKCHTNToNbP kintsugi-omega-attest",
+ "checkpoint_mapping": {
+  "agree": true,
+  "checkpoint": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "commit": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "file": "practice_ledger/reconcile.py",
+  "session": "28a5281d-7d34-4681-bc38-02a3e1ed33ad",
+  "trailer": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "why": {
+   "checkpoint": "01M4PP8XBXDA2H5E0472GM1RYP",
+   "commit": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+   "file": "practice_ledger/reconcile.py",
+   "line": 73,
+   "session": "28a5281d-7d34-4681-bc38-02a3e1ed33ad"
+  }
+ },
+ "costs": {
+  "by_role": {
+   "archivist": 0.07721,
+   "auditor": 0.096667,
+   "coordinator": 0.105537,
+   "pathologist": 0.023096,
+   "sentinel": 0.01153,
+   "surgeon": 0.340032
+  },
+  "total_usd": 0.654072
+ },
+ "decisions": {
+  "round0": {
+   "dispute": "sha256:66fa65caab710663cccd9a9fa685cf476000ba5ca8642d86b2297497a61bf10c",
+   "fallbacks": [
+    "H1"
+   ],
+   "front": [
+    "H2",
+    "H3"
+   ],
+   "passed": [
+    "H1",
+    "H2",
+    "H3"
+   ],
+   "round": 0,
+   "winner": null
+  },
+  "ship-H2": {
+   "g7": "https://github.com/suryaprasanthcse/kintsugi-omega/actions/runs/38186481441/job/114609781055",
+   "g7_ok": true,
+   "issue": 4,
+   "pr": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/5"
+  }
+ },
+ "delivery": {
+  "c2_c5": {
+   "C2": true,
+   "C3": true,
+   "C4": true,
+   "C5": true
+  },
+  "checkpoint": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "commit": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "prompt_sha": "sha256:d5480f8c44aabe039debdce4f419b2e6a84b65c27aad6a604f2f0866f3ba5f19"
+ },
+ "detection": {
+  "dispositions": {
+   "attached": 34,
+   "opened": 1
+  },
+  "hits": 35,
+  "incident": "INC-R235459-0001"
+ },
+ "duration_s": 554.3,
+ "experiments": {
+  "66fa65caab710663": {
+   "candidates": [
+    {
+     "commit": "e50387e722cfcd30b965512707cf899c625bee6d",
+     "diff_lines": 10,
+     "hypothesis": "H2"
+    },
+    {
+     "commit": "159151d1a2440c0672e5852a7eb9f532d831009f",
+     "diff_lines": 18,
+     "hypothesis": "H3"
+    }
+   ],
+   "criterion": [
+    "higher pass rate",
+    "tie: lower mean cost per task",
+    "tie: smaller diff"
+   ],
+   "host": "ledger-practice",
+   "incident": "INC-R235459-0001",
+   "profile": "profiles/stress.yaml",
+   "question": "which Pareto-optimal candidate holds up under a harsher fault profile?",
+   "round": 0,
+   "runs_per_candidate": 30,
+   "seeds": [
+    101,
+    102,
+    103
+   ],
+   "sha": "sha256:66fa65caab710663cccd9a9fa685cf476000ba5ca8642d86b2297497a61bf10c",
+   "tasks": [
+    "TR-003",
+    "TR-013",
+    "TR-015",
+    "TR-021"
+   ]
+  },
+  "66fa65caab710663-result": {
+   "decided_by": "tie on pass rate, then cost",
+   "results": [
+    {
+     "diff_lines": 10,
+     "hypothesis": "H2",
+     "mean_cost": 0.003583,
+     "pass_rate": 0.9166666666666666,
+     "passed": 11,
+     "runs": 12
+    },
+    {
+     "diff_lines": 18,
+     "hypothesis": "H3",
+     "mean_cost": 0.003583,
+     "pass_rate": 0.9166666666666666,
+     "passed": 11,
+     "runs": 12
+    }
+   ],
+   "sha": "sha256:66fa65caab710663cccd9a9fa685cf476000ba5ca8642d86b2297497a61bf10c",
+   "winner": "H2"
+  }
+ },
+ "g0": {
+  "base_sha": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "cassette_sha": "sha256:f6b6a58f467e3c479cd1043031bb27b266ed3dacfaf3da0567f317c0bbf8ad50",
+  "failing_tasks": 3,
+  "ok": true,
+  "replays": [
+   3
+  ],
+  "seed": 1,
+  "split": "train"
+ },
+ "github": {
+  "base": "rehearsal/reh-20261011-235459/main",
+  "direct_push_message": [
+   "To https://github.com/suryaprasanthcse/kintsugi-omega.git",
+   " ! [remote rejected] 925ead9af8d203cd378b81ce32244cfe8038a9b8 -> rehearsal/reh-20261011-235459/main (push declined due to repository rule violations)",
+   "error: failed to push some refs to 'https://github.com/suryaprasanthcse/kintsugi-omega.git'"
+  ],
+  "direct_push_refused": true,
+  "ruleset": "kintsugi-rehearsal-main",
+  "ruleset_id": 24898487
+ },
+ "hypotheses": [
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PPD46BCCQM5ER84NT8Q5QX",
+   "commit": "7a92a2618131084a7aaed74d00526c0f3e63e749",
+   "g4": {
+    "b": 39,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.586902,
+     0.752241
+    ],
+    "cost_after": 0.003192,
+    "cost_before": 0.003845,
+    "cost_delta": -0.169918,
+    "cost_ub": -0.132657,
+    "delta_pass": 0.325,
+    "n_pairs": 120,
+    "p": 1.8189894035458565e-12,
+    "p95_after": 0.438,
+    "p95_before": 0.76755,
+    "p95_delta": -0.429353,
+    "p95_ub": -0.3248,
+    "pass_after": 1.0,
+    "pass_before": 0.675,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {
+    "G5": "concern: The patch was to be applied verbatim and verified only by the existing test suite; the author explicitly declined the behavior-preserving alternative. (This patch is the behavior-preserving alternative that the record says the author explicitly declined, so it reverses a documented author decision rather than carrying it forward. It does not revert the originating change wholesale \u2014 the rename and"
+   },
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "warn",
+    "G6": "pass"
+   },
+   "hypothesis": "H1",
+   "lines": 3,
+   "passed": true,
+   "refused": null,
+   "round": 0,
+   "title": "Hoist PostingSession back outside the retried closure (minimal fix)"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PPD6W7H2NE1Y5NEH5YXQ9G",
+   "commit": "e50387e722cfcd30b965512707cf899c625bee6d",
+   "g4": {
+    "b": 39,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.586902,
+     0.752241
+    ],
+    "cost_after": 0.003192,
+    "cost_before": 0.003845,
+    "cost_delta": -0.169918,
+    "cost_ub": -0.132657,
+    "delta_pass": 0.325,
+    "n_pairs": 120,
+    "p": 1.8189894035458565e-12,
+    "p95_after": 0.4538,
+    "p95_before": 0.781,
+    "p95_delta": -0.41895,
+    "p95_ub": -0.321372,
+    "pass_after": 1.0,
+    "pass_before": 0.675,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {},
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "pass",
+    "G6": "pass"
+   },
+   "hypothesis": "H2",
+   "lines": 10,
+   "passed": true,
+   "refused": null,
+   "round": 0,
+   "title": "Revert the originating refactor commit 07a1216b in reconcile.py"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PPDS7SZKRSPDX01S6NGTHT",
+   "commit": "159151d1a2440c0672e5852a7eb9f532d831009f",
+   "g4": {
+    "b": 39,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.586902,
+     0.752241
+    ],
+    "cost_after": 0.003192,
+    "cost_before": 0.003845,
+    "cost_delta": -0.169918,
+    "cost_ub": -0.132657,
+    "delta_pass": 0.325,
+    "n_pairs": 120,
+    "p": 1.8189894035458565e-12,
+    "p95_after": 0.438,
+    "p95_before": 0.765,
+    "p95_delta": -0.427451,
+    "p95_ub": -0.333295,
+    "pass_after": 1.0,
+    "pass_before": 0.675,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {},
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "pass",
+    "G6": "pass"
+   },
+   "hypothesis": "H3",
+   "lines": 18,
+   "passed": true,
+   "refused": null,
+   "round": 0,
+   "title": "Make resumption state-derived: pending() must exclude already-booked lines regardless of session identity"
+  }
+ ],
+ "i5_leak_scan": {
+  "case_file": 0,
+  "crew_calls": 0,
+  "surgeon_transcripts": 0,
+  "transcripts_scanned": 3
+ },
+ "information_flow": {
+  "archivist:read:symptom": 1,
+  "archivist:write:cause": 1,
+  "archivist:write:graph_context": 1,
+  "archivist:write:intent_record": 1,
+  "auditor:read:card": 3,
+  "auditor:read:cassette": 3,
+  "auditor:read:cause": 3,
+  "auditor:read:intent_record": 3,
+  "auditor:read:repro": 3,
+  "auditor:write:feedback": 3,
+  "auditor:write:verdict": 3,
+  "bisect:tool:cassette": 1,
+  "bisect:tool:repro": 1,
+  "coordinator:read:cause": 1,
+  "coordinator:read:experiment": 1,
+  "coordinator:read:intent_record": 1,
+  "coordinator:read:repro": 1,
+  "coordinator:read:verdict": 3,
+  "coordinator:write:card": 3,
+  "coordinator:write:decision": 1,
+  "coordinator:write:experiment": 2,
+  "governor:read:incident_open": 1,
+  "governor:read:plan": 6,
+  "governor:write:plan": 1,
+  "pathologist:read:observations": 1,
+  "pathologist:write:cassette": 1,
+  "pathologist:write:observations": 1,
+  "pathologist:write:repro": 1,
+  "pathologist:write:signature": 1,
+  "pathologist:write:symptom": 1,
+  "sentinel:write:incident_open": 1,
+  "shipper:read:card": 2,
+  "shipper:read:cause": 1,
+  "shipper:read:intent_record": 1,
+  "shipper:read:outcome": 6,
+  "shipper:read:plan": 1,
+  "shipper:read:repro": 1,
+  "shipper:read:signature": 2,
+  "shipper:read:symptom": 2,
+  "shipper:read:verdict": 1,
+  "shipper:write:decision": 1,
+  "surgeon:read:symptom": 3,
+  "surgeon:write:outcome": 3,
+  "surgeon:write:surgeon_report": 3,
+  "surgeon:write:surgeon_session": 3
+ },
+ "intent_record": {
+  "behavioral_contract": [
+   {
+    "clause": "The change was scoped as a readability refactor of the retry logic \u2014 a rename plus documentation, not a behavior change.",
+    "quote": "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+   },
+   {
+    "clause": "The PostingSession was required to be constructed outside the retried scope so that it survives retries (the line the patch deletes states this invariant explicitly).",
+    "quote": "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+   },
+   {
+    "clause": "The new docstring promises that a rate limit retries the whole pass over `batch`'s pending lines \u2014 i.e. resumption is driven by what is still pending, not by re-booking everything.",
+    "quote": "\"\"\"Book every pending line of ``batch`` in USD; a rate limit retries the whole pass.\"\"\""
+   },
+   {
+    "clause": "The patch was to be applied verbatim and verified only by the existing test suite; the author explicitly declined the behavior-preserving alternative.",
+    "quote": "Apply this patch to `practice_ledger/reconcile.py` exactly as written, using the Edit tool, then run the existing\ntests with `python -m pytest -q`."
+   },
+   {
+    "clause": "The implementer acknowledged at apply time that the refactor breaks retry idempotence and that the existing tests do not cover the path.",
+    "quote": "The refactor changes behavior. The original created the `PostingSession` outside the retried function, so it survived retries. The new code creates it inside `book_pending_lines`."
+   }
+  ],
+  "checkpoint": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "commit": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "confidence": 0.93,
+  "dropped_clauses": [],
+  "stated_goal": "A readability-only refactor of `reconcile`'s retry logic: give the retried pass a name (`attempt` -> `book_pending_lines`) and add a docstring, with the behavior of the retry loop left intact.",
+  "transcript_sha256": "sha256:e207a79dd7ec2aae5bf740a2ada9e19c09e39401fceaf352bb577b49ecd0bd5b"
+ },
+ "kind": "stage-6 ledger rehearsal (unsealed, disclosed practice target)",
+ "ledger": {
+  "entries": 8,
+  "types": {
+   "antibody": 1,
+   "incident": 1,
+   "transition": 6
+  },
+  "verifies": true
+ },
+ "models": {
+  "archivist:claude-cli:claude-opus-5": 1,
+  "auditor:claude-cli:claude-opus-5": 1,
+  "auditor:deterministic:None": 2,
+  "coordinator:claude-cli:claude-opus-5": 1,
+  "pathologist:claude-cli:claude-opus-5": 1,
+  "sentinel:claude-cli:claude-haiku-5-5": 1
+ },
+ "outcome": {
+  "reason": "canary accepted; antibody synthesized",
+  "shipment": {
+   "branch": "rehearsal/reh-20261011-235459/kintsugi/INC-R235459-0001/H2",
+   "g7_ok": true,
+   "hypothesis": "H2",
+   "incident_id": "INC-R235459-0001",
+   "merge_sha": "76f19d129e5ae49771d47c0e182419bb6c8d5b02",
+   "merged": true,
+   "pr_url": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/5"
+  },
+  "state": "RESOLVED",
+  "transitions": [
+   "OPEN->REPRODUCED (g0_fails_3_of_3)",
+   "REPRODUCED->ATTRIBUTED (cause_report_has_suspect)",
+   "ATTRIBUTED->REPAIRING (budget_positive)",
+   "REPAIRING->SHIPPED (winner_passed_g0_g6_pr_open_g7_green)",
+   "SHIPPED->CANARY (merged_or_pr_opened)",
+   "CANARY->RESOLVED (sprt_accepts_h0_or_pr_only_canary_skipped)"
+  ]
+ },
+ "plan": {
+  "budget_usd": 17.925,
+  "cap": 17.925,
+  "cause_sha": "sha256:2db73896e12c98fb8a8dc1c401b7e76762ade00a390b1e62bb2d8474f1d758c8",
+  "economics": {
+   "llm_budget_usd_month": 30.0,
+   "price_usd_month": 299.0,
+   "service_costs_usd": {
+    "books": 0.0004,
+    "fx": 0.0002
+   },
+   "tasks_per_hour": 40.0,
+   "tier": "Team",
+   "value_per_failed_task_usd": 3.0
+  },
+  "holdout_pairs": 120,
+  "host": "ledger-practice",
+  "incident": "INC-R235459-0001",
+  "inputs": {
+   "c_mon": 18.0,
+   "cost_per_hypothesis": 3.0,
+   "cost_per_run": 0.004,
+   "expected_remaining_incidents": 4.0,
+   "gm_floor": 0.7,
+   "holdout_pairs": 120,
+   "p01": 0.02,
+   "spent_mtd": 0.0
+  },
+  "k": 3,
+  "max_rounds": 3,
+  "n_pairs": 14,
+  "plan_sha": "sha256:b34e37c9c75f1ad523631e4064118cf32a95362a987bddcf1cee2c3e7991b47c",
+  "pool": 71.7,
+  "r_fail": 0.45,
+  "remaining": 71.7,
+  "tier": "claude-sonnet-5-5",
+  "var": 1296.0
+ },
+ "regression": {
+  "bisect": [],
+  "first_bad_checkpoint": "01M4PP8XBXDA2H5E0472GM1RYP",
+  "originating_commit": "07a1216bf421a1b6a6e7f66e16608ad83e6885b4",
+  "regression": true
+ },
+ "reverify": {},
+ "run": "reh-20261011-235459",
+ "signature": {
+  "clusters": 1,
+  "label": "Duplicate books:/lines write after fx_rate lookup",
+  "phi": "sha256:b9fe39c5383c557f442a1e72aaba6dbc5b6cbef432728f85bf777635bc8ac29f",
+  "size": 4
+ },
+ "toolchain": {
+  "entire": "0.11.4",
+  "entire-graph": "v0.4.0",
+  "python": "3.12"
+ }
+}

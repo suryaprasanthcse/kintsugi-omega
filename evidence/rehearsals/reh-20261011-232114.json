@@ -1,0 +1,628 @@
+{
+ "attempt_refs": [
+  "refs/kintsugi/attempts/INC-REH-0001/H1/1 2845d5970d2ae2b3c2d54ba9dda205c327339392",
+  "refs/kintsugi/attempts/INC-REH-0001/H2/1 6463da52dbca289eb58965dabe1417ec7d13e702",
+  "refs/kintsugi/attempts/INC-REH-0001/H3/1 acd3822d361ec0377341578231ba13901173749f"
+ ],
+ "attestation_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEa9uUOFfx7GRUXH0YpNz4xAZdgJwm8nl7/Z+JmqJHwg kintsugi-omega-attest",
+ "checkpoint_mapping": {
+  "agree": true,
+  "checkpoint": "01M4PMAYHYAF025KPN33QZ9RTQ",
+  "commit": "81f4d5c0876820afc745f2fdd034290074c98c95",
+  "file": "practice_ledger/reconcile.py",
+  "session": "1bb8b201-75a7-4cef-962a-900868920135",
+  "trailer": "01M4PMAYHYAF025KPN33QZ9RTQ",
+  "why": {
+   "checkpoint": "01M4PMAYHYAF025KPN33QZ9RTQ",
+   "commit": "81f4d5c0876820afc745f2fdd034290074c98c95",
+   "file": "practice_ledger/reconcile.py",
+   "line": 73,
+   "session": "1bb8b201-75a7-4cef-962a-900868920135"
+  }
+ },
+ "costs": {
+  "by_role": {
+   "archivist": 0.090768,
+   "auditor": 0.718781,
+   "coordinator": 0.235835,
+   "pathologist": 0.02868,
+   "sentinel": 0.010233,
+   "surgeon": 0.699506
+  },
+  "total_usd": 1.783803
+ },
+ "decisions": {
+  "round0": {
+   "fallbacks": [
+    "H1",
+    "H2",
+    "H3"
+   ],
+   "passed": [
+    "H1",
+    "H2",
+    "H3"
+   ],
+   "round": 0,
+   "winner": null
+  },
+  "round1": {
+   "fallbacks": [
+    "H5"
+   ],
+   "front": [
+    "H4"
+   ],
+   "passed": [
+    "H4",
+    "H5"
+   ],
+   "round": 1,
+   "winner": "H4"
+  },
+  "ship-H4": {
+   "g7": "https://github.com/suryaprasanthcse/kintsugi-omega/actions/runs/38184881967/job/114604966284",
+   "g7_ok": false,
+   "issue": 1,
+   "pr": "https://github.com/suryaprasanthcse/kintsugi-omega/pull/3"
+  }
+ },
+ "delivery": {
+  "c2_c5": {
+   "C2": true,
+   "C3": true,
+   "C4": true,
+   "C5": true
+  },
+  "checkpoint": "01M4PMAYHYAF025KPN33QZ9RTQ",
+  "commit": "81f4d5c0876820afc745f2fdd034290074c98c95",
+  "prompt_sha": "sha256:20935e47f0c4726c7b5338ec80ec33c1d1d660ea05e0a05e8495653a93ebaf3e"
+ },
+ "detection": {
+  "dispositions": {
+   "attached": 34,
+   "opened": 1
+  },
+  "hits": 35,
+  "incident": "INC-REH-0001"
+ },
+ "duration_s": 943.8,
+ "experiments": {},
+ "g0": {
+  "base_sha": "81f4d5c0876820afc745f2fdd034290074c98c95",
+  "cassette_sha": "sha256:f5b217bf65959e0d3a1f1b2438263c54a25805c4fb7d9ccc4c806a46db5bedd0",
+  "failing_tasks": 3,
+  "ok": true,
+  "replays": [
+   3
+  ],
+  "seed": 1,
+  "split": "train"
+ },
+ "github": {
+  "base": "rehearsal/reh-20261011-232114/main",
+  "direct_push_message": [
+   "To https://github.com/suryaprasanthcse/kintsugi-omega.git",
+   " ! [remote rejected] 5668f493b34e9838c97fd0e03c7f7b934aa42577 -> rehearsal/reh-20261011-232114/main (push declined due to repository rule violations)",
+   "error: failed to push some refs to 'https://github.com/suryaprasanthcse/kintsugi-omega.git'"
+  ],
+  "direct_push_refused": true,
+  "ruleset": "kintsugi-rehearsal-main",
+  "ruleset_id": 24898487
+ },
+ "hypotheses": [
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PMF3C7KWTR74JYE4JBV2NY",
+   "commit": "2845d5970d2ae2b3c2d54ba9dda205c327339392",
+   "g4": {
+    "b": 27,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.692431,
+     0.840508
+    ],
+    "cost_after": 0.003358,
+    "cost_before": 0.003915,
+    "cost_delta": -0.142188,
+    "cost_ub": -0.099602,
+    "delta_pass": 0.225,
+    "n_pairs": 120,
+    "p": 7.450580596923828e-09,
+    "p95_after": 0.46805,
+    "p95_before": 0.8288,
+    "p95_delta": -0.435268,
+    "p95_ub": -0.302083,
+    "pass_after": 1.0,
+    "pass_before": 0.775,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {
+    "G5": "concern: The patch was to be applied exactly as written and verified only with the existing test suite (which passed, giving a false all-clear). (Deviating from the verbatim text is the sanctioned point of H1, so the departure itself is not a breach. The residual concern is the verification half of the clause: the intent record states the existing suite passed over the broken code, so re-running that same "
+   },
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "warn",
+    "G6": "pass"
+   },
+   "hypothesis": "H1",
+   "lines": 2,
+   "passed": true,
+   "refused": null,
+   "round": 0,
+   "title": "Hoist PostingSession back outside the retried closure (minimal fix, keep the rename)"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PMF6KDXM5YW7X6HEPR1YPN",
+   "commit": "6463da52dbca289eb58965dabe1417ec7d13e702",
+   "g4": {
+    "b": 27,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.692431,
+     0.840508
+    ],
+    "cost_after": 0.003358,
+    "cost_before": 0.003915,
+    "cost_delta": -0.142188,
+    "cost_ub": -0.099602,
+    "delta_pass": 0.225,
+    "n_pairs": 120,
+    "p": 7.450580596923828e-09,
+    "p95_after": 0.46805,
+    "p95_before": 0.82975,
+    "p95_delta": -0.435914,
+    "p95_ub": -0.308628,
+    "pass_after": 1.0,
+    "pass_before": 0.775,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {
+    "G5": "concern: The change was scoped as a readability refactor of the retry logic only \u2014 naming and documenting the retried pass, not altering retry semantics. (The patch does not alter retry semantics in a way that contradicts this clause \u2014 it restores them to the pre-regression form. But it reverses both halves of the clause's stated scope: `book_pending_lines` becomes `attempt` again (unnaming the retried pas"
+   },
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "warn",
+    "G6": "pass"
+   },
+   "hypothesis": "H2",
+   "lines": 14,
+   "passed": true,
+   "refused": null,
+   "round": 0,
+   "title": "Revert the originating commit 81f4d5c to the pre-regression reconcile"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py",
+    "practice_ledger/tools.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PMG8W3YFCEXQ02VZ4S85FG",
+   "commit": "acd3822d361ec0377341578231ba13901173749f",
+   "g4": {
+    "b": 27,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.692431,
+     0.840508
+    ],
+    "cost_after": 0.003358,
+    "cost_before": 0.003915,
+    "cost_delta": -0.142188,
+    "cost_ub": -0.099602,
+    "delta_pass": 0.225,
+    "n_pairs": 120,
+    "p": 7.450580596923828e-09,
+    "p95_after": 0.469,
+    "p95_before": 0.82975,
+    "p95_delta": -0.43477,
+    "p95_ub": -0.306931,
+    "pass_after": 1.0,
+    "pass_before": 0.775,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {
+    "G5": "concern: The change was scoped as a readability refactor of the retry logic only \u2014 naming and documenting the retried pass, not altering retry semantics. (The patch deliberately alters retry semantics inside the retried pass: it seeds `current.booked` from an outer `posted` set, skips already-booked keys, and hand-advances `current.cursor`. Directionally this restores the pre-change guarantee that bookings"
+   },
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "warn",
+    "G6": "pass"
+   },
+   "hypothesis": "H3",
+   "lines": 7,
+   "passed": true,
+   "refused": null,
+   "round": 0,
+   "title": "Make the retried pass idempotent: resume from already-posted lines instead of relying on session lifetime"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PMVT7K9XRJPQPAR76W0RH5",
+   "commit": "d3f1d574fc062406773a0118402aa5796e4c9e85",
+   "g4": {
+    "b": 27,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.692431,
+     0.840508
+    ],
+    "cost_after": 0.003358,
+    "cost_before": 0.003915,
+    "cost_delta": -0.142188,
+    "cost_ub": -0.099602,
+    "delta_pass": 0.225,
+    "n_pairs": 120,
+    "p": 7.450580596923828e-09,
+    "p95_after": 0.484,
+    "p95_before": 0.84305,
+    "p95_delta": -0.425894,
+    "p95_ub": -0.285061,
+    "pass_after": 1.0,
+    "pass_before": 0.775,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {},
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "pass",
+    "G6": "pass"
+   },
+   "hypothesis": "H4",
+   "lines": 5,
+   "passed": true,
+   "refused": null,
+   "round": 1,
+   "title": "H1: Hoist PostingSession construction back outside the retried closure (minimal fix)"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PMVY9D3FCGK4DRAE497SAH",
+   "commit": "b8b6bc9e359cc6ac5717ed921ba8450e648ce360",
+   "g4": {
+    "b": 27,
+    "c": 0,
+    "ci_after": [
+     0.968981,
+     1.0
+    ],
+    "ci_before": [
+     0.692431,
+     0.840508
+    ],
+    "cost_after": 0.003358,
+    "cost_before": 0.003915,
+    "cost_delta": -0.142188,
+    "cost_ub": -0.099602,
+    "delta_pass": 0.225,
+    "n_pairs": 120,
+    "p": 7.450580596923828e-09,
+    "p95_after": 0.46975,
+    "p95_before": 0.844,
+    "p95_delta": -0.443424,
+    "p95_ub": -0.317431,
+    "pass_after": 1.0,
+    "pass_before": 0.775,
+    "seeds": [
+     1,
+     2,
+     3
+    ]
+   },
+   "gate_summaries": {
+    "G5": "concern: Stated goal: a readability-only refactor of `reconcile`'s retry logic \u2014 give the retried pass a name (`attempt` -> `book_pending_lines`) and add a docstring describing it. (The patch correctly restores the pre-change retry structure, but it does so by reverting the refactor wholesale rather than surgically. Half the readability intent is discarded: the descriptive name `book_pending_lines` is rena"
+   },
+   "gates": {
+    "G0": "pass",
+    "G1": "pass",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "pass",
+    "G5": "warn",
+    "G6": "pass"
+   },
+   "hypothesis": "H5",
+   "lines": 13,
+   "passed": true,
+   "refused": null,
+   "round": 1,
+   "title": "H2: Revert the originating commit's behavioral delta in reconcile (restore pre-change retry structure)"
+  },
+  {
+   "allowed_files": [
+    "practice_ledger/reconcile.py",
+    "practice_ledger/tools.py"
+   ],
+   "c2_c5": {
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true
+   },
+   "checkpoint": "01M4PMWRRK4B173NV6V54NTH20",
+   "commit": "890f94d88bc872922ad19036f3c6ae53880223d8",
+   "g4": {},
+   "gate_summaries": {
+    "G1": "`python.exe -m ruff check` exited 1",
+    "G4": "skipped: a cheaper gate failed",
+    "G5": "concern: The change was scoped as a readability refactor of the retry logic only - naming and documenting the retried pass, not altering retry semantics. (The naming and documentation survive intact, and the semantic change here is deliberate: it restores the retry behaviour the original refactor silently dropped. Even so, the patch does alter retry semantics and reaches beyond `reconcile`'s retry logic in"
+   },
+   "gates": {
+    "G0": "pass",
+    "G1": "fail",
+    "G2": "pass",
+    "G3": "pass",
+    "G4": "fail",
+    "G5": "warn",
+    "G6": "pass"
+   },
+   "hypothesis": "H6",
+   "lines": 20,
+   "passed": false,
+   "refused": null,
+   "round": 1,
+   "title": "H3: Make line posting idempotent so retries cannot double-book regardless of session lifetime"
+  }
+ ],
+ "i5_leak_scan": {
+  "case_file": 0,
+  "crew_calls": 0,
+  "surgeon_transcripts": 0,
+  "transcripts_scanned": 6
+ },
+ "information_flow": {
+  "archivist:read:symptom": 1,
+  "archivist:write:cause": 1,
+  "archivist:write:graph_context": 1,
+  "archivist:write:intent_record": 1,
+  "auditor:read:card": 9,
+  "auditor:read:cassette": 6,
+  "auditor:read:cause": 6,
+  "auditor:read:intent_record": 6,
+  "auditor:read:repro": 6,
+  "auditor:write:feedback": 6,
+  "auditor:write:verdict": 6,
+  "bisect:tool:cassette": 1,
+  "bisect:tool:repro": 1,
+  "coordinator:read:cause": 2,
+  "coordinator:read:decision": 3,
+  "coordinator:read:feedback": 3,
+  "coordinator:read:intent_record": 2,
+  "coordinator:read:verdict": 5,
+  "coordinator:write:card": 6,
+  "coordinator:write:decision": 2,
+  "governor:read:incident_open": 1,
+  "governor:read:plan": 12,
+  "governor:write:plan": 1,
+  "pathologist:read:observations": 1,
+  "pathologist:write:cassette": 1,
+  "pathologist:write:observations": 1,
+  "pathologist:write:repro": 1,
+  "pathologist:write:signature": 1,
+  "pathologist:write:symptom": 1,
+  "sentinel:write:incident_open": 1,
+  "shipper:read:card": 2,
+  "shipper:read:cause": 1,
+  "shipper:read:intent_record": 1,
+  "shipper:read:outcome": 12,
+  "shipper:read:plan": 1,
+  "shipper:read:repro": 1,
+  "shipper:read:signature": 2,
+  "shipper:read:symptom": 2,
+  "shipper:read:verdict": 1,
+  "shipper:write:decision": 1,
+  "surgeon:read:feedback": 9,
+  "surgeon:read:symptom": 6,
+  "surgeon:write:outcome": 6,
+  "surgeon:write:surgeon_report": 6,
+  "surgeon:write:surgeon_session": 6
+ },
+ "intent_record": {
+  "behavioral_contract": [
+   {
+    "clause": "The change was scoped as a readability refactor of the retry logic only \u2014 naming and documenting the retried pass, not altering retry semantics.",
+    "quote": "Refactor `reconcile`'s retry logic for readability: name the retried pass and document it."
+   },
+   {
+    "clause": "The patch was to be applied exactly as written and verified only with the existing test suite (which passed, giving a false all-clear).",
+    "quote": "Apply this patch to `practice_ledger/reconcile.py` exactly as written, using the Edit tool, then run the existing\ntests with `python -m pytest -q`. Do not commit: the change is committed for you."
+   },
+   {
+    "clause": "The pre-change code explicitly promised that the PostingSession lived outside the retried scope so bookings survived retries \u2014 a promise the patch deleted.",
+    "quote": "-    session = session or PostingSession(batch)  # outside the retried scope: survives retries"
+   },
+   {
+    "clause": "The new docstring still promises that a rate limit merely retries the pass (implying resumption, not re-booking).",
+    "quote": "+    \"\"\"Book every pending line of ``batch`` in USD; a rate limit retries the whole pass.\"\"\""
+   },
+   {
+    "clause": "The author acknowledged the refactor was not behavior-preserving and that the double-booking path was untested.",
+    "quote": "The patch also changes behavior, which the review may not have covered. The original code created the `PostingSession` outside the retried function so bookings survived a retry."
+   },
+   {
+    "clause": "The author named the exact failure mode now observed in production and offered the fix, which was not applied.",
+    "quote": "If the caller passes no session and a 429 hits mid-pass, the retry builds a fresh session and re-books lines the first attempt already posted. That is a double-booking risk, and the existing tests don't exercise it."
+   }
+  ],
+  "checkpoint": "01M4PMAYHYAF025KPN33QZ9RTQ",
+  "commit": "81f4d5c0876820afc745f2fdd034290074c98c95",
+  "confidence": 0.95,
+  "dropped_clauses": [],
+  "stated_goal": "A readability-only refactor of `reconcile`'s retry logic: give the retried pass a name (`attempt` -> `book_pending_lines`) and add a docstring describing it. The patch was to be applied verbatim with the Edit tool and verified by running the existing test suite, with no commit.",
+  "transcript_sha256": "sha256:6118d42bd2b2ae9ec83fbefc97acfcbe912f72fed964ca524e72949db3d28381"
+ },
+ "kind": "stage-6 ledger rehearsal (unsealed, disclosed practice target)",
+ "ledger": {
+  "entries": 10,
+  "types": {
+   "escalate": 1,
+   "incident": 1,
+   "rewind": 3,
+   "transition": 5
+  },
+  "verifies": true
+ },
+ "models": {
+  "archivist:claude-cli:claude-opus-5": 1,
+  "auditor:claude-cli:claude-opus-5": 6,
+  "coordinator:claude-cli:claude-opus-5": 2,
+  "pathologist:claude-cli:claude-opus-5": 1,
+  "sentinel:claude-cli:claude-haiku-5-5": 1
+ },
+ "outcome": {
+  "reason": "G7 failed on the winner's PR",
+  "shipment": null,
+  "state": "ESCALATED",
+  "transitions": [
+   "OPEN->REPRODUCED (g0_fails_3_of_3)",
+   "REPRODUCED->ATTRIBUTED (cause_report_has_suspect)",
+   "ATTRIBUTED->REPAIRING (budget_positive)",
+   "REPAIRING->REPAIRING (round_failed_rounds_and_budget_remain)",
+   "REPAIRING->ESCALATED (rounds_or_budget_exhausted_or_cheaper_treatment)"
+  ]
+ },
+ "plan": {
+  "budget_usd": 17.925,
+  "cap": 17.925,
+  "cause_sha": "sha256:7ecbafb4a76554950b9d7f1c927c287def1245e880b6e5e78f677999f279755c",
+  "economics": {
+   "llm_budget_usd_month": 30.0,
+   "price_usd_month": 299.0,
+   "service_costs_usd": {
+    "books": 0.0004,
+    "fx": 0.0002
+   },
+   "tasks_per_hour": 40.0,
+   "tier": "Team",
+   "value_per_failed_task_usd": 3.0
+  },
+  "holdout_pairs": 120,
+  "host": "ledger-practice",
+  "incident": "INC-REH-0001",
+  "inputs": {
+   "c_mon": 18.0,
+   "cost_per_hypothesis": 3.0,
+   "cost_per_run": 0.004,
+   "expected_remaining_incidents": 4.0,
+   "gm_floor": 0.7,
+   "holdout_pairs": 120,
+   "p01": 0.02,
+   "spent_mtd": 0.0
+  },
+  "k": 3,
+  "max_rounds": 3,
+  "n_pairs": 14,
+  "plan_sha": "sha256:d83ed87d497485d02046d287c8e2eff6949833bde63a29c0df3f4f788ea572b4",
+  "pool": 71.7,
+  "r_fail": 0.45,
+  "remaining": 71.7,
+  "tier": "claude-sonnet-5-5",
+  "var": 1296.0
+ },
+ "regression": {
+  "bisect": [],
+  "first_bad_checkpoint": "01M4PMAYHYAF025KPN33QZ9RTQ",
+  "originating_commit": "81f4d5c0876820afc745f2fdd034290074c98c95",
+  "regression": true
+ },
+ "reverify": {},
+ "run": "reh-20261011-232114",
+ "signature": {
+  "clusters": 1,
+  "label": "Duplicate books:/lines write after fx_rate",
+  "phi": "sha256:b9fe39c5383c557f442a1e72aaba6dbc5b6cbef432728f85bf777635bc8ac29f",
+  "size": 4
+ },
+ "toolchain": {
+  "entire": "0.11.4",
+  "entire-graph": "v0.4.0",
+  "python": "3.12"
+ }
+}

@@ -3,6 +3,89 @@
 Each stage's verification targets (from `docs/EXECUTION_PLAN.md` §4) with the result and the
 evidence that reproduces it. Numbers are copied from committed artifacts or from the named test.
 
+## Stage 6 — Crew, primary incident loop, gates G0–G7, ship (L0, L1, L4)
+
+Recorded 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, the headless
+Claude Code CLI 2.1.269, temporalio 1.34.0 (time-skipping server in tests, Temporal CLI 1.9.1 dev
+server in the rehearsals) and GitHub Actions. Spikes: `docs/SPIKES.md` (Stage 6); deviations:
+amendments A-47 to A-58. Crew models: Sentinel `claude-haiku-5-5`, Surgeons
+`claude-sonnet-5-5`, the Opus roles on `claude-opus-5` (A-54).
+
+### The Ledger rehearsal (disposable, disclosed practice target, A-57)
+
+`kintsugi crew rehearse` copies the Ledger practice host outside every repository, delivers the
+practice regression through a headless session (attested, with its own checkpoint), runs live
+traffic and sends the failures as R-007 hits through the FleetSupervisor on the dev server. Every
+attempt is recorded, including the ones that found bugs in Omega:
+
+| Run | What happened | Outcome |
+|---|---|---|
+| `reh-20261011-224740` | The delivery model refused the patch: its framing promised "keep behavior identical" (A-52). | no incident |
+| `…-224903`, `…-225031` | The ruleset's glob blocked the push creating the run's base (N9: a required check also blocks creation). | no incident |
+| `…-225239` | Opus calls refused by the CLI (A-54), deterministic fallbacks answered; round 0: three passes, a pre-registered dispute picked H1; G7 in Actions failed its fresh-seed G2 (2/3: the stress profile exhausted a correct retry budget). PR #2 closed with the reason; G2's criterion fixed (A-53). | ESCALATED, nothing merged |
+| `…-232114` | Real crew. **Round 0:** H1 (hoist), H2 (revert), H3 (idempotent pass) all passed G0–G4 and G6, but G5 raised intent concerns on all three → no winner, **rewound** (attempt refs kept). **Round 1:** H4 (refined hoist) kept every clause; H5 drew a concern; H6 failed G1. H4 won. PR #3: G7 **passed** in Actions, but the shipper read a skipped job of the same name as not passed. | ESCALATED (I1 held: no merge without a readable G7); fixed in `7d1ec66` |
+| `…-235459` | **Resolved end to end** (below). | RESOLVED |
+
+`reh-20261011-235459` (`evidence/rehearsals/reh-20261011-235459.json`), 554 s, $0.65 metered:
+
+| Step | Result |
+|---|---|
+| Detection | 35 failed live tasks → 35 R-007 hits; the Sentinel paged at 3 in 10 minutes: 1 opened, 34 attached (I7: every hit disposed) |
+| Pathologist | one cluster, φ `sha256:b9fe39c5…`, "Duplicate books:/lines write after fx_rate lookup"; **G0: the cassette fails 3/3** at seed 1 on the base |
+| Archivist | intent record from checkpoint `01M4PP8XBXDA2H5E0472GM1RYP` (the delivery): 5 contract clauses, **every quote verified verbatim** against the transcript (SHA-256 recorded); the commit trailer and `entire why` **agree**; regression confirmed, **first bad checkpoint** = the delivery's |
+| Plan | B = $17.93 (Cap; VaR higher), K = 3, n = 14 pairs needed (120 available), plan `sha256:b34e37c9…` |
+| Surgeons | three headless Claude Code sessions in parallel worktrees, **each an attested commit with its own checkpoint** (`01M4PPD46B…`, `01M4PPD6W7…`, `01M4PPDS7S…`); **C2–C5 pass on all three** and on the delivery |
+| Auditor | all three pass G0–G4 and G6 (G4: b = 39, c = 0, p = 1.8×10⁻¹²; cost Δ −17%; p95 Δ UB −32%); G5: H1 concern (Opus), H2 and H3 kept every clause (deterministic fallback: the two Opus calls hit the subscription's session limit, recorded in `calls.jsonl`) |
+| Dispute | H2 and H3 on the Pareto front → protocol registered (`sha256:66fa65ca…`) before running: stress profile, the same tasks and seeds: 11/12 vs 11/12, cost equal → **smaller diff: H2** (10 vs 18 lines). H2 keeps the refactor's name and docstring and moves the session back outside the retried pass. |
+| Ship | issue #4 → **PR #5** whose body is the E.4 receipt (`Fixes #4`) → **G7 green** in Actions (run 38186481441: G1 ✓; G2 no `DuplicateEntry` on the head at 3 fresh seeds, 4 on the base; G3 0 flips; G4 b = 28, c = 0, p = 3.7×10⁻⁹) → merged with merge commit `76f19d1` (second parent: the attested commit) |
+| Canary | live batches on the merged code; SPRT accepted H0 → RESOLVED; antibody placeholder recorded for Stage 7 |
+| I5 | holdout canary hits: case file 0, crew calls 0, Surgeon transcripts 0 (3 scanned) |
+| Ledger | 8 hash-chained entries (transitions, incident, antibody), verifies |
+
+### Targets
+
+| Target | Result | Evidence |
+|---|---|---|
+| G0 fails 3/3 | ✅ live and in tests (a healthy base does not reproduce) | `test_g0_reproduces_the_regression_and_g2_accepts_only_the_fix`; rehearsal |
+| Intent Record with verified quotes | ✅ live (5 clauses, trailer and `entire why` agree); invented quotes are dropped | `test_the_archivist_writes_a_verified_intent_record` (contract), `test_editing_turns_quotes_and_heuristics` |
+| Three parallel Surgeons, each with a checkpoint | ✅ live, C2–C5 pass on every attempt | rehearsal evidence `hypotheses[].c2_c5` |
+| Round 1 fails and is rewound → round 2 | ✅ live (`…-232114`: three G5 concerns, rewound, round 1 winner) and in the deterministic loop test (naive hoist flips G3, lookup breaks tests, revert ranked down) | `evidence/rehearsals/reh-20261011-232114.json`; `test_round_one_fails_round_two_disputes_then_ships` |
+| Pre-registered dispute experiment | ✅ live (twice) and in tests; a protocol changed after registration is refused | `test_the_decision_rule_and_a_pre_registered_dispute` |
+| Ship → G7 green → merge | ✅ PR #5, run 38186481441, merge `76f19d1`; locally `LocalShipper` runs G7 in process | `tests/control/test_ship.py` |
+| Protected-path edits blocked twice | ✅ the pre-commit hook refuses them on `kintsugi/*` branches; the Auditor's diff check fails a commit that bypassed it; `orchestrator_commit` refuses them before committing | `test_the_precommit_hook_refuses_protected_paths_on_surgeon_branches`, `test_the_auditor_is_blind_and_strict`, `test_the_surgeon_runner_commits_an_attested_change` |
+| Diffs over 120 lines blocked | ✅ unless the card records the Coordinator's approval | `test_antigaming_blocks_protected_paths_big_diffs_and_network`, `test_the_plan_and_the_cards` |
+| New outbound network calls blocked | ✅ HTTP clients, sockets and URL literals in added lines | same antigaming test |
+| Zero holdout leaks across crew spans and transcripts | ✅ live scan above; the loop test scans the case file and every crew prompt; G4 refuses an output carrying the canary or a task id | `test_round_one_fails_round_two_disputes_then_ships`, `test_g4_accepts_the_hoist_and_rejects_the_costly_lookup` |
+| The Auditor never sees Surgeon output | ✅ enforced by the case file (refused reads are logged); live: the Auditor's reads are card, repro, cassette, intent record, cause report only | `test_the_auditor_cannot_read_surgeon_output`, rehearsal `information_flow` |
+| G6 stops a round when the budget is spent | ✅ no Surgeon session starts past B; the hypothesis fails G6 and `budget_exhausted` ends the rounds | `test_no_surgeon_session_starts_past_the_budget` |
+| L4 drill: drift mid-round → rebase → reverify record | ✅ main moves while the Surgeon works; the winner is re-verified merged onto the new main (never rebased, A-49) with the policy record `{G1, G2, G3, G4, G7}` | `test_l4_drift_mid_round_reverifies_the_winner_on_the_new_main` |
+
+### Invariants and proof
+
+- **I1**: nothing merges without G0–G6 and a readable green G7; run `…-232114` shows the
+  refusal path (escalated, PR left unmerged).
+- **I3**: every live run ended RESOLVED or ESCALATED with a legal transition log; a refused or
+  over-budget Surgeon fails its hypothesis, never the incident.
+- **I5**: the holdout is decrypted only inside G4 (Auditor) and G7 (Actions secret); outputs are
+  aggregates; leak scans are zero.
+- **L0, L1, L4**: the primary response, rewind with attempt refs kept, and drift re-verification.
+- **C2–C5** pass on every attested commit; **C7**'s artifact (a green G7 run per merged PR)
+  exists; **T2** (holdout, scoped key, fresh-seed G7) and **T5** (deterministic gates, blinded
+  Auditor, Actions) are exercised.
+
+### Known limits carried forward
+
+- The Opus roles run on `claude-opus-5` until the headless CLI is updated (A-54); two G5
+  judgements of the resolved run used the deterministic fallback after the subscription's
+  session limit.
+- The live rehearsals' round-1 failure came from G5 concerns; the gate-driven round failures
+  (G3 flip, failing tests) are shown by the deterministic loop test with scripted Surgeons.
+- The Fixes MCP prior (A4) is not connected (OAuth); antibodies, motif scans, vaccination,
+  quarantine and the revert path are Stage 7 (the crew answers that none exist yet).
+- The ledger is a file until Stage 8 moves it to the `ledger` branch; merge commits made by
+  GitHub are committed by GitHub, so Stage 8's C2–C5 must verify the PR record for them.
+- Stage 6 commit `fd102e6`'s checkpoint omits one test file from `files_touched` (A-58).
+
 ## Stage 5 — Control plane: Temporal + SQLite-WAL + Watchdog (D6)
 
 Recorded 2026-10-11 (IST) on Windows 11 with temporalio 1.34.0, the SDK's time-skipping test
