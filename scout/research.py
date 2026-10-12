@@ -57,8 +57,9 @@ def fetch_document(doc_id: str, page: int) -> dict[str, Any]:
 
 
 def fetch_all_pages(doc_id: str) -> list[Passage]:
+    buffer = ScratchBuffer()  # outside the retried scope (AB-1@1.0, applied literally)
+
     def attempt() -> list[Passage]:
-        buffer = ScratchBuffer()
         page, pages = 1, 1
         while page <= pages:
             document = fetch_document(doc_id, page)
