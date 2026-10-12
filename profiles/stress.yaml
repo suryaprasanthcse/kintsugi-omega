@@ -1,0 +1,21 @@
+# A disclosed stress profile for the fleet's dispute experiments, G7's fresh-seed G2 and the
+# antibody's induced trigger: the external services inside the hosts' retried scopes
+# rate-limit often enough that most multi-call attempts meet a 429 part-way through.
+name: fleet-stress
+disclosed: true
+seed: 7
+rules:
+  - service: fx
+    path: /rate
+    fault: status
+    status: 429
+    rate: 0.30
+  - service: docs
+    path: /doc/*
+    fault: status
+    status: 429
+    rate: 0.30
+  - service: "*"
+    fault: latency
+    rate: 1.0
+    latency_ms: [2, 30]
