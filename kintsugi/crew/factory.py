@@ -44,7 +44,10 @@ from kintsugi.gates.checkout import rev
 from kintsugi.memory.antibody import Antibody, AntibodyState
 from kintsugi.memory.graph import GraphError
 from kintsugi.memory.library import AntibodyLibrary, LibraryError
+from kintsugi.proof.anchor import post_text
+from kintsugi.proof.attest import Signer
 from kintsugi.proof.ledger import Ledger, genesis_hash
+from kintsugi.proof.ledger_branch import BranchLedger
 from kintsugi.sandbox import worktree
 from kintsugi.senses.drift import reverify_plan
 from kintsugi.senses.fixes_mcp import Fixes, FixesUnavailable
@@ -74,6 +77,16 @@ class FileLedger:
     def entries(self) -> tuple[dict[str, Any], ...]:
         text = self.path.read_text(encoding="utf-8") if self.path.is_file() else ""
         return Ledger.from_jsonl(text, self.genesis).entries
+
+
+@dataclass(frozen=True)
+class Anchoring:
+    """Stage 8: hourly signed anchors of a ``BranchLedger`` (A-67). Omega writes the tag and the
+    post text under ``out_dir``; the Architect posts the text."""
+
+    signer: Signer
+    repo_url: str
+    out_dir: Path
 
 
 class Shipper:
@@ -114,8 +127,9 @@ class OmegaCrew:
         shipper: Shipper | None = None,
         fixes: Fixes | None = None,
         tags: Any = None,  # kintsugi.senses.tags.TagWriter for neatlogs traces
-        ledger: FileLedger | None = None,
+        ledger: FileLedger | BranchLedger | None = None,
         immunity: Immunity | None = None,  # None: Stage 6 behaviour (primary responses only)
+        anchoring: Anchoring | None = None,
     ) -> None:
         self.ctx = ctx
         self.runner = runner
@@ -126,6 +140,7 @@ class OmegaCrew:
         self.ledger = ledger or FileLedger(
             ctx.state / "ledger.jsonl", genesis_hash("rehearsal", b"\0" * 32)
         )
+        self.anchoring = anchoring
         self.auditor = Auditor(ctx)
         self.coordinator = Coordinator(ctx)
         if immunity is not None and immunity.immunologist.ledger is None:
@@ -370,6 +385,16 @@ class OmegaCrew:
 
     def do_ledger_append(self, step: StepContext, entry: dict[str, Any]) -> str:
         return self.ledger.append(entry)
+
+    def do_anchor_ledger(self, step: StepContext, hour: int) -> str:
+        """AuditAnchor's hourly step: sign the head, write the post text; returns the tag."""
+        if self.anchoring is None or not isinstance(self.ledger, BranchLedger):
+            raise NotImplementedError("anchors need a BranchLedger and the T0 signer (A-67)")
+        anchor = self.ledger.anchor(self.anchoring.signer)
+        out = self.anchoring.out_dir / f"{anchor.tag}.txt"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(post_text(anchor, self.anchoring.repo_url) + "\n", encoding="utf-8")
+        return anchor.tag
 
     # ---- Stage 7: antibodies (§5.8), vaccination (§6.5 steps 12–14), L3 (§6.7) -----------------
 
