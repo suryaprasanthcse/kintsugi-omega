@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "strategy_options": {
+    "push_sessions": false
+  },
+  "telemetry": false,
+  "checkpoints": {
+    "primary": {
+      "type": "git-refs"
+    }
+  },
+  "redaction": {
+    "custom_redactions": {
+      "anthropic_api_key": "sk-ant-[A-Za-z0-9_\\-]{20,}",
+      "neatlogs_api_key": "(?i)neatlogs[_-]?(?:api[_-]?key|service[_-]?token|oauth[_-]?token|webhook[_-]?secret)[\\\"' ]*[:=][\\\"' ]*[A-Za-z0-9_.\\-]{16,}",
+      "neatlogs_access_token": "nl(?:sa|oa)_[A-Za-z0-9_\\-]{16,}",
+      "bearer_token": "(?i)bearer\\s+[A-Za-z0-9._~+/=\\-]{20,}",
+      "github_token": "(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})",
+      "aws_access_key": "AKIA[0-9A-Z]{16}",
+      "age_secret_key": "AGE-SECRET-KEY-1[0-9A-Z]{58}",
+      "private_key_block": "-----BEGIN [A-Z ]*PRIVATE KEY-----",
+      "kintsugi_redaction_probe": "kintsugi-redaction-probe-[0-9]{6}"
+    }
+  }
+}
