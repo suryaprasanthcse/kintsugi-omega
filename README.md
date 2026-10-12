@@ -2,28 +2,103 @@
 
 > Repairs that show their seams in gold.
 
-KINTSUGI-Ω (Blueprint Omega) is our #neatHack 2026 entry. It is an autonomous reliability system for a fleet of AI agents, modeled on the adaptive immune system. It is built on [neatlogs](https://neatlogs.com) (senses), [Entire](https://entire.io) (memory and provenance) and [cfo.ai](https://cfo.ai) (economics).
+KINTSUGI-Ω is our #neatHack 2026 entry: an autonomous reliability system for a fleet of AI
+agents, modelled on the adaptive immune system. It senses failures with
+[neatlogs](https://neatlogs.com), remembers and proves every change with
+[Entire](https://entire.io), and prices every repair with [cfo.ai](https://cfo.ai).
 
-## Mandate
+## The problem
 
-> Given a fleet of AI agents and an autonomy window, keep every agent at or above its reliability SLO and at or above the fleet's gross-margin floor while an adversary attacks both the agents and the immune system itself, with zero human commits to protected branches. Produce a signed, independently checkable account of every infection, repair, prevention and economic decision.
+AI agents fail in production quietly. A refactor ships, the tests stay green, and a retry starts
+posting duplicate ledger lines. Today's coding agents:
 
-## Status
+- **ship unverified fixes**: a patch that passes unit tests can still regress on the traffic
+  that broke it;
+- **pay full price for every repeat**: the same bug on the next repository costs a whole new LLM
+  investigation, so repair cost grows linearly with the fleet;
+- **ask to be trusted**: their logs and "fixed it" claims are self-reported.
 
-Stages 1–3 of the [execution plan](docs/EXECUTION_PLAN.md) are built:
+## How it works
 
-- **Proof, statistics and economics cores**: hash-chained ledger, sealed commit–reveal, Ed25519 session attestation, SPRT/McNemar/Wilson gates, the budget governor.
-- **Entire and entire-graph layer**: checkpoint adapters, the motif engine, disposable attempt worktrees, headless Claude Code sessions, and the orchestrator commit protocol with audit checks C2–C6 ([spike results](docs/SPIKES.md)).
-- **The fleet**: three agent hosts, [Ledger](hosts/ledger), [Scout](hosts/scout) and [Triage](hosts/triage), instrumented with neatlogs and running behind an LLM metering proxy (hard daily cap) and a seeded chaos proxy. Untrusted code runs under gVisor behind an egress allowlist. Holdouts are age-encrypted. Baselines and the Stage 3 checks are in [docs/VERIFICATION.md](docs/VERIFICATION.md).
+```
+ neatlogs traces ──► SENSES ──► CREW ─────────────────────► GATES G0–G7 ──► SHIP (PR, CI)
+ (grader.verdict)    receptors   Sentinel → Pathologist      reproduce · unit · replay ·      │
+                     webhook +   (Entire code graph,         paired holdout statistics ·      ▼
+                     poller      blast radius) → Surgeons    intent · budget · independent   CANARY (SPRT)
+                                 (competing, sandboxed) →    CI                               │ reject → auto-revert
+                                 blind Auditor                                                ▼
+ MEMORY: Immunologist turns a solved incident into an antibody (motif on the code graph +
+ receptor + recipe) → matures it on another host → vaccinates the fleet; harm → quarantine,
+ contrastive refinement.
+ PROOF: every commit signed (Ed25519) and linked to its Entire checkpoint; hash-chained ledger
+ with signed hourly anchors; sealed sabotage; `kintsugi audit` C1–C14 re-checks all of it.
+```
+
+- **Senses**: neatlogs receptors watch the `grader.verdict` span of every agent run; a webhook and
+  a reconciling poller open incidents and dedupe hits.
+- **Crew**: headless Claude Code roles. A blind Auditor runs deterministic gates G0–G7. Its G4
+  pairs the candidate against the baseline on an age-encrypted holdout that the crew never sees.
+- **Provenance**: each crew commit carries signed `Kintsugi-*` trailers and an `Entire-Checkpoint`
+  trailer; an orchestrator-decided change (revert, regression cases) runs inside a templated
+  **notary** session, so every commit has a session behind it.
+- **Economics**: every incident and vaccination is costed; the governor keeps spend under budget.
+
+## Results (rehearsals on disposable hosts)
+
+From the Stage 6 and Stage 7 rehearsals (`evidence/rehearsals/l3-20261012-074523.json`,
+[`antibodies/AB-1`](antibodies/AB-1), [docs/VERIFICATION.md](docs/VERIFICATION.md)):
+
+| What | Result |
+|---|---|
+| Primary response (Stage 6) | `INC-R235459-0001`, duplicate ledger postings on the Ledger practice host, resolved by the crew through gates G0–G7 ([PR #5](https://github.com/suryaprasanthcse/kintsugi-omega/pull/5), G7 green in Actions, canary accepted): **$0.665** |
+| Antibody AB-1@1.0 | synthesised from that incident; the motif matches the code before the fix and not after |
+| Maturation on a second host | CRM practice host, gates **G0–G6 pass** (G4: b=6, c=0, p=0.0156): [PR #7](https://github.com/suryaprasanthcse/kintsugi-omega/pull/7) (PR-only, a foreign host) |
+| Receptor | precision **1.00 over 335** recorded runs → ACTIVE |
+| Backfill | **6 silent past failures**, **$12.00** of impact |
+| Vaccinations | **$0.089** (CRM) and **$0.104** (Scout) vs $0.665 primary: **~7× cheaper per repeated bug** |
+| L3 autoimmunity (**disclosed drill**) | the literal recipe was forced onto Scout past a failed Auditor verdict ([PR #8](https://github.com/suryaprasanthcse/kintsugi-omega/pull/8)); the canary SPRT rejected it at n=38; Omega reverted through an attested notary session ([PR #9](https://github.com/suryaprasanthcse/kintsugi-omega/pull/9), reverse canary accepted at n=70), quarantined AB-1, added 6 seed-addressed regression cases ([PR #10](https://github.com/suryaprasanthcse/kintsugi-omega/pull/10)) |
+| Contrastive learning | AB-1@1.1 learned the precondition "a side-effecting callee inside the retried scope" (true on the 3 protected hosts, false on Scout) and re-matured to ACTIVE |
+
+## The proof plane: don't trust it, audit it
+
+`kintsugi audit` (spec §7.5) re-checks the autonomy window from public data:
+
+| Check | Verifies |
+|---|---|
+| C1 | ledger hash chain from h_0, signed hourly `anchor-*` tags, bundle digests |
+| C2–C5 | every protected-branch commit attested, signature valid, Entire checkpoint holds the nonce, first prompt hashes to `Kintsugi-Prompt` |
+| C6 | sealed sabotage opens only to its commitment, sealed before delivery, honeytoken never leaked |
+| C7–C10, C12 | G7 CI runs, trace existence, completeness of detection hits, cost within 1%, rulesets active |
+| C11, C13, C14 | antibody lineage replays, holdout manifest unchanged, self-repairs never touch the proof plane |
+
+A check whose inputs are missing reports **SKIP, never PASS** (exit 0 pass · 1 fail · 2 skipped).
+A 33-test mutation suite proves each check catches its own tampering: a rewritten ledger caught
+by its anchor, a forged signature, a missing nonce, a planted honeytoken and more.
 
 ```bash
 uv sync --locked
-make check                                            # ruff, pyright, pytest
-uv run kintsugi fleet baseline --host ledger          # 3-seed baseline and health card
-KINTSUGI_CONTRACT=1 uv run pytest tests/contract -v   # live Entire, graph, gVisor and headless checks
+uv run kintsugi audit --all --offline ./published-bundles   # today: C11, C14 PASS; the rest SKIP (no window ran); exit 2
+uv run pytest tests/proof/test_audit.py -q                  # 33 tamper tests
+uv run kintsugi t0 check                                    # what a real autonomy window still needs
+make check                                                  # ruff, pyright, full test suite
 ```
 
-Entire is enabled from the first commit, so every AI-made change carries its checkpoint.
+## Disclosure
+
+| Item | Status |
+|---|---|
+| Stages 1–8 of the [execution plan](docs/EXECUTION_PLAN.md) (proof cores, Entire layer, fleet, senses, control plane, crew and gates, antibodies, proof plane) | **Built and verified**: 842 tests passed, 30 contract tests skipped (they need local tooling); omega-ci green |
+| The autonomous window W | **Not run** (Architect's go/no-go, Oct 12): the runtime wiring for W was not ready in time. The audit therefore SKIPs window checks; they are exercised by the mutation suite instead |
+| Stages 9–12 (economic cortex, onboarding/Clinic, Arena, self-repair) | **Descoped**, disclosed |
+| Rehearsal hosts | disposable practice copies (`ledger-practice`, `crm-practice`), shipped through `rehearsal/*` branches; the real Ledger's sabotage mechanism is never written in clear (A-57) |
+| L3 | a **disclosed drill**: the wrong fix was injected on purpose; everything after the merge is Omega's own response (A-66) |
+| Sealed sabotage | demonstrated on a disclosed practice spec (P-1, audit C6 PASS); the real S-17/18/19 were never sealed because W did not run |
+| Baselines | `model=offline` agents (A-23); the crew uses Claude models |
+| Open issues | neatlogs alert rules silent (A-38); 3–4% trace loss (A-39); the Haiku realism rubric is not wired (deterministic fallback, A-68) |
+
+Every deviation from the blueprint is an amendment in
+[docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md) (A-1 … A-68), and every run, failures included,
+is in [docs/VERIFICATION.md](docs/VERIFICATION.md).
 
 ## Architect & AI Tooling Disclosure
 

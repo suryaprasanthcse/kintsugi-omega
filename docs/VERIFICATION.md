@@ -3,6 +3,17 @@
 Each stage's verification targets (from `docs/EXECUTION_PLAN.md` §4) with the result and the
 evidence that reproduces it. Numbers are copied from committed artifacts or from the named test.
 
+## Summary for #neatHack judges
+
+| Claim | Where it is verified |
+|---|---|
+| A crew repaired a real agent regression and proved it with gates G0–G7 | Stage 6 (`INC-R235459-0001`, $0.665) |
+| The fix became an antibody that matured on another host (PR #7, G4 p=0.0156), scored receptor precision 1.00 over 335 runs and found 6 silent past failures ($12.00) | Stage 7 |
+| Repeat repairs cost ~7× less: vaccinations $0.089 and $0.104 vs $0.665 | Stage 7, `evidence/rehearsals/l3-20261012-074523.json` (`costs`) |
+| A harmful vaccination was caught by the canary and auto-reverted through an attested notary session (PRs #8–#10, a **disclosed drill**) | Stage 7 |
+| `kintsugi audit` C1–C14 catches tampering of every kind it checks | Stage 8, 33 mutation tests |
+| The autonomous window W was **not run**; Stages 9–12 are **descoped** | Architect's go/no-go, 2026-10-12; README "Disclosure" |
+
 ## Stage 8 — Proof plane: audit C1–C14, ledger branch and anchors, Saboteur, T0 preflight
 
 Recorded 2026-10-12 (IST) on Windows 11 with Entire 0.11.4, entire-graph v0.4.0, Claude Code CLI
