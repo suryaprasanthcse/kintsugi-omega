@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4QADWB8TMM6MKKBN5SJ7J5S",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "kintsugi/crew/casefile.py",
+    "kintsugi/crew/immunologist.py",
+    "kintsugi/crew/manifest.py",
+    "kintsugi/crew/prompts/SHA256SUMS",
+    "kintsugi/crew/prompts/immunologist_rationale.md",
+    "kintsugi/crew/prompts/immunologist_recipe.md",
+    "tests/crew/test_immunologist.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 46,
+    "cache_creation_tokens": 66255,
+    "cache_read_tokens": 12384062,
+    "output_tokens": 47992,
+    "api_call_count": 23
+  }
+}
